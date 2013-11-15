@@ -1,0 +1,398 @@
+// 
+// 本软件为免费、开源软件。
+// 本软件的版权(包括源码及二进制发布版本)归一切公众所有。
+// 您可以自由使用、传播本软件。
+// 您也可以以任何形式、任何目的使用本软件(包括源码及二进制发布版本)，而不受任何版权限制。
+// =====================
+// 作者: 孙明保
+// 邮箱: sunmingbao@126.com
+// 
+
+#include "res.h"
+#include <windows.h>
+// this minimal resource file is all what is needed for most of the wxWindows
+// samples
+
+// note that the icon used by the Explorer (i.e. the programs icon) is the
+// first icon in the executable and the icons are sorted both by their order
+// (Win9x) and by alphabetically (!) (NT), so put this icon first and give it
+// a name starting with "a"
+a_exe_icon ICON "sample.ico"
+my_frame_icon ICON "sample.ico"
+config_icon ICON "cfg.ico"
+stream_icon ICON "stream.ico"
+speed_icon ICON "speed.ico"
+cap_cfg_icon ICON "cap_cfg.ico"
+stats_icon ICON "stats.ico"
+info_icon ICON "info.ico"
+icon_start ICON "start_32.ico"
+icon_stop ICON "stop_32.ico"
+//icon_net_card ICON "net_card_32.ico"
+icon_capture ICON "capture.ico"
+icon_capture_snd ICON "capture_snd.ico"
+icon_view_capture ICON "eye_32.ico"
+icon_capture_dis ICON "capture_dis.ico"
+icon_capture_snd_dis ICON "capture_snd_dis.ico"
+icon_view_capture_dis ICON "eye_32_dis.ico"
+
+//my_cursor CURSOR "si.cur"
+
+//ToolbarNormal  BITMAP   "ToolbarNormal.bmp"
+//ToolbarHover   BITMAP   "ToolbarHover.bmp"
+//ToolbarDisable BITMAP   "ToolbarDisable.bmp"
+
+// Menu
+MY_MENU MENU DISCARDABLE 
+BEGIN
+    	POPUP "文件(&F)"
+    	BEGIN
+    	        MENUITEM "新建(&N)\tCtrl+N", 				IDM_FILE_NEW
+    	        MENUITEM "打开(&O)...\tCtrl+O", 			IDM_FILE_OPEN
+    	        MENUITEM "保存(&S)\tCtrl+S", 				IDM_FILE_SAVE
+    	        MENUITEM "另存为(&A)...", 			IDM_FILE_SAVE_AS
+        		MENUITEM SEPARATOR
+    	        MENUITEM "查看ethereal/wireshark存档", 	    IDM_VIEW_PCAP_FILE
+        		MENUITEM SEPARATOR
+        		MENUITEM "退出(&X)", 				IDM_APP_EXIT
+    	END
+
+    	POPUP "查看(&V)"
+    	BEGIN
+    	        MENUITEM "工具栏(&T)", 				IDM_APP_TOOLBAR_WIN, CHECKED
+        		MENUITEM "状态栏(&S)", 				IDM_APP_STATUSBAR_WIN, CHECKED
+        		MENUITEM SEPARATOR
+        		MENUITEM "左面板(&L)", 				IDM_APP_LEFT_WIN, CHECKED
+        		MENUITEM "底面板(&B)", 				IDM_APP_BOTTOM_WIN, CHECKED
+
+    	END
+
+    	POPUP "选项(&O)"
+    	BEGIN
+    	    POPUP "每次发包前"
+    	    BEGIN
+    	    MENUITEM "询问是否清除统计", IDM_APP_QUERY_CLR_STATS, CHECKED
+    	    MENUITEM "自动清空统计", 	 IDM_APP_CLR_STATS
+    	    MENUITEM "不清空统计", 	 IDM_APP_NOT_CLR_STATS, CHECKED
+
+    	    MENUITEM SEPARATOR
+        	MENUITEM "询问是否保存抓到的报文", 	IDM_APP_QUERY_SAVE_CAPTURED_PKS, CHECKED
+        	MENUITEM "直接清除抓到的报文", 	IDM_APP_CLR_CAPTURED_PKS
+    		END
+    	END
+    	
+    	POPUP "帮助(&H)"
+    	BEGIN
+        	    MENUITEM "获取新版本...",	    IDM_GET_NEW_VERSION
+        	    MENUITEM "获取源代码...",	    IDM_GET_SOURCE
+        	    MENUITEM "访问官方站点...",	    IDM_OPEN_OFFICIAL_SITE
+        	    MENUITEM SEPARATOR
+        	    MENUITEM "关于本软件...(&A)",	IDM_APP_ABOUT
+    	END
+END
+
+my_popup_menu MENU DISCARDABLE 
+BEGIN
+    	POPUP "&Streams"
+    	BEGIN
+        		MENUITEM "新建(&N)", 				IDM_STREAM_NEW
+        		MENUITEM "编辑当前流(&E)", 			IDM_STREAM_EDIT
+        		MENUITEM SEPARATOR
+        		MENUITEM "用当前流构造分片(&F)", 	 IDM_STREAM_MAKE_FRAGS
+        		MENUITEM "选中的条目另存为pcap文件", IDM_STREAM_SEL2PCAP
+        		MENUITEM SEPARATOR
+        		MENUITEM "删除当前流", 			    IDM_STREAM_DEL
+        		MENUITEM "删除选中条目", 	        IDM_STREAM_DEL_SEL, GRAYED
+        		MENUITEM SEPARATOR
+        		MENUITEM "全选", 			        IDM_STREAM_SEL_ALL, GRAYED
+        		MENUITEM "反选", 			        IDM_STREAM_SEL_RVS, GRAYED
+    	END
+END
+
+stats_win_popup_menu MENU DISCARDABLE 
+BEGIN
+    	POPUP "&operations"
+    	BEGIN
+    	        MENUITEM "复制数据到剪切板", 	IDM_STATS_WIN_COPY2CLIP_BOARD
+        		MENUITEM SEPARATOR
+        		MENUITEM "清除统计", 			IDM_STATS_WIN_CLR
+    	END
+END
+
+
+// Accelerator
+MY_ACCELER ACCELERATORS DISCARDABLE 
+BEGIN
+    	"^N",         IDM_FILE_NEW,          ASCII,  NOINVERT
+    	"^O",         IDM_FILE_OPEN,         ASCII,  NOINVERT
+    	"^S",         IDM_FILE_SAVE,         ASCII,  NOINVERT
+END
+
+
+// Dialog
+ABOUTBOX DIALOG DISCARDABLE  32, 32, 250, 200
+STYLE DS_MODALFRAME | WS_POPUP
+FONT 8, "MS Sans Serif"
+BEGIN
+    	ICON        "my_frame_icon",IDC_STATIC,10,10,32,32
+    	PUSHBUTTON  "源码", ID_AB_SOURCE,5, 50, 35, 14
+    	PUSHBUTTON  "官网", ID_AB_SITE,  5, 70, 35, 14
+    	PUSHBUTTON  "升级", ID_AB_UPDATE,5, 90, 35, 14
+    	CONTROL "", ID_ABOUT_INFO, "edit"
+    	, WS_BORDER|WS_VSCROLL | ES_MULTILINE|ES_AUTOVSCROLL|ES_WANTRETURN|ES_READONLY
+    	, 45, 10, 190, 160
+
+    	//CTEXT       "About Box Demo Program",IDC_STATIC,7,40,166,8
+    	//CTEXT       "(c) Charles Petzold, 1998",IDC_STATIC,7,52,166,8
+    	DEFPUSHBUTTON   "确定",IDOK,100,180,50,14
+END
+
+// Dialog
+STREAM_EDIT_DLG DIALOG DISCARDABLE  32, 32, 400, 300
+STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
+CAPTION "stream edit"
+FONT 8, "MS Sans Serif"
+BEGIN
+
+		EDITTEXT    ID_SED_DYNAMIC_EDIT,150, 30, 100, 14, ES_AUTOHSCROLL
+		COMBOBOX    ID_SED_DYNAMIC_COMB,330,140,100,100,CBS_DROPDOWNLIST | WS_VSCROLL
+		PUSHBUTTON  "变化规则...", ID_SED_DYNAMIC_RULE_BUTTON,150, 30, 100, 14
+
+    	CTEXT       "名称",IDC_STATIC,10,10,20,14
+    	EDITTEXT    ID_SED_NAME,35, 10, 40, 14
+    	CTEXT       "包长(不含CRC)",IDC_STATIC,110,10,50,14
+    	EDITTEXT    ID_SED_LEN,180, 10, 30, 14
+
+    	CTEXT       "自动计算校验和: ",IDC_STATIC,10,30,50,14
+
+        CONTROL     "IP",ID_SED_IP_CHECKSUM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,70,30,20,14
+
+        CONTROL     "ICMP",ID_SED_ICMP_CHECKSUM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,100,30,30,14
+
+        CONTROL     "TCP/UDP",ID_SED_TCP_UDP_CHECKSUM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,140,30,50,14
+
+    	CTEXT       "自动更新长度: ",ID_SED_UPDATE_LEN,10,50,50,14
+
+        CONTROL     "IP",ID_SED_IP_LEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,70,50,20,14
+
+        CONTROL     "UDP",ID_SED_UDP_LEN,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,100,50,30,14
+
+
+        CONTROL     "Tree1",ID_SED_TREE_VIEW,"SysTreeView32", TVS_HASLINES|TVS_HASBUTTONS|TVS_LINESATROOT,10,50,380,60
+
+    	CONTROL     "",ID_SED_HEX_EDIT,"hex_edit",WS_CHILD,10,120,380,100
+
+  	DEFPUSHBUTTON   "确定",    IDOK,270,240,50,14
+  	PUSHBUTTON      "取消",IDCANCEL,330,240,50,14
+
+END
+
+
+// Dialog
+FC_CFG_DLG DIALOG DISCARDABLE  32, 32, 220, 200
+STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
+CAPTION "流控"
+FONT 8, "MS Sans Serif"
+BEGIN
+
+        GROUPBOX    "速率设置",  IDC_STATIC, 10,10, 170, 70
+    	CTEXT       "类型",IDC_STATIC,20,35,40,14
+		COMBOBOX    ID_FC_SPEED_TYPE,70, 35, 80, 50,CBS_DROPDOWNLIST | WS_VSCROLL
+
+    	CTEXT       "每秒",ID_FC_SPEED_INFO_PREFFIX,20,55,40,14
+    	EDITTEXT    ID_FC_SPEED_VALUE, 70, 55, 40, 14
+    	CTEXT       "次",ID_FC_SPEED_INFO_SUFFIX,120,55,40,14
+
+        GROUPBOX    "模式设置",  IDC_STATIC, 10,90, 170, 70
+
+    	CTEXT       "类型",IDC_STATIC,20,115,40,14
+    	COMBOBOX    ID_FC_SND_MODE,70, 115, 40, 50,CBS_DROPDOWNLIST | WS_VSCROLL
+    	CTEXT       "发送",ID_FC_SND_MODE_PREFFIX,20,135,40,14
+    	EDITTEXT    ID_FC_SND_TIMES_CNT, 70, 135, 40, 14
+    	CTEXT       "次 ",ID_FC_SND_MODE_SUFFIX,130,135,20,14
+
+  	DEFPUSHBUTTON   "确定",    IDOK,65,180,40,14
+  	PUSHBUTTON      "取消",IDCANCEL,115,180,40,14
+
+END
+
+// Dialog
+PKT_CAP_CFG_DLG DIALOG DISCARDABLE  32, 32, 270, 260
+STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
+CAPTION "抓包配置"
+FONT 8, "MS Sans Serif"
+BEGIN
+
+        GROUPBOX    "抓包模式",  IDC_STATIC, 5,5, 260, 45
+    	CONTROL     "仅统计 (无法查看内容)",ID_PKT_CAP_CFG_STAT_ONLY,"Button",BS_AUTORADIOBUTTON
+                    ,15,25,150,20
+
+    	CONTROL     "保存报文",ID_PKT_CAP_CFG_SAVE2FILE,"Button",BS_AUTORADIOBUTTON
+                    ,200,25,50,20
+
+        GROUPBOX    "报文筛选",  IDC_STATIC, 5,70, 260, 160
+    	CONTROL     "简单模式",ID_PKT_CAP_CFG_MODE_NORMAL,"Button",BS_AUTORADIOBUTTON|WS_GROUP
+                    ,15,90,50,20
+
+    	CONTROL     "高级模式 (ethereal filter, 例如: tcp port 21 )",ID_PKT_CAP_CFG_MODE_ADVANCED,"Button",BS_AUTORADIOBUTTON
+                    ,80,90,150,20
+
+    	CONTROL "", ID_PKT_CAP_FILTER_STR, "edit"
+    	, WS_VSCROLL | ES_MULTILINE|ES_AUTOVSCROLL|ES_WANTRETURN
+    	, 15, 130, 210, 100
+
+//    	CTEXT       "抓取哪个方向的报文",IDC_STATIC,10,30,40,14
+//		COMBOBOX    ID_PKT_CAP_DIRECTION,65, 30, 100, 50,CBS_DROPDOWNLIST | WS_VSCROLL
+
+    	CTEXT       "类型",ID_PKT_CAP_STR1,15,130,30,14
+    	COMBOBOX    ID_PKT_CAP_PKT_TYPE,50, 130, 100, 70,CBS_DROPDOWNLIST | WS_VSCROLL
+
+    	CTEXT       "源ip",ID_PKT_CAP_STR2,15,150,30,14
+    	EDITTEXT    ID_PKT_CAP_SIP, 50, 150, 60, 14
+    	CTEXT       "目的ip",ID_PKT_CAP_STR3,130,150,30,14
+    	EDITTEXT    ID_PKT_CAP_DIP, 165, 150, 60, 14
+
+    	CTEXT       "协议",ID_PKT_CAP_STR4,15,170,30,14
+    	COMBOBOX    ID_PKT_CAP_PROTOCOL,50, 170, 100, 70,CBS_DROPDOWNLIST | WS_VSCROLL
+
+    	CTEXT       "源端口",ID_PKT_CAP_STR5,15,190,30,14
+    	EDITTEXT    ID_PKT_CAP_SPORT, 50, 190, 60, 14
+
+    	CTEXT       "目的端口",ID_PKT_CAP_STR6,130,190,30,14
+    	EDITTEXT    ID_PKT_CAP_DPORT, 165, 190, 60, 14
+
+
+  	DEFPUSHBUTTON   "确定",    IDOK,150,240,50,14
+  	PUSHBUTTON      "取消",IDCANCEL,210,240,50,14
+
+END
+
+pkt_view_popup_menu MENU DISCARDABLE 
+BEGIN
+    	POPUP "&operations"
+    	BEGIN
+    	        MENUITEM "全选", 			        ID_VIEW_STREAM_SEL_ALL
+        		MENUITEM "反选", 			        ID_VIEW_STREAM_SEL_RSV
+        		MENUITEM SEPARATOR
+        		MENUITEM "删除所选", 			ID_VIEW_STREAM_DEL_SEL, GRAYED
+        		MENUITEM "所选生成流", 	        ID_VIEW_STREAM_SEL2STREAM, GRAYED
+        		MENUITEM "所选另存为...", 	    ID_VIEW_STREAM_SAVE_AS, GRAYED
+    	END
+END
+
+// Dialog
+PKT_VIEW_DLG DIALOG DISCARDABLE  32, 32, 100, 100
+STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
+CAPTION "报文浏览"
+FONT 8, "MS Sans Serif"
+BEGIN
+
+	//PUSHBUTTON   "全选",          ID_VIEW_STREAM_SEL_ALL,   10,10,60,14
+	//PUSHBUTTON   "反选",          ID_VIEW_STREAM_SEL_RSV,   50,10,60,14
+	//PUSHBUTTON   "删除所选",      ID_VIEW_STREAM_DEL_SEL,   80,10,60,14
+	//PUSHBUTTON   "所选生成流",    ID_VIEW_STREAM_SEL2STREAM,150,10,60,14
+	//PUSHBUTTON   "所选另存为...", ID_VIEW_STREAM_SAVE_AS,   240,10,60,14
+
+        CONTROL     "lv",ID_VIEW_STREAM_LV,WC_LISTVIEW, WS_CHILD | LVS_REPORT |LVS_SINGLESEL|LVS_SHOWSELALWAYS,10,10,330,60
+
+        CONTROL     "Tree1",ID_VIEW_STREAM_TREE_VIEW,WC_TREEVIEW, TVS_HASLINES|TVS_HASBUTTONS|TVS_LINESATROOT,10,80,315,60
+
+    	CONTROL     "",ID_VIEW_STREAM_HEX_EDIT,"hex_edit",WS_CHILD,10,150,380,100
+
+
+  	//DEFPUSHBUTTON   "关闭",        IDOK,340,240,50,14
+
+END
+
+// Dialog
+PKT_CAP_DLG DIALOG DISCARDABLE  32, 32, 450, 120
+STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
+CAPTION "抓包"
+FONT 8, "MS Sans Serif"
+BEGIN
+
+
+    	//EDITTEXT       ID_PKT_CAP_CFG_INFO,10,10,220,50
+    	//               ,ES_READONLY | WS_VSCROLL | ES_MULTILINE|ES_AUTOHSCROLL|ES_AUTOVSCROLL|ES_WANTRETURN
+    	PUSHBUTTON      "配置...",ID_PKT_CAP_CFG,120,10,40,14
+
+        PUSHBUTTON      "抓包",ID_PKT_CAP_CAP,10,10,40,14
+        PUSHBUTTON      "查看结果",ID_PKT_CAP_VIEW_RESULT,60,10,50,14
+    	CTEXT       "total:",IDC_STATIC,10,30,30,14
+    	CTEXT       "0",ID_PKT_CAP_TOTAL,50,30,30,14 ,SS_LEFT
+    	
+    	CTEXT       "L2:",IDC_STATIC,10,50,30,14
+    	CTEXT       "0",ID_PKT_CAP_L2,50,50,30,14 ,SS_LEFT
+
+    	CTEXT       "arp:",IDC_STATIC,90,50,30,14
+    	CTEXT       "0",ID_PKT_CAP_ARP,130,50,30,14 ,SS_LEFT
+    	CTEXT       "rarp:",IDC_STATIC,170,50,30,14
+    	CTEXT       "0",ID_PKT_CAP_RARP,210,50,30,14 ,SS_LEFT
+    	CTEXT       "L2 other:",IDC_STATIC,250,50,30,14
+    	CTEXT       "0",ID_PKT_CAP_OTHER_L2,290,50,30,14 ,SS_LEFT
+    	
+    	CTEXT       "ip:",IDC_STATIC,10,70,30,14
+    	CTEXT       "0",ID_PKT_CAP_IP,50,70,30,14
+    	CTEXT       "icmp:",IDC_STATIC,90,70,30,14
+    	CTEXT       "0",ID_PKT_CAP_ICMP,130,70,30,14
+    	CTEXT       "tcp:",IDC_STATIC,170,70,30,14
+    	CTEXT       "0",ID_PKT_CAP_TCP,210,70,30,14
+    	CTEXT       "udp:",IDC_STATIC,250,70,30,14
+    	CTEXT       "0",ID_PKT_CAP_UDP,290,70,30,14
+    	CTEXT       "IP other:",IDC_STATIC,330,70,30,14
+    	CTEXT       "0",ID_PKT_CAP_OTHER,370,70,30,14
+    	
+    	CTEXT       "IPv6:",IDC_STATIC,10,90,30,14
+    	CTEXT       "0",ID_PKT_CAP_IPv6,50,90,30,14
+
+//  	DEFPUSHBUTTON   "OK",    IDOK,430,160,50,14
+
+END
+
+// Dialog
+RULE_CFG_DLG DIALOG DISCARDABLE  32, 32, 220, 120
+STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
+CAPTION "变化规则"
+FONT 8, "MS Sans Serif"
+BEGIN
+
+        CONTROL     "启用规则",ID_RULE_CFG_USE_RULE,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,10,10,60,14
+
+    	CTEXT       "起始值",IDC_STATIC,10,30,40,14
+    	EDITTEXT    ID_RULE_CFG_BASE, 65, 30, 120, 14
+    	
+    	CTEXT       "最大不超过",IDC_STATIC,10,50,40,14
+    	EDITTEXT    ID_RULE_CFG_MAX, 65, 50, 120, 14
+
+
+    	CTEXT       "步长(10进制)",IDC_STATIC,10,70,40,14
+    	EDITTEXT    ID_RULE_CFG_STEP, 65, 70, 40, 14
+
+
+  	DEFPUSHBUTTON   "确定",    IDOK,100,100,50,14
+  	PUSHBUTTON      "取消",IDCANCEL,160,100,50,14
+
+END
+
+// Dialog
+FRAG_DLG DIALOG DISCARDABLE  32, 32, 220, 120
+STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
+CAPTION "报文分片"
+FONT 8, "MS Sans Serif"
+BEGIN
+
+        CTEXT     "报文将被平均分成如下片数(最后一片长度可能会短一些)",IDC_STATIC,10,10,200,14
+
+    	CTEXT       "分成几片:",IDC_STATIC,10,50,40,14
+    	EDITTEXT    ID_FRAG_NUM, 65, 50, 40, 14
+    	
+
+  	DEFPUSHBUTTON   "确定",    IDOK,100,100,50,14
+  	PUSHBUTTON      "取消",IDCANCEL,160,100,50,14
+
+END
