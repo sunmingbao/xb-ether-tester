@@ -646,15 +646,25 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
     t_arp_hdr *arp_hdr = (void *)(pt_eth_hdr->payload);
     t_icmp_hdr *icmp_hdr = ip_data(iph);
     t_tcp_hdr *tcp_hdr = ip_data(iph);
+    char info_2[64];
     
     switch (ntohs(pt_eth_hdr->type))
     {
         case ETH_P_ARP:
-            strcpy(info, "arp");
             if (ntohs(arp_hdr->ar_op)==1)
-                strcat(info, " request");
+            {
+                ip_n2str(info_2, arp_hdr->ar_tip);
+                sprintf(info, "who has %s? tell ", info_2);
+                ip_n2str(info_2, arp_hdr->ar_sip);
+                strcat(info, info_2);
+            }
             else if (ntohs(arp_hdr->ar_op)==2)
-                strcat(info, " reply");
+            {
+                ip_n2str(info_2, arp_hdr->ar_sip);
+                sprintf(info, "%s is at ", info_2);
+                mac_n2str(info_2, arp_hdr->ar_sha);
+                strcat(info, info_2);
+            }
             
             goto append_err_info;
             
@@ -670,15 +680,13 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
 
     if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
     {
-            sprintf(info, "eth type:%hu", ntohs(pt_eth_hdr->type));
+        sprintf(info, "eth type:0x%04x", ntohs(pt_eth_hdr->type));
             goto append_err_info;
     }
 
-    sprintf(info, "%s ", protocol_name_map[iph->protocol]);
-
     if (ip_pkt_is_frag(iph))
     {
-        strcat(info, "frag ");
+        sprintf(info, "frag ");
         goto append_err_info;
 
     }
@@ -691,7 +699,7 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
             else if (icmp_hdr->type==0 && icmp_hdr->code==0)
                 strcpy(info, "ping reply");
             else
-                sprintf(info, "ICMP:type %hhu code %hhu", icmp_hdr->type, icmp_hdr->code);
+                sprintf(info, "type %hhu code %hhu", icmp_hdr->type, icmp_hdr->code);
 
             goto append_err_info;
             
@@ -700,7 +708,7 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
             goto append_err_info;
 
         case IPPROTO_TCP:
-            sprintf(info, "TCP port %hu->%hu[%s%s%s%s%s%s%s%s]"
+            sprintf(info, "port %hu->%hu[%s%s%s%s%s%s%s%s]"
                 , ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest)
                 ,tcp_hdr->cwr?"cwr ":""
                 ,tcp_hdr->ece?"ece ":""
@@ -714,7 +722,7 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
             goto append_err_info;
 
         case IPPROTO_UDP:
-            sprintf(info, "UDP port %hu->%hu", ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest));
+            sprintf(info, "port %hu->%hu", ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest));
             goto append_err_info;
 
     }
@@ -1135,7 +1143,7 @@ void update_from_rule_data(HWND htv, HTREEITEM htvi)
 }
 
 
-void check_sum_proc(t_stream *pt_stream, t_rule *pt_rule)
+void check_sum_proc(t_stream *pt_stream)
 {
     t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
     if (ntohs(pt_stream->eth_packet.type)!=ETH_P_IP) return;
@@ -1300,7 +1308,7 @@ void rule_fileds_init(t_stream *pt_stream)
     {
         pt_rule = &(pt_stream->at_rules[pt_stream->rule_idx[i]]);
         init_rule_field(pt_stream, pt_rule);
-        check_sum_proc(pt_stream, pt_rule);
+        check_sum_proc(pt_stream);
     }
 }
 
@@ -1313,7 +1321,7 @@ void rule_fileds_update(t_stream *pt_stream)
         pt_rule = &(pt_stream->at_rules[pt_stream->rule_idx[i]]);
         update_rule_field(pt_stream, pt_rule);
 
-        check_sum_proc(pt_stream, pt_rule);
+        check_sum_proc(pt_stream);
 
     }
 }
@@ -1775,9 +1783,9 @@ TCHAR *pkt_view_lv_col_names[] =
 {
     TEXT("索引"),
     TEXT("时间"),
-    TEXT("目的mac"),
-    TEXT("源mac"),
-    TEXT("类型"),
+    TEXT("源地址"),
+    TEXT("目的地址"),
+    TEXT("协议"),
     TEXT("长度"),
     TEXT("信息"),
 };
@@ -1786,16 +1794,28 @@ BOOL InitLvColumns(HWND hWndListView, int *col_width)
 { 
     TCHAR szText[256];     // Temporary buffer.
     LVCOLUMN lvc;
-    int iCol;
+    int iCol, col_num = ARRAY_SIZE(pkt_view_lv_col_names);
+
+int lv_width = win_width(hWndListView);
+
     lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 
     // Add the columns.
-    for (iCol = 0; iCol < ARRAY_SIZE(pkt_view_lv_col_names); iCol++)
+    for (iCol = 0; iCol < col_num; iCol++)
     {
         lvc.iSubItem = iCol;
         lvc.pszText = pkt_view_lv_col_names[iCol];
         lvc.fmt = LVCFMT_LEFT;  // Left-aligned column.
-        lvc.cx = col_width[iCol]; 
+
+        if (iCol!= (col_num-1))
+        {
+            lvc.cx = col_width[iCol]; 
+            lv_width -= lvc.cx;
+        }
+        else
+        {
+            lvc.cx = lv_width-35; 
+        }
 
         // Insert the columns into the list view.
         if (ListView_InsertColumn(hWndListView, iCol, &lvc) == -1)
@@ -1814,11 +1834,12 @@ BOOL InsertItemFromPkt(HWND hWndListView, t_dump_pkt *pt_pkt, struct timeval *ba
     LVITEM lvI;
     int index=ListView_GetItemCount(hWndListView);
     int iCol;
-    TCHAR    info[32];
+    TCHAR    info[128];
     struct tm ltime;
     char timestr[32];
     time_t local_tv_sec;
     struct timeval tmp=pt_pkt->header.ts;
+    t_ether_packet *pt_eth_hdr = pt_pkt->pkt_data;
 
     // Initialize LVITEM members that are different for each item.
     {
@@ -1856,6 +1877,8 @@ BOOL InsertItemFromPkt(HWND hWndListView, t_dump_pkt *pt_pkt, struct timeval *ba
     #endif
         ListView_SetItemText(hWndListView, index, 1, info);
 
+        if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
+        {
         sprintf(info, "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
             , pt_pkt->pkt_data[0]
             , pt_pkt->pkt_data[1]
@@ -1874,9 +1897,28 @@ BOOL InsertItemFromPkt(HWND hWndListView, t_dump_pkt *pt_pkt, struct timeval *ba
             , pt_pkt->pkt_data[11]);
         ListView_SetItemText(hWndListView, index, 3, info);
 
-
-        sprintf(info, "%04hx", htons(*(unsigned short *)(pt_pkt->pkt_data+12)));
+        get_eth_type_name(ntohs(pt_eth_hdr->type), info);
         ListView_SetItemText(hWndListView, index, 4, info);
+
+
+        }
+        else
+        {
+            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+                ip_n2str(info, &(iph->saddr));
+                ListView_SetItemText(hWndListView, index, 2, info);
+
+                ip_n2str(info, &(iph->saddr));
+                ListView_SetItemText(hWndListView, index, 3, info);
+
+            get_protocol_name(iph->protocol, info);
+
+            ListView_SetItemText(hWndListView, index, 4, info);
+
+
+        }
+
+
 
         sprintf(info, "%d", pt_pkt->header.caplen);
         ListView_SetItemText(hWndListView, index, 5, info);
@@ -2042,7 +2084,7 @@ void init_ui_pkt_view(HWND hDlg)
     HWND hwnd_tree=GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW);
     HWND hwnd_hexedit=GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT);
     int lv_width=cxChar*120, lv_height=cxChar*28;
-    int col_width[] = {cxChar*10, cxChar*15, cxChar*20, cxChar*20, cxChar*8, cxChar*8, cxChar*34};
+    int col_width[] = {cxChar*10, cxChar*15, cxChar*20, cxChar*20, cxChar*9, cxChar*7, cxChar*34};
 
     SendMessage(hwnd_tree, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
     SendMessage(hlv, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 

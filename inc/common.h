@@ -296,19 +296,20 @@ typedef struct
 	unsigned char	ar_pln;		/* length of protocol address	*/
 	unsigned short	ar_op;		/* ARP opcode (command)		*/
 
-#if 0
+#if 1
 	 /*
 	  *	 Ethernet looks like this : This bit is variable sized however...
 	  */
-	unsigned char		ar_sha[ETH_ALEN];	/* sender hardware address	*/
+	unsigned char		ar_sha[6];	/* sender hardware address	*/
 	unsigned char		ar_sip[4];		/* sender IP address		*/
-	unsigned char		ar_tha[ETH_ALEN];	/* target hardware address	*/
+	unsigned char		ar_tha[6];	/* target hardware address	*/
 	unsigned char		ar_tip[4];		/* target IP address		*/
 #endif
 
-} t_arp_hdr;
+} __attribute__ ((aligned (1)))  t_arp_hdr;
 
 void get_protocol_name(int protocol, char *name);
+void get_eth_type_name(int type, char *info);
 
 int SelRvs(HWND hList);
 int SelAll(HWND hList);

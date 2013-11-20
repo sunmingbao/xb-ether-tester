@@ -1046,5 +1046,31 @@ void get_protocol_name(int protocol, char *name)
     }
 }
 
+void get_eth_type_name(int type, char *info)
+{
+    switch (type)
+    {
+
+        case ETH_P_IP:
+            strcpy(info, "ip");
+            return;
+
+        case ETH_P_ARP:
+            strcpy(info, "arp");
+            return;
+            
+        case ETH_P_RARP:
+            strcpy(info, "rarp");
+            return;
+
+        case ETH_P_IPV6:
+            strcpy(info, "ipv6");
+            return;
+
+    }
+
+    sprintf(info, "0x%04x", type);
+
+}
 #endif
 

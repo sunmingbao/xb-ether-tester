@@ -12,7 +12,7 @@
 #include "global_info.h"
 #include "res.h"
 
-const char version[4]={'2','3','0','0'};
+const char version[4]={'2','3','1','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -111,9 +111,9 @@ TCHAR *col_names[] =
     NULL,
     TEXT("索引"),
     TEXT("名称"),
-    TEXT("目的mac"),
-    TEXT("源mac"),
-    TEXT("类型"),
+    TEXT("源地址"),
+    TEXT("目的地址"),
+    TEXT("协议"),
     TEXT("长度"),
     TEXT("信息"),
 };
@@ -122,51 +122,36 @@ BOOL InitListViewColumns(HWND hWndListView)
 { 
     TCHAR szText[256];     // Temporary buffer.
     LVCOLUMN lvc;
-    int iCol;
+    int iCol, col_num = ARRAY_SIZE(col_names);
 int order[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8}; 
-    // Initialize the LVCOLUMN structure.
-    // The mask specifies that the format, width, text,
-    // and subitem members of the structure are valid.
+int lv_width = GetSystemMetrics(SM_CXSCREEN) - 240;
+int col_width[] = {40, 20, cxChar*7, cxChar*10, cxChar*20, cxChar*20
+    , cxChar*9, cxChar*7, cxChar*30};
+
+SendMessage(hWndListView, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
     lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 
     // Add the columns.
-    for (iCol = 0; iCol < ARRAY_SIZE(col_names); iCol++)
+    for (iCol = 0; iCol < col_num; iCol++)
     {
+        lvc.fmt = LVCFMT_LEFT;
         lvc.iSubItem = iCol;
         lvc.pszText = col_names[iCol];
-        if ( iCol == 0 )
+        if ( iCol == 0 || iCol == 1)
         {
             lvc.fmt = LVCFMT_RIGHT;  // Left-aligned column.
-            lvc.cx = 40; 
         }
 
-        else if ( iCol == 1 )
+        if ( iCol != (col_num-1))
         {
-            lvc.fmt = LVCFMT_RIGHT;  // Left-aligned column.
-            lvc.cx = 20; 
+            lvc.cx = col_width[iCol];
+            lv_width -= lvc.cx;
         }
-        else if ( iCol == 2 )
+        else
         {
-            lvc.fmt = LVCFMT_LEFT;  // Left-aligned column.
-            lvc.cx = 80; 
-        }
-        else if ( iCol == 3 )
-        {
-            lvc.fmt = LVCFMT_LEFT;  // Left-aligned column.
-            lvc.cx = 150; 
-        }
+            lvc.cx = lv_width-25;
 
-        else if ( iCol == 6 ||  iCol == 7)
-        {
-            lvc.fmt = LVCFMT_LEFT; // Right-aligned column.
-            lvc.cx = 100; 
         }
-        else 
-        {
-            lvc.fmt = LVCFMT_LEFT; // Right-aligned column.
-            lvc.cx = 230; 
-        }
-
 
         // Insert the columns into the list view.
         if (ListView_InsertColumn(hWndListView, iCol, &lvc) == -1)
@@ -238,7 +223,8 @@ BOOL InsertItemFromStream(HWND hWndListView, t_stream* pt_stream)
     LVITEM lvI;
     int index=ListView_GetItemCount(hWndListView);
     int iCol;
-    TCHAR    info[64];
+    TCHAR    info[128];
+    t_ether_packet *pt_eth_hdr = pt_stream->data;
 
     // Initialize LVITEM members that are different for each item.
     {
@@ -279,29 +265,49 @@ BOOL InsertItemFromStream(HWND hWndListView, t_stream* pt_stream)
         sprintf(info, "%d", index+1);
         ListView_SetItemText(hWndListView, index, 2, info);
 #endif
+
         ListView_SetItemText(hWndListView, index, 3, pt_stream->name);
 
+        if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
+        {
                 sprintf(info, "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
-            , pt_stream->eth_packet.dst[0]
-            , pt_stream->eth_packet.dst[1]
-            , pt_stream->eth_packet.dst[2]
-            , pt_stream->eth_packet.dst[3]
-            , pt_stream->eth_packet.dst[4]
-            , pt_stream->eth_packet.dst[5]);
-        ListView_SetItemText(hWndListView, index, 4, info);
-
-        sprintf(info, "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
-            , pt_stream->eth_packet.src[0]
-            , pt_stream->eth_packet.src[1]
-            , pt_stream->eth_packet.src[2]
-            , pt_stream->eth_packet.src[3]
-            , pt_stream->eth_packet.src[4]
-            , pt_stream->eth_packet.src[5]);
-        ListView_SetItemText(hWndListView, index, 5, info);
+                    , pt_stream->eth_packet.src[0]
+                    , pt_stream->eth_packet.src[1]
+                    , pt_stream->eth_packet.src[2]
+                    , pt_stream->eth_packet.src[3]
+                    , pt_stream->eth_packet.src[4]
+                    , pt_stream->eth_packet.src[5]);
+                ListView_SetItemText(hWndListView, index, 4, info);
 
 
-        sprintf(info, "%04hx", htons(pt_stream->eth_packet.type));
+                        sprintf(info, "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
+                    , pt_stream->eth_packet.dst[0]
+                    , pt_stream->eth_packet.dst[1]
+                    , pt_stream->eth_packet.dst[2]
+                    , pt_stream->eth_packet.dst[3]
+                    , pt_stream->eth_packet.dst[4]
+                    , pt_stream->eth_packet.dst[5]);
+                ListView_SetItemText(hWndListView, index, 5, info);
+
+                get_eth_type_name(ntohs(pt_stream->eth_packet.type), info);
         ListView_SetItemText(hWndListView, index, 6, info);
+
+        }
+        else
+        {
+            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+                ip_n2str(info, &(iph->saddr));
+                ListView_SetItemText(hWndListView, index, 4, info);
+
+                ip_n2str(info, &(iph->daddr));
+                ListView_SetItemText(hWndListView, index, 5, info);
+
+                get_protocol_name(iph->protocol, info);
+
+            ListView_SetItemText(hWndListView, index, 6, info);
+
+
+        }
 
         sprintf(info, "%d", pt_stream->len);
         ListView_SetItemText(hWndListView, index, 7, info);
@@ -360,21 +366,40 @@ void update_grid_from_edit(int edit_iItem, int edit_iSubItem)
 {
     TCHAR buf[32];
     t_stream* pt_stream=g_apt_streams[edit_iItem];
+    t_ether_packet *pt_eth_hdr = pt_stream->data;
+    t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+
     GetWindowText(hwnd_dynamic_edit, buf, sizeof(buf));
     ShowWindow (hwnd_dynamic_edit, 0);
     ListView_SetItemText(hwnd_lv, edit_iItem, edit_iSubItem, buf);
     if (edit_iSubItem==3)
     {
         strcpy(pt_stream->name, buf);
+        return;
     }
-    else if (edit_iSubItem==4)
+
+    if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
     {
-        mac_str2n(pt_stream->eth_packet.dst, buf);
+        if (edit_iSubItem==4)
+        {
+            mac_str2n(pt_stream->eth_packet.src, buf);
+        }
+        else if (edit_iSubItem==5)
+        {
+            mac_str2n(pt_stream->eth_packet.dst, buf);
+        }
+        return;
+    }
+
+    if (edit_iSubItem==4)
+    {
+        ip_str2n(&(iph->saddr), buf);
     }
     else if (edit_iSubItem==5)
     {
-        mac_str2n(pt_stream->eth_packet.src, buf);
+        ip_str2n(&(iph->daddr), buf);
     }
+    check_sum_proc(pt_stream);
 
 }
 
@@ -470,7 +495,7 @@ void lv_row_color_init()
     lv_row_color[0]=GetSysColor (COLOR_WINDOW);
     lv_row_color[1]=colorShade(GetSysColor (COLOR_WINDOW), 95.0);
     lv_row_color[2]=RGB(0xA9, 0x13, 0x30);
-    lv_row_color[3]=RGB(0xEE, 0xEE, 0x00);
+    lv_row_color[3]=RGB(0xE6, 0x94, 0x1A);
 }
 
 
