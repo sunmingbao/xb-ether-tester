@@ -316,7 +316,7 @@ CreateStatusBar();
 
                 case    IDM_GET_NEW_VERSION:
                 ShellExecute(NULL, "open"
-                    , "http://www.crsky.com/soft/49404.html"
+                    , "http://sourceforge.net/projects/xb-ether-tester/files/latest/download?source=directory"
                     , NULL, NULL, SW_SHOWNORMAL);
 
                	return 0 ;

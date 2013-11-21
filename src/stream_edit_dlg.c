@@ -672,6 +672,22 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
             strcpy(info, "rarp");
             goto append_err_info;
 
+        case ETH_P_LOOP:
+            strcpy(info, "Ethernet Loopback packet");
+            goto append_err_info;
+
+        case ETH_P_ECHO:
+            strcpy(info, "Ethernet Echo packet");
+            goto append_err_info;
+            
+        case ETH_P_PPP_DISC:
+            strcpy(info, "PPPoE discovery messages");
+            goto append_err_info;
+            
+        case ETH_P_PPP_SES:
+            strcpy(info, "PPPoE session messages");
+            goto append_err_info;
+            
         case ETH_P_IPV6:
             strcpy(info, "IPv6");
             goto append_err_info;
@@ -890,7 +906,7 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
 
     hex_win_sel(GetDlgItem(hDlg, ID_SED_HEX_EDIT), pt_tvi_data->data_offset, pt_tvi_data->len);
 
-    if ((ETH_TYPE_IP==ntohs(gt_edit_stream.eth_packet.type))
+    if ((ETH_P_IP==ntohs(gt_edit_stream.eth_packet.type))
         &&
         (pt_tvi_data->data_offset==23))
     {
@@ -1879,22 +1895,10 @@ BOOL InsertItemFromPkt(HWND hWndListView, t_dump_pkt *pt_pkt, struct timeval *ba
 
         if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
         {
-        sprintf(info, "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
-            , pt_pkt->pkt_data[0]
-            , pt_pkt->pkt_data[1]
-            , pt_pkt->pkt_data[2]
-            , pt_pkt->pkt_data[3]
-            , pt_pkt->pkt_data[4]
-            , pt_pkt->pkt_data[5]);
+        mac_n2str(info, pt_pkt->pkt_data+6);
         ListView_SetItemText(hWndListView, index, 2, info);
 
-        sprintf(info, "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
-            , pt_pkt->pkt_data[6]
-            , pt_pkt->pkt_data[7]
-            , pt_pkt->pkt_data[8]
-            , pt_pkt->pkt_data[9]
-            , pt_pkt->pkt_data[10]
-            , pt_pkt->pkt_data[11]);
+        mac_n2str(info, pt_pkt->pkt_data);
         ListView_SetItemText(hWndListView, index, 3, info);
 
         get_eth_type_name(ntohs(pt_eth_hdr->type), info);
@@ -1908,7 +1912,7 @@ BOOL InsertItemFromPkt(HWND hWndListView, t_dump_pkt *pt_pkt, struct timeval *ba
                 ip_n2str(info, &(iph->saddr));
                 ListView_SetItemText(hWndListView, index, 2, info);
 
-                ip_n2str(info, &(iph->saddr));
+                ip_n2str(info, &(iph->daddr));
                 ListView_SetItemText(hWndListView, index, 3, info);
 
             get_protocol_name(iph->protocol, info);

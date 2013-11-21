@@ -12,7 +12,7 @@
 #include "global_info.h"
 #include "res.h"
 
-const char version[4]={'2','3','1','0'};
+const char version[4]={'2','3','2','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -270,23 +270,11 @@ BOOL InsertItemFromStream(HWND hWndListView, t_stream* pt_stream)
 
         if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
         {
-                sprintf(info, "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
-                    , pt_stream->eth_packet.src[0]
-                    , pt_stream->eth_packet.src[1]
-                    , pt_stream->eth_packet.src[2]
-                    , pt_stream->eth_packet.src[3]
-                    , pt_stream->eth_packet.src[4]
-                    , pt_stream->eth_packet.src[5]);
+                mac_n2str(info, pt_stream->eth_packet.src);
                 ListView_SetItemText(hWndListView, index, 4, info);
 
 
-                        sprintf(info, "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
-                    , pt_stream->eth_packet.dst[0]
-                    , pt_stream->eth_packet.dst[1]
-                    , pt_stream->eth_packet.dst[2]
-                    , pt_stream->eth_packet.dst[3]
-                    , pt_stream->eth_packet.dst[4]
-                    , pt_stream->eth_packet.dst[5]);
+                mac_n2str(info, pt_stream->eth_packet.dst);
                 ListView_SetItemText(hWndListView, index, 5, info);
 
                 get_eth_type_name(ntohs(pt_stream->eth_packet.type), info);

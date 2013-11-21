@@ -150,7 +150,11 @@ typedef unsigned short __u16;
 typedef __signed__ int __s32;
 typedef unsigned int __u32;
 
-#define ETH_TYPE_IP    0x0800
+#define ETH_P_LOOP	0x0060		/* Ethernet Loopback packet	*/
+#define ETH_P_ECHO	0x0200		/* Ethernet Echo packet		*/
+#define ETH_P_PPP_DISC	0x8863		/* PPPoE discovery messages     */
+#define ETH_P_PPP_SES	0x8864		/* PPPoE session messages	*/
+
 #define ETH_P_IP	0x0800		/* Internet Protocol packet	*/
 #define ETH_P_ARP	0x0806		/* Address Resolution packet	*/
 #define ETH_P_RARP  0x8035		/* Reverse Addr Res packet	*/

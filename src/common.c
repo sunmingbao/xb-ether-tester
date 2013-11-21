@@ -1063,6 +1063,19 @@ void get_eth_type_name(int type, char *info)
             strcpy(info, "rarp");
             return;
 
+        case ETH_P_LOOP:
+            strcpy(info, "LOOP");
+            return;
+
+        case ETH_P_ECHO:
+            strcpy(info, "ECHO");
+            return;
+
+        case ETH_P_PPP_DISC:
+        case ETH_P_PPP_SES:
+            strcpy(info, "PPPoE");
+            return;
+            
         case ETH_P_IPV6:
             strcpy(info, "ipv6");
             return;
