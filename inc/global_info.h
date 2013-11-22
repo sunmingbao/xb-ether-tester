@@ -15,8 +15,7 @@
 #include <windows.h>
 #include <stdint.h>
 #include "defs.h"
-
-
+#include "common.h"
 extern const char version[4];
 
 extern HINSTANCE g_hInstance;
@@ -144,14 +143,6 @@ void stream_edit_data_change(HWND  hwnd, int offset);
 #define    PCAP_FILE_FILTER    "tcpdump/pcap file(*.pcap)\0*.pcap\0\0"
 #define    PCAP_FILE_SUFFIX    "pcap"
 
-typedef struct
-{
-    unsigned char dst[6];
-    unsigned char src[6];
-    unsigned short type;
-    unsigned char payload[0];
-
-} __attribute__ ((aligned (1))) t_ether_packet;
 
 typedef struct
 {

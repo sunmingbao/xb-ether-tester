@@ -465,7 +465,7 @@ int get_row_color_idx(HWND hWnd, int idx)
 
     //if (!is_ip_pkt(pt_eth_hdr))  return 0;
     if (err_flags) return 2;
-    if (ip_pkt_is_frag((void *)(pt_eth_hdr->payload)))
+    if (ip_pkt_is_frag(pt_eth_hdr))
     {
         return 3;
     }

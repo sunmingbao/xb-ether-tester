@@ -256,6 +256,7 @@ typedef struct
 #define    DISPLAY_HEX        0x1<<28
 #define    IS_MAC             0x1<<27
 #define    IS_IP              0x1<<26
+#define    IS_IP6             0x1<<25
 
 void field_n2str(char *info, void *field_addr, int len, int bits_from, int bits_len, uint32_t flags)
 {
@@ -339,22 +340,42 @@ void field_str2n(char *info, void *field_addr, int len, int bits_from, int bits_
 
 }
 
-t_tvi_data gt_tvi_data_dst_mac = {"dst mac", 0, 6, IS_MAC};
-t_tvi_data gt_tvi_data_src_mac = {"src mac", 6, 6, IS_MAC};
-t_tvi_data gt_tvi_data_eth_type = {"eth type", 12, 2, FLAG_REBUILD_TV|DISPLAY_HEX};
+t_tvi_data gat_eth_hdr_tvis[]=
+{
+    {"dst mac", 0, 6, IS_MAC},
+    {"src mac", 6, 6, IS_MAC},
+    {"eth type", 12, 2, FLAG_REBUILD_TV|DISPLAY_HEX},
+};
 
-t_tvi_data gt_tvi_data_arp_hrd = {"hdwr type", 14, 2, DISPLAY_HEX};
-t_tvi_data gt_tvi_data_arp_pro = {"protocol type", 16, 2};
+t_tvi_data gat_arp_tvis[]=
+{
+    {"hdwr type", 14, 2, DISPLAY_HEX},
+    {"protocol type", 16, 2},
 
-t_tvi_data gt_tvi_data_arp_hln = {"hdwr size", 18, 1};
-t_tvi_data gt_tvi_data_arp_pln = {"protocol size", 19, 1};
-t_tvi_data gt_tvi_data_arp_op = {"opcode", 20, 2, DISPLAY_HEX};
+    {"hdwr size", 18, 1},
+    {"protocol size", 19, 1},
+    {"opcode", 20, 2, DISPLAY_HEX},
 
-t_tvi_data gt_tvi_data_smac = {"sender mac", 22, 6, IS_MAC};
-t_tvi_data gt_tvi_data_sip = {"sender ip", 28, 4, IS_IP};
-t_tvi_data gt_tvi_data_dmac = {"target mac", 32, 6, IS_MAC};
-t_tvi_data gt_tvi_data_dip = {"target ip", 38, 4, IS_IP};
+    {"sender mac", 22, 6, IS_MAC},
+    {"sender ip", 28, 4, IS_IP},
+    {"target mac", 32, 6, IS_MAC},
+    {"target ip", 38, 4, IS_IP},
+};
 
+t_tvi_data gat_arp6_tvis[]=
+{
+    {"hdwr type", 14, 2, DISPLAY_HEX},
+    {"protocol type", 16, 2},
+
+    {"hdwr size", 18, 1},
+    {"protocol size", 19, 1},
+    {"opcode", 20, 2, DISPLAY_HEX},
+
+    {"sender mac", 22, 6, IS_MAC},
+    {"sender ip", 28, 16, IS_IP6},
+    {"target mac", 32, 6, IS_MAC},
+    {"target ip", 38, 16, IS_IP6},
+};
 
 t_tvi_data gt_tvi_data_ver_ip = {"ver",    14, 1, 0, 0, 4};
 t_tvi_data gt_tvi_data_hl_ip = {"hdr_len", 14, 1, 0, 4, 4};
@@ -435,6 +456,13 @@ void add_tvi(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data *pt_tvi
 
 }
 
+void build_tvis(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data tvis[], int num)
+{
+    int i;
+    for (i=0;i<num;i++)
+    add_tvi(hwnd_tree, treeItem1, adjust, &(tvis[i]));
+
+}
 void build_tv(HWND hwnd_tree)
 {
     HTREEITEM treeItem1, treeItem2;
@@ -445,24 +473,21 @@ void build_tv(HWND hwnd_tree)
     TreeView_DeleteAllItems(hwnd_tree);
 
     treeItem1=insertItem(hwnd_tree, TEXT("ethernet"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
-    add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_dst_mac);
-    add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_src_mac);
-    add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_eth_type);
+
+    build_tvis(hwnd_tree, treeItem1
+        , adjust, gat_eth_hdr_tvis, ARRAY_SIZE(gat_eth_hdr_tvis));
     
     if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_ARP)
     {
         t_arp_hdr *pt_arp = (void *)(gt_edit_stream.eth_packet.payload);
         treeItem1=insertItem(hwnd_tree, TEXT("arp"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
+        if (4==pt_arp->ar_pln)
+            build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_arp_tvis, ARRAY_SIZE(gat_arp_tvis));
+        else
+            build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_arp6_tvis, ARRAY_SIZE(gat_arp6_tvis));
 
-        add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_arp_hrd);
-        add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_arp_pro);
-        add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_arp_hln);
-        add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_arp_pln);
-        add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_arp_op );
-        add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_smac);
-        add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_sip );
-        add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_dmac);
-        add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_dip );
     }
     else if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IP)
     {
@@ -700,7 +725,7 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
             goto append_err_info;
     }
 
-    if (ip_pkt_is_frag(iph))
+    if (ip_pkt_is_frag(pt_eth_hdr))
     {
         sprintf(info, "frag ");
         goto append_err_info;
@@ -1463,7 +1488,7 @@ uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
             return err_flags; 
     }
 
-    if (ip_pkt_is_frag(iph))
+    if (ip_pkt_is_frag(pt_eth))
     {
             return err_flags; 
     }

@@ -150,6 +150,15 @@ typedef unsigned short __u16;
 typedef __signed__ int __s32;
 typedef unsigned int __u32;
 
+typedef struct
+{
+    unsigned char dst[6];
+    unsigned char src[6];
+    unsigned short type;
+    unsigned char payload[0];
+
+} __attribute__ ((aligned (1))) t_ether_packet;
+
 #define ETH_P_LOOP	0x0060		/* Ethernet Loopback packet	*/
 #define ETH_P_ECHO	0x0200		/* Ethernet Echo packet		*/
 #define ETH_P_PPP_DISC	0x8863		/* PPPoE discovery messages     */
@@ -209,10 +218,6 @@ static inline void set_ip_pkt_len(t_ip_hdr *iph, int len)
     iph->tot_len=htons(len);
 }
 
-static inline int ip_pkt_is_frag(t_ip_hdr *iph)
-{
-    return ntohs(iph->frag_off)&((1<<14) - 1);
-}
 
 void ip_update_check(t_ip_hdr *iph);
 int ip_checksum_wrong(t_ip_hdr *iph);
@@ -311,6 +316,39 @@ typedef struct
 #endif
 
 } __attribute__ ((aligned (1)))  t_arp_hdr;
+
+typedef struct 
+{
+	__u8			priority:4,
+				    version:4;
+	__u8			flow_lbl[3];
+
+	__u16			payload_len;
+	__u8			nexthdr;
+	__u8			hop_limit;
+
+	__u8	saddr[16];
+	__u8    daddr[16];
+} __attribute__ ((aligned (1)))  t_ipv6_hdr ;
+#define IPPROTO_HOPOPTS		0	/* IPv6 hop-by-hop options	*/
+#define IPPROTO_ROUTING		43	/* IPv6 routing header		*/
+#define IPPROTO_FRAGMENT	44	/* IPv6 fragmentation header	*/
+#define IPPROTO_ICMPV6		58	/* ICMPv6			*/
+#define IPPROTO_NONE		59	/* IPv6 no next header		*/
+#define IPPROTO_DSTOPTS		60	/* IPv6 destination options	*/
+
+static inline int ip_pkt_is_frag(t_ether_packet *pt_eth_hdr)
+{
+    t_ip_hdr *iph = pt_eth_hdr->payload;
+    t_ipv6_hdr *ipv6h = pt_eth_hdr->payload;
+    if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+        return ntohs(iph->frag_off)&((1<<14) - 1);
+        
+    if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+        return (IPPROTO_FRAGMENT==ipv6h->nexthdr);
+    
+    return 0;
+}
 
 void get_protocol_name(int protocol, char *name);
 void get_eth_type_name(int type, char *info);
