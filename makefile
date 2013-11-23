@@ -81,8 +81,8 @@ installer: $(target) $(PRJ_DIR)\other_files\WinPcap_4_1_3.exe $(PRJ_DIR)\release
 	makensis $(PRJ_DIR)\xb_ether_tester.nsi
 	
 clean:
-	del /F $(target) $(OBJECTS) 
-	del /F $(OBJ_DIR)\*.exe
+#	cmd /c del /F /Q $(target) $(OBJECTS)
+	cmd /c del /F /Q "$(OBJ_DIR)\\*"
 
 all: default installer
 
