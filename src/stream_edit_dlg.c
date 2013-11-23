@@ -377,21 +377,24 @@ t_tvi_data gat_arp6_tvis[]=
     {"target ip", 38, 16, IS_IP6},
 };
 
-t_tvi_data gt_tvi_data_ver_ip = {"ver",    14, 1, 0, 0, 4};
-t_tvi_data gt_tvi_data_hl_ip = {"hdr_len", 14, 1, 0, 4, 4};
-t_tvi_data gt_tvi_data_tos_ip = {"tos", 15, 1, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_tlen_ip = {"total len", 16, 2};
-t_tvi_data gt_tvi_data_id_ip = {"id", 18, 2, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_frag_rsv_ip = {"rsv", 20, 1, SUPPORT_RULE, 0, 1};
-t_tvi_data gt_tvi_data_frag_df_ip =  {"df",  20, 1, SUPPORT_RULE, 1, 1};
-t_tvi_data gt_tvi_data_frag_mf_ip =  {"mf",  20, 1, SUPPORT_RULE, 2, 1};
-t_tvi_data gt_tvi_data_frag_off_ip = {"frag offset", 20, 2, SUPPORT_RULE, 3, 13};
-t_tvi_data gt_tvi_data_ttl_ip = {"ttl", 22, 1, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_protocol = {"protocol", 23, 1, FLAG_REBUILD_TV};
-t_tvi_data gt_tvi_data_csum_ip = {"check sum", 24, 2, SUPPORT_RULE|DISPLAY_HEX};
+t_tvi_data gat_ip_hdr_tvis[]=
+{
+ {"ver",    14, 1, 0, 0, 4},
+ {"hdr_len", 14, 1, 0, 4, 4},
+ {"tos", 15, 1, SUPPORT_RULE},
+ {"total len", 16, 2},
+ {"id", 18, 2, SUPPORT_RULE},
+ {"rsv", 20, 1, SUPPORT_RULE, 0, 1},
+  {"df",  20, 1, SUPPORT_RULE, 1, 1},
+  {"mf",  20, 1, SUPPORT_RULE, 2, 1},
+ {"frag offset", 20, 2, SUPPORT_RULE, 3, 13},
+ {"ttl", 22, 1, SUPPORT_RULE},
+ {"protocol", 23, 1, FLAG_REBUILD_TV},
+ {"check sum", 24, 2, SUPPORT_RULE|DISPLAY_HEX},
 
-t_tvi_data gt_tvi_data_src_ip = {"src ip", 26, 4, SUPPORT_RULE|IS_IP};
-t_tvi_data gt_tvi_data_dst_ip = {"dst ip", 30, 4, SUPPORT_RULE|IS_IP};
+ {"src ip", 26, 4, SUPPORT_RULE|IS_IP},
+ {"dst ip", 30, 4, SUPPORT_RULE|IS_IP},
+};
 
 t_tvi_data gt_tvi_data_icmp_type = {"type", 34, 1};
 t_tvi_data gt_tvi_data_icmp_code = {"code", 35, 1};
@@ -407,28 +410,33 @@ t_tvi_data gt_tvi_data_igmp_type = {"type", 34, 1};
 t_tvi_data gt_tvi_data_igmp_code = {"code", 35, 1};
 t_tvi_data gt_tvi_data_igmp_checksum = {"checksum", 36, 2, SUPPORT_RULE|DISPLAY_HEX};
 t_tvi_data gt_tvi_data_igmp_group = {"group", 38, 4, SUPPORT_RULE};
+t_tvi_data gat_udp_hdr_tvis[]=
+{
+ {"source port", 34, 2, SUPPORT_RULE},
+ {"dest   port", 36, 2, SUPPORT_RULE},
+ {"length", 38, 2, SUPPORT_RULE},
+ {"checksum", 40, 2, SUPPORT_RULE|DISPLAY_HEX},
+};
 
-t_tvi_data gt_tvi_data_udp_sport = {"source port", 34, 2, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_udp_dport = {"dest   port", 36, 2, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_udp_len = {"length", 38, 2, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_udp_checksum = {"checksum", 40, 2, SUPPORT_RULE|DISPLAY_HEX};
+t_tvi_data gat_tcp_hdr_tvis[]=
+{
+ {"source port", 34, 2, SUPPORT_RULE},
+ {"dest   port", 36, 2, SUPPORT_RULE},
+ {"seq", 38, 4, SUPPORT_RULE},
+ {"ack", 42, 4, SUPPORT_RULE},
+ {"hdr_len", 46, 1, SUPPORT_RULE|DISPLAY_HEX, 0, 4},
+ {"rsv", 46, 2, SUPPORT_RULE|DISPLAY_HEX, 4,6},
+ {"URG", 47, 1, SUPPORT_RULE, 2,1},
+ {"ACK", 47, 1, SUPPORT_RULE, 3,1},
+ {"PSH", 47, 1, SUPPORT_RULE, 4,1},
+ {"RST", 47, 1, SUPPORT_RULE, 5,1},
+ {"SYN", 47, 1, SUPPORT_RULE, 6,1},
+ {"FIN", 47, 1, SUPPORT_RULE, 7,1},
 
-t_tvi_data gt_tvi_data_tcp_sport = {"source port", 34, 2, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_tcp_dport = {"dest   port", 36, 2, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_tcp_seq = {"seq", 38, 4, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_tcp_ack = {"ack", 42, 4, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_tcp_hl = {"hdr_len", 46, 1, SUPPORT_RULE|DISPLAY_HEX, 0, 4};
-t_tvi_data gt_tvi_data_tcp_rsv = {"rsv", 46, 2, SUPPORT_RULE|DISPLAY_HEX, 4,6};
-t_tvi_data gt_tvi_data_tcp_urg = {"URG", 47, 1, SUPPORT_RULE, 2,1};
-t_tvi_data gt_tvi_data_tcp_ack_f = {"ACK", 47, 1, SUPPORT_RULE, 3,1};
-t_tvi_data gt_tvi_data_tcp_psh = {"PSH", 47, 1, SUPPORT_RULE, 4,1};
-t_tvi_data gt_tvi_data_tcp_rst = {"RST", 47, 1, SUPPORT_RULE, 5,1};
-t_tvi_data gt_tvi_data_tcp_syn = {"SYN", 47, 1, SUPPORT_RULE, 6,1};
-t_tvi_data gt_tvi_data_tcp_fin = {"FIN", 47, 1, SUPPORT_RULE, 7,1};
-
-t_tvi_data gt_tvi_data_tcp_win_size = {"win size", 48, 2, SUPPORT_RULE};
-t_tvi_data gt_tvi_data_tcp_csum = {"checksum", 50, 2, SUPPORT_RULE|DISPLAY_HEX};
-t_tvi_data gt_tvi_data_tcp_urgent_p = {"win size", 52, 2, SUPPORT_RULE};
+ {"win size", 48, 2, SUPPORT_RULE},
+ {"checksum", 50, 2, SUPPORT_RULE|DISPLAY_HEX},
+ {"urgent_p", 52, 2, SUPPORT_RULE},
+};
 
 HTREEITEM Selected=NULL;
 WNDPROC old_tv_proc;
@@ -496,20 +504,8 @@ void build_tv(HWND hwnd_tree)
         adjust = ip_hdr_len(iph)-FIXED_IP_HDR_LEN;
 
 
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_ver_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_hl_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_tos_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_tlen_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_id_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_frag_rsv_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_frag_df_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_frag_mf_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_frag_off_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_ttl_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_protocol);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_csum_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_src_ip);
-        add_tvi(hwnd_tree, treeItem1, 0, &gt_tvi_data_dst_ip);
+        build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_ip_hdr_tvis, ARRAY_SIZE(gat_ip_hdr_tvis));
 
         if (iph->protocol==IPPROTO_ICMP)
         {
@@ -540,30 +536,23 @@ void build_tv(HWND hwnd_tree)
         {
             treeItem1=insertItem(hwnd_tree, TEXT("udp"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
 
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_udp_sport);
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_udp_dport);
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_udp_len);
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_udp_checksum);
+            build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_udp_hdr_tvis, ARRAY_SIZE(gat_udp_hdr_tvis));
         }
         else if (iph->protocol==IPPROTO_TCP)
         {
             treeItem1=insertItem(hwnd_tree, TEXT("tcp"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
 
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_sport);
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_dport);
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_seq ); 
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_ack ); 
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_hl);
-add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_rsv);
-add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_urg);
-add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_ack_f);
-add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_psh);
-add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_rst);
-add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_syn);
-add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_fin);
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_win_size );
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_csum );    
-            add_tvi(hwnd_tree, treeItem1, adjust, &gt_tvi_data_tcp_urgent_p );
+            build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_tcp_hdr_tvis, 5);
+treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL);
+
+            build_tvis(hwnd_tree, treeItem2
+                , adjust, gat_tcp_hdr_tvis+5, 7);
+
+            build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_tcp_hdr_tvis+12, 3);
+
         }
 
     }
@@ -1495,7 +1484,12 @@ uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
 
     if (iph->protocol==IPPROTO_TCP)
     {
+        if (tcp_checksum_wrong(iph))
+        {
             err_flags |= ERR_TCP_CHECKSUM;
+            return err_flags; 
+        }
+
     }
     else if (iph->protocol==IPPROTO_UDP)
     {
