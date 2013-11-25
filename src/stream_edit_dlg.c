@@ -1464,12 +1464,23 @@ uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
     if (ntohs(pt_eth->type)!=ETH_P_IP)
         return err_flags; 
 
-    if (ip_pkt_len(iph)+14 != len)
+    if (len<MIN_PKT_LEN)
     {
             err_flags |= ERR_PKT_LEN;
             return err_flags; 
     }
 
+    if (ip_pkt_len(iph)+14 > len)
+    {
+            err_flags |= ERR_PKT_LEN;
+            return err_flags; 
+    }
+
+    if (ip_hdr_len(iph)<FIXED_IP_HDR_LEN || ip_hdr_len(iph)>ip_pkt_len(iph))
+    {
+            err_flags |= ERR_PKT_LEN;
+            return err_flags; 
+    }
 
    if (ip_checksum_wrong(iph))
     {

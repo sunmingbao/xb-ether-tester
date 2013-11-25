@@ -193,6 +193,7 @@ typedef struct
 } __attribute__ ((aligned (1))) t_ip_hdr ;
 
 #define FIXED_IP_HDR_LEN    20
+#define MIN_PKT_LEN         (FIXED_IP_HDR_LEN+14)
 static inline int ip_hdr_len(t_ip_hdr *iph)
 {
     return iph->ihl*4;

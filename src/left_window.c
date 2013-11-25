@@ -58,15 +58,24 @@ LRESULT CALLBACK sub_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
     30, 30,
                                hwnd, (HMENU)ID_BUTTON_LEFT_CLOSE,
                g_hInstance, NULL) ;
-
+#if 0
             hwnd_tab=DoCreateTabControl(g_hInstance, hwnd_left
                 , WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | TCS_BOTTOM
                 , ARRAY_SIZE(tab_icons), tab_icons, tab_labels);
+#endif
             register_tab1_win();
             //register_tab2_win();
+            #if 0
             hwnd_tab1=create_tab_win(g_hInstance, hwnd_tab, szTab1WinClassName, WS_CHILD | WS_VISIBLE | WS_BORDER);
             //hwnd_tab2=create_tab_win(g_hInstance, hwnd_tab, szTab2WinClassName, WS_CHILD | WS_BORDER);
             hwnd_tab2 = hwnd_tab1;
+#else
+hwnd_tab1 = CreateWindow (szTab1WinClassName, TEXT (""),
+                WS_CHILD | WS_VISIBLE | WS_BORDER,
+                10, 10,
+                50, 50,
+                hwnd_left, NULL, g_hInstance, NULL) ;
+#endif
             return 0 ;
 
         case WM_SIZE:
@@ -75,12 +84,12 @@ LRESULT CALLBACK sub_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
             MoveWindow	(hwnd_button_left_close, 	cxClient-25, 0,
                 25, 25, TRUE) ;
+#if 0
 
       	    MoveWindow	(hwnd_tab, 	0, 25,
                 cxClient, cyClient-25, TRUE) ;
             GetClientRect(hwnd_tab,&rect);
             TabCtrl_AdjustRect(hwnd_tab, FALSE, &rect); 
-#if 0
             MoveWindow(hwnd_tab1, 	0, 0,
                 rect.right, rect.bottom, TRUE) ;
             MoveWindow(hwnd_tab2, 	0, 0,
