@@ -360,6 +360,119 @@ void ip_n2str(char *info, void * field_addr)
 
 }
 
+#if 0
+int is_addr_char(int c)
+{
+    if (':'==c || '.'==c || isxdigit(c))
+    return 1;
+    
+    return 0;
+}
+
+void trim_addr(char *output, char *input)
+{
+    char tmp[64] = {0};
+    char *pd = tmp;
+    char *ps = input;
+    
+    while (*ps != 0)
+    {
+	if (is_addr_char(*ps))
+	{
+		*pd=*ps;
+		pd++;		
+	}
+	
+	ps++;
+	
+    }
+
+    
+    
+    strcpy(output, tmp);
+    
+}
+
+void ip6_addr_uniform(char *input)
+{
+    char *ipv4_begin;
+    unsigned char v4_addr[4];
+    if (NULL==strchr(input, '.')) return;
+    ipv4_begin = (input, ':');
+    ipv4_begin++;
+    ip_str2n(v4_addr, ipv4_begin);
+    sprintf(ipv4_begin, "%02x", v4_addr[0]);
+    sprintf(ipv4_begin+2, "%02x", v4_addr[1]);
+    *(ipv4_begin+4)=':';
+    sprintf(ipv4_begin+5, "%02x", v4_addr[2]);
+    sprintf(ipv4_begin+7, "%02x", v4_addr[3]);
+}
+
+void ip6_str2n(void *field_addr, char *info)
+{
+    char str_addr[64];
+    char *db_mh;
+    char *p_digit;
+    char pure_digits[32];
+    char pure_digits_hdr[64]={0};
+    char pure_digits_tail[64]={0};
+    char tmp_str[3] = {0};
+    int i;
+    unsigned char *dst = field_addr;
+    trim_addr(str_addr, info);
+    ip6_addr_uniform(str_addr);
+    memset(pure_digits, '0', sizeof(pure_digits));
+    db_mh=strstr(str_addr, "::");
+
+    if (NULL==db_mh)
+    {
+	p_digit = str_addr;
+	while (*p_digit!=0)
+	{
+		if (*p_digit==':') *p_digit=0;
+		p_digit++;		
+	}
+#if 1
+	p_digit = str_addr;
+	for (i=0;i<8;i++)
+	{
+	    sprintf(pure_digits_hdr+i*4, "%04s", p_digit);
+	    p_digit += strlen(p_digit)+1;
+		
+	}
+	printf(pure_digits_hdr);
+	for (i=0;i<32;i+=2)
+	{
+		tmp_str[0] = pure_digits_hdr[i];
+		tmp_str[1] = pure_digits_hdr[i+1];
+		dst[0]=strtol(tmp_str,NULL,16);
+		
+	}
+	
+	return;
+#endif
+    }
+
+}
+#else
+void ip6_str2n(void *field_addr, char *info)
+{
+    WSAStringToAddress(
+    info,
+    AF_INET6,
+    NULL,
+    field_addr,
+    16
+    );
+}
+#endif
+
+void ip6_n2str(char *info, void * field_addr)
+{
+;
+
+}
+
 void set_int_text(HWND hwnd, int value)
 {
     char info[32];
