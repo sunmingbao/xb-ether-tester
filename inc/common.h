@@ -381,6 +381,9 @@ static inline unsigned long time_a_between_b(struct timeval *a, struct timeval *
 
 void ip_str2n(void *field_addr, char *info);
 void ip_n2str(char *info, void * field_addr);
+void ip6_n2str(char *info, void * field_addr);
+void ip6_str2n(void *field_addr, char *info);
+
 void set_int_text(HWND hwnd, int value);
 int get_int_text(HWND hwnd);
 void inc_int_text(HWND hwnd, int value);

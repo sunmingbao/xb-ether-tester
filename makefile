@@ -37,12 +37,13 @@ OBJECTS =  \
 	$(OBJ_DIR)\packets_rx_tx.o \
 	$(OBJ_DIR)\stats_window.o \
 	$(OBJ_DIR)\stream_edit_dlg.o \
+	$(OBJ_DIR)\net.o \
 	$(OBJ_DIR)\common.o \
 	$(OBJ_DIR)\res.orc
 
 ### Targets: ###
 
-default: clean $(target)
+default: prepare  clean  $(target)
 
 
 $(target): $(OBJECTS)
@@ -73,20 +74,25 @@ $(OBJ_DIR)\stats_window.o: $(PRJ_DIR)\src\stats_window.c
 	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
 $(OBJ_DIR)\stream_edit_dlg.o: $(PRJ_DIR)\src\stream_edit_dlg.c
 	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+$(OBJ_DIR)\net.o: $(PRJ_DIR)\src\net.c
+	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
 
 $(OBJ_DIR)\common.o: $(PRJ_DIR)\src\common.c
 	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
 
-installer: $(target) $(PRJ_DIR)\other_files\WinPcap_4_1_3.exe $(PRJ_DIR)\release_notes.txt 
+installer:
 	makensis $(PRJ_DIR)\xb_ether_tester.nsi
 	
 clean:
 #	cmd /c del /F /Q $(target) $(OBJECTS)
 	cmd /c del /F /Q "$(OBJ_DIR)\\*"
 
+prepare:
+	-cmd /c mkdir $(OBJ_DIR)
+	
 all: default installer
 
-.PHONY: all default installer clean
+.PHONY: all prepare default installer clean
 
 
 

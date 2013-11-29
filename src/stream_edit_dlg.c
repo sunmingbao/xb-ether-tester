@@ -281,6 +281,11 @@ void field_n2str(char *info, void *field_addr, int len, int bits_from, int bits_
         ip_n2str(info, field_addr);
         return;
     }
+    else if (flags&IS_IP6)
+    {
+        ip6_n2str(info, field_addr);
+        return;
+    }
     
     switch(len)
     {
@@ -320,6 +325,11 @@ void field_str2n(char *info, void *field_addr, int len, int bits_from, int bits_
     if (flags&IS_IP)
     {
         ip_str2n(field_addr, info);
+        return;
+    }
+    else if (flags&IS_IP6)
+    {
+        ip6_str2n(field_addr, info);
         return;
     }
     
@@ -394,6 +404,19 @@ t_tvi_data gat_ip_hdr_tvis[]=
 
  {"src ip", 26, 4, SUPPORT_RULE|IS_IP},
  {"dst ip", 30, 4, SUPPORT_RULE|IS_IP},
+};
+
+t_tvi_data gat_ipv6_hdr_tvis[]=
+{
+ {"ver",    14, 4, 0, 0, 4},
+ {"traffic class", 14, 4, 0, 4, 8},
+  {"flow label", 14, 4, 0, 12, 20},
+ {"payload Len", 18, 2},
+ {"next hdr", 20, 1},
+ {"hop limit", 21, 1, SUPPORT_RULE},
+
+ {"src ip", 22, 16, IS_IP6},
+ {"dst ip", 38, 16, IS_IP6},
 };
 
 t_tvi_data gt_tvi_data_icmp_type = {"type", 34, 1};
@@ -556,6 +579,19 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
         }
 
     }
+    else if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IPV6)
+    {
+        t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+        treeItem1=insertItem(hwnd_tree, TEXT("ipv6"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
+        adjust = ip_hdr_len(iph)-FIXED_IP_HDR_LEN;
+
+
+        build_tvis(hwnd_tree, treeItem1
+                , 0, gat_ipv6_hdr_tvis, ARRAY_SIZE(gat_ipv6_hdr_tvis));
+
+    }
+
+
 
 }
 void *get_tvi_lParam(HWND htv, HTREEITEM htvi)
@@ -842,7 +878,7 @@ void update_tvi_text(HWND htv, HTREEITEM htvi)
 
 int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int edit_visible)
 {
-    char info[32], info_2[32];
+    char info[64], info_2[64];
     t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
 
     t_tvi_data *pt_tvi_data;

@@ -100,6 +100,8 @@ BEGIN
         		MENUITEM "用当前流构造分片(&F)", 	 IDM_STREAM_MAKE_FRAGS
         		MENUITEM "选中的条目另存为pcap文件", IDM_STREAM_SEL2PCAP
         		MENUITEM SEPARATOR
+        		MENUITEM "复制", 			        IDM_STREAM_COPY, GRAYED
+        		MENUITEM "粘贴", 			        IDM_STREAM_PASTE, GRAYED
         		MENUITEM "删除当前流", 			    IDM_STREAM_DEL
         		MENUITEM "删除选中条目", 	        IDM_STREAM_DEL_SEL, GRAYED
         		MENUITEM SEPARATOR

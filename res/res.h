@@ -47,8 +47,11 @@
 #define IDM_STREAM_SEL_RVS         40030
 #define IDM_STREAM_SEL2PCAP        40031
 
-#define IDM_STATS_WIN_COPY2CLIP_BOARD        40032
-#define IDM_STATS_WIN_CLR                    40033
+#define IDM_STREAM_COPY            40032
+#define IDM_STREAM_PASTE           40033
+
+#define IDM_STATS_WIN_COPY2CLIP_BOARD        40034
+#define IDM_STATS_WIN_CLR                    40035
 
 #define IDT_TOOLBAR_STOP           40040
 #define IDT_TOOLBAR_START          40041
