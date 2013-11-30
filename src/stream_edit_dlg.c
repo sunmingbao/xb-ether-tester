@@ -251,11 +251,12 @@ typedef void (*str2n_func)(void *, char *);
 typedef struct
 {
     char *name;
-    int data_offset;
+    int ori_offset;
     int len;
     uint32_t flags;
     char bits_from;
     char bits_len;
+    int data_offset;
 } t_tvi_data;
 
 #define    FLAG_REBUILD_TV    0x1<<30
@@ -488,7 +489,7 @@ int need_rebuild_tv;
 void add_tvi(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data *pt_tvi_data)
 {
     HTREEITEM treeItem2;
-    pt_tvi_data->data_offset+=adjust;
+    pt_tvi_data->data_offset=pt_tvi_data->ori_offset + adjust;
     treeItem2 = insertItem(hwnd_tree, TEXT(""), treeItem1, TVI_LAST, -1, -1, pt_tvi_data);
     update_tvi_text(hwnd_tree, treeItem2);
 
@@ -513,7 +514,7 @@ void build_tv(HWND hwnd_tree)
     treeItem1=insertItem(hwnd_tree, TEXT("ethernet"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
 
     build_tvis(hwnd_tree, treeItem1
-        , adjust, gat_eth_hdr_tvis, ARRAY_SIZE(gat_eth_hdr_tvis));
+        , 0, gat_eth_hdr_tvis, ARRAY_SIZE(gat_eth_hdr_tvis));
     
     if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_ARP)
     {
@@ -521,10 +522,10 @@ void build_tv(HWND hwnd_tree)
         treeItem1=insertItem(hwnd_tree, TEXT("arp"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
         if (4==pt_arp->ar_pln)
             build_tvis(hwnd_tree, treeItem1
-                , adjust, gat_arp_tvis, ARRAY_SIZE(gat_arp_tvis));
+                , 0, gat_arp_tvis, ARRAY_SIZE(gat_arp_tvis));
         else
             build_tvis(hwnd_tree, treeItem1
-                , adjust, gat_arp6_tvis, ARRAY_SIZE(gat_arp6_tvis));
+                , 0, gat_arp6_tvis, ARRAY_SIZE(gat_arp6_tvis));
 
     }
     else if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IP)
@@ -535,7 +536,7 @@ void build_tv(HWND hwnd_tree)
 
 
         build_tvis(hwnd_tree, treeItem1
-                , adjust, gat_ip_hdr_tvis, ARRAY_SIZE(gat_ip_hdr_tvis));
+                , 0, gat_ip_hdr_tvis, ARRAY_SIZE(gat_ip_hdr_tvis));
 
         if (iph->protocol==IPPROTO_ICMP)
         {
@@ -620,10 +621,8 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
         }
 
     }
-
-
-
 }
+
 void *get_tvi_lParam(HWND htv, HTREEITEM htvi)
 {
     TVITEM tvi={0};
@@ -729,6 +728,8 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
     t_tcp_hdr *tcp_hdr = ip_data(iph);
     char info_2[64];
     int eth_type = ntohs(pt_eth_hdr->type);
+
+    info[0]=0;
     
     switch (eth_type)
     {
@@ -786,7 +787,7 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
 
     }
 
-    if (eth_type!=ETH_P_IP)
+    if (eth_type==ETH_P_IPV6)
     {
         goto append_err_info;
     }

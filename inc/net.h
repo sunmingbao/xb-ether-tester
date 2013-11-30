@@ -260,7 +260,7 @@ static inline int ip_pkt_can_frag(t_ether_packet *pt_eth_hdr)
     t_ip_hdr *iph = pt_eth_hdr->payload;
     if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
     {
-        return 0==(ntohs(iph->frag_off)&((1<<14) - 1));
+        return 0==(ntohs(iph->frag_off)&((1ul<<14) - 1));
     }
     
     return 0;

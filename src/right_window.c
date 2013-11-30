@@ -763,7 +763,7 @@ case WM_NOTIFY:
 
                 case    IDM_STREAM_MAKE_FRAGS:
                 {
-                    if (!ip_pkt_can_frag(&(gt_edit_stream.eth_packet)))
+                    if (!ip_pkt_can_frag(&(g_apt_streams[GetIndex(hwnd_lv)]->eth_packet)))
                     {
                         WinPrintf(hwnd, TEXT("暂不支持对该类报文进行分片"));
                         return 0 ;
