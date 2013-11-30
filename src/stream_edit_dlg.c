@@ -117,16 +117,21 @@ void bits_str2n(void *field_addr, char *info, int bytes_len, int bits_from, int 
     
     if (1==bytes_len)
         whole_value = *(unsigned char *)field_addr;
-    else
+    else if (2==bytes_len)
         whole_value = ntohs(*(unsigned short *)field_addr);
-    
+    else if (4==bytes_len)
+        whole_value = ntohl(*(unsigned int *)field_addr);
+
         whole_value &= ~(((1<<bits_len)-1)<<shift_len);
         whole_value |= (value<<shift_len);
         
     if (1==bytes_len)
         *(unsigned char *)field_addr = whole_value;
-    else
+    else if (2==bytes_len)
         *(unsigned short *)field_addr = htons(whole_value);
+    else if (4==bytes_len)
+        *(unsigned int *)field_addr = htonl(whole_value);
+
 }
 
 void bits_n2str(char *info, void * field_addr, int bytes_len, int bits_from, int bits_len)
@@ -135,8 +140,10 @@ void bits_n2str(char *info, void * field_addr, int bytes_len, int bits_from, int
     
     if (1==bytes_len)
         whole_value = *(unsigned char *)field_addr;
-    else
+    else if (2==bytes_len)
         whole_value = ntohs(*(unsigned short *)field_addr);
+    else if (4==bytes_len)
+        whole_value = ntohl(*(unsigned int *)field_addr);
 
         whole_value=(whole_value>>shift_len);
         whole_value&=((1<<bits_len)-1);

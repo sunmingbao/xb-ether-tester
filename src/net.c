@@ -76,12 +76,33 @@ void ip6_addr_uniform(char *input)
     sprintf(ipv4_begin+7, "%02hhx", v4_addr[3]);
 }
 
+void ip6_addr_no_mh(char *dst, char *src)
+{
+    int i=0;
+	char *p_digit = src;
+	while (*p_digit!=0)
+	{
+		if (*p_digit==':') *p_digit=0;
+		p_digit++;		
+	}
+    
+	p_digit = src;
+    dst[0]=0;
+	while (isxdigit(*p_digit))
+	{
+	    sprintf(dst+i*4, "%04s", p_digit);
+	    p_digit += strlen(p_digit)+1;
+        i++;
+		
+	}
+}
+
 void ip6_str2n(void *field_addr, char *info)
 {
     char str_addr[64];
     char *db_mh;
     char *p_digit;
-    char pure_digits[32];
+    char pure_digits[33];
     char pure_digits_hdr[64]={0};
     char pure_digits_tail[64]={0};
     char tmp_str[3] = {0};
@@ -90,39 +111,35 @@ void ip6_str2n(void *field_addr, char *info)
     trim_addr(str_addr, info);
     ip6_addr_uniform(str_addr);
     memset(pure_digits, '0', sizeof(pure_digits));
+    pure_digits[32]=0;
     db_mh=strstr(str_addr, "::");
 
+    *(str_addr + strlen(str_addr) + 1)=0;
     if (NULL==db_mh)
     {
-    	p_digit = str_addr;
-    	while (*p_digit!=0)
-    	{
-    		if (*p_digit==':') *p_digit=0;
-    		p_digit++;		
-    	}
-#if 1
-    	p_digit = str_addr;
-    	for (i=0;i<8;i++)
-    	{
-    	    sprintf(pure_digits_hdr+i*4, "%04s", p_digit);
-    	    p_digit += strlen(p_digit)+1;
-    		
-    	}
-    	//printf(pure_digits_hdr);
-    	for (i=0;i<32;i+=2)
-    	{
-    		tmp_str[0] = pure_digits_hdr[i];
-    		tmp_str[1] = pure_digits_hdr[i+1];
-    		dst[i/2]=strtol(tmp_str,NULL,16);
-    		
-    	}
-    	
-    	return;
-#endif
+    	ip6_addr_no_mh(pure_digits_hdr, str_addr);
+    }
+    else
+    {
+        *db_mh = 0;
+        *(db_mh+1) = 0;
+        ip6_addr_no_mh(pure_digits_hdr, str_addr);
+        ip6_addr_no_mh(pure_digits_tail, db_mh+2);
     }
 
-}
+    memcpy(pure_digits, pure_digits_hdr, strlen(pure_digits_hdr));
+    memcpy(pure_digits+32-strlen(pure_digits_tail)
+        , pure_digits_tail
+        , strlen(pure_digits_tail));
 
+	for (i=0;i<32;i+=2)
+	{
+		tmp_str[0] = pure_digits[i];
+		tmp_str[1] = pure_digits[i+1];
+		dst[i/2]=strtol(tmp_str,NULL,16);
+	}
+
+}
 
 void ip6_n2str(char *info, void * field_addr)
 {
