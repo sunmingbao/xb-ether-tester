@@ -588,13 +588,36 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
     }
     else if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IPV6)
     {
-        t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+        t_ipv6_hdr *ip6h=(void *)(gt_edit_stream.eth_packet.payload);
         treeItem1=insertItem(hwnd_tree, TEXT("ipv6"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
-        adjust = ip_hdr_len(iph)-FIXED_IP_HDR_LEN;
+        adjust = IPV6_HDR_LEN-FIXED_IP_HDR_LEN;
 
 
         build_tvis(hwnd_tree, treeItem1
                 , 0, gat_ipv6_hdr_tvis, ARRAY_SIZE(gat_ipv6_hdr_tvis));
+
+        if (ip6h->nexthdr==IPPROTO_UDP)
+        {
+            treeItem1=insertItem(hwnd_tree, TEXT("udp"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
+
+            build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_udp_hdr_tvis, ARRAY_SIZE(gat_udp_hdr_tvis));
+        }
+        else if (ip6h->nexthdr==IPPROTO_TCP)
+        {
+            treeItem1=insertItem(hwnd_tree, TEXT("tcp"), TVI_ROOT, TVI_LAST, -1, -1, NULL);
+
+            build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_tcp_hdr_tvis, 5);
+treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL);
+
+            build_tvis(hwnd_tree, treeItem2
+                , adjust, gat_tcp_hdr_tvis+5, 7);
+
+            build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_tcp_hdr_tvis+12, 3);
+
+        }
 
     }
 
@@ -700,12 +723,14 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
 {
     t_ether_packet *pt_eth_hdr = p_eth_hdr;
     t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+    t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
     t_arp_hdr *arp_hdr = (void *)(pt_eth_hdr->payload);
     t_icmp_hdr *icmp_hdr = ip_data(iph);
     t_tcp_hdr *tcp_hdr = ip_data(iph);
     char info_2[64];
+    int eth_type = ntohs(pt_eth_hdr->type);
     
-    switch (ntohs(pt_eth_hdr->type))
+    switch (eth_type)
     {
         case ETH_P_ARP:
             if (ntohs(arp_hdr->ar_op)==1)
@@ -745,13 +770,10 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
             strcpy(info, "PPPoE session messages");
             goto append_err_info;
             
-        case ETH_P_IPV6:
-            strcpy(info, "IPv6");
-            goto append_err_info;
 
     }
 
-    if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
+    if (eth_type!=ETH_P_IP && eth_type!=ETH_P_IPV6)
     {
         sprintf(info, "eth type:0x%04x", ntohs(pt_eth_hdr->type));
             goto append_err_info;
@@ -763,6 +785,12 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
         goto append_err_info;
 
     }
+
+    if (eth_type!=ETH_P_IP)
+    {
+        goto append_err_info;
+    }
+    
     switch (iph->protocol)
     {
         case IPPROTO_ICMP:
@@ -969,6 +997,22 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
     {
         t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
         SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), CB_SETCURSEL, (WPARAM)iph->protocol, (LPARAM)0);
+        MoveWindow(	GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB)
+        ,rect1.left
+        ,rect1.top
+        ,cxChar*30
+        ,150
+        ,TRUE);
+
+        ShowWindow(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), 1);
+
+    }
+    else if ((ETH_P_IPV6==ntohs(gt_edit_stream.eth_packet.type))
+        &&
+        (pt_tvi_data->data_offset==20))
+    {
+        t_ipv6_hdr *ip6h=(void *)(gt_edit_stream.eth_packet.payload);
+        SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), CB_SETCURSEL, (WPARAM)ip6h->nexthdr, (LPARAM)0);
         MoveWindow(	GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB)
         ,rect1.left
         ,rect1.top
@@ -1472,7 +1516,7 @@ BOOL CALLBACK RuleCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
   	return FALSE ;
 }
 
-void update_check_sum(t_stream *pt_stream)
+void update_check_sum_v4(t_stream *pt_stream)
 {
     t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
     if (pt_stream->flags & CHECK_SUM_IP)
@@ -1488,10 +1532,31 @@ void update_check_sum(t_stream *pt_stream)
 
 }
 
-void update_len(t_stream *pt_stream)
+void update_check_sum_v6(t_stream *pt_stream)
+{
+    t_ipv6_hdr *ip6h=(void *)(pt_stream->eth_packet.payload);
+
+    if (ip6h->nexthdr==IPPROTO_TCP && (pt_stream->flags & CHECK_SUM_TCP))
+        tcp_update_check6(ip6h);
+    else if (ip6h->nexthdr==IPPROTO_UDP && (pt_stream->flags & CHECK_SUM_UDP))
+        udp_update_check6(ip6h);
+
+}
+
+void update_check_sum(t_stream *pt_stream)
+{
+    if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IP)
+        update_check_sum_v4(pt_stream);
+   else        
+       update_check_sum_v6(pt_stream);
+
+}
+
+
+void update_len_v4(t_stream *pt_stream)
 {
     t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
-    t_udp_hdr *udph=(void *)iph + iph->ihl*4;
+    t_udp_hdr *udph=ip_data(iph);
     if (pt_stream->flags & IP_LEN)
         iph->tot_len = htons(pt_stream->len - sizeof(pt_stream->eth_packet));
     if (iph->protocol==IPPROTO_UDP && (pt_stream->flags & UDP_LEN))
@@ -1499,13 +1564,32 @@ void update_len(t_stream *pt_stream)
 
 }
 
-uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
+void update_len_v6(t_stream *pt_stream)
+{
+    t_ipv6_hdr *ip6h =(void *)(pt_stream->eth_packet.payload);
+    t_udp_hdr *udph=ip6_data(ip6h);
+    if (pt_stream->flags & IP_LEN)
+        set_ip6_pkt_len(ip6h, pt_stream->len - sizeof(pt_stream->eth_packet));
+    if (ip6h->nexthdr==IPPROTO_UDP && (pt_stream->flags & UDP_LEN))
+        udph->len = htons(ip6_data_len(ip6h));
+
+}
+
+void update_len(t_stream *pt_stream)
+{
+    if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IP)
+        update_len_v4(pt_stream);
+   else        
+       update_len_v6(pt_stream);
+        
+
+
+}
+
+uint32_t  build_err_flags_v4(t_ether_packet *pt_eth, int len)
 {
     uint32_t err_flags = 0;
     t_ip_hdr *iph = pt_eth->payload;
-
-    if (ntohs(pt_eth->type)!=ETH_P_IP)
-        return err_flags; 
 
     if (len<MIN_PKT_LEN)
     {
@@ -1574,6 +1658,74 @@ uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
     return err_flags; 
 }
 
+uint32_t  build_err_flags_v6(t_ether_packet *pt_eth, int len)
+{
+    uint32_t err_flags = 0;
+    t_ipv6_hdr *ip6h = pt_eth->payload;
+
+    if (len<40)
+    {
+            err_flags |= ERR_PKT_LEN;
+            return err_flags; 
+    }
+
+    if (ip6_pkt_len(ip6h)+14 > len)
+    {
+            err_flags |= ERR_PKT_LEN;
+            return err_flags; 
+    }
+
+
+
+    if (ip_pkt_is_frag(pt_eth))
+    {
+            return err_flags; 
+    }
+
+    if (ip6h->nexthdr==IPPROTO_TCP)
+    {
+        if (tcp_checksum_wrong6(ip6h))
+        {
+            err_flags |= ERR_TCP_CHECKSUM;
+            return err_flags; 
+        }
+
+    }
+    else if (ip6h->nexthdr==IPPROTO_UDP)
+    {
+        t_udp_hdr *pt_udp_hdr = ip6_data(ip6h);
+        if (ntohs(pt_udp_hdr->len) != ip6_data_len(ip6h))
+        {
+                err_flags |= ERR_PKT_LEN;
+                return err_flags; 
+        }
+
+        if (udp_checksum_wrong6(ip6h))
+        {
+            err_flags |= ERR_UDP_CHECKSUM;
+            return err_flags; 
+        }
+    }
+
+
+    return err_flags; 
+}
+
+uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
+{
+    uint32_t err_flags = 0;
+    t_ip_hdr *iph = pt_eth->payload;
+
+    if (ntohs(pt_eth->type)==ETH_P_IP)
+        return build_err_flags_v4(pt_eth, len);
+        
+    if (ntohs(pt_eth->type)==ETH_P_IPV6)
+        return build_err_flags_v6(pt_eth, len);
+        
+        return err_flags; 
+
+}
+
 void update_stream(HWND hDlg)
 {
     t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
@@ -1593,7 +1745,9 @@ void update_stream(HWND hDlg)
     else
         gt_edit_stream.flags &= ~(CHECK_SUM_TCP|CHECK_SUM_UDP);
 
-    if (ntohs(gt_edit_stream.eth_packet.type)!=ETH_P_IP)
+    if (ntohs(gt_edit_stream.eth_packet.type)!=ETH_P_IP
+        &&
+        ntohs(gt_edit_stream.eth_packet.type)!=ETH_P_IPV6)
         return; 
 
     update_len(&gt_edit_stream);
@@ -1724,18 +1878,36 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
 
             if (HIWORD(wParam)==CBN_SELCHANGE)
             {
-                t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
                 int new_proto=SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB)
-                    , (UINT) CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
-                if (iph->protocol!=new_proto)
+                        , (UINT) CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+
+                if (ETH_P_IP==ntohs(gt_edit_stream.eth_packet.type))
                 {
-                    iph->protocol=new_proto;
-                    hide_edit_ui(hDlg);
-                    InvalidateRect(GetDlgItem(hDlg,ID_SED_HEX_EDIT), NULL, TRUE);
-                    delete_all_rule(&gt_edit_stream);
-                    build_tv(hwnd_tree);
+                    t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+                    if (iph->protocol!=new_proto)
+                    {
+                        iph->protocol=new_proto;
+                        goto PROTO_CHNG_PROC;
+                    }
+                }
+                else if (ETH_P_IPV6==ntohs(gt_edit_stream.eth_packet.type))
+                {
+                    t_ipv6_hdr *ip6h=(void *)(gt_edit_stream.eth_packet.payload);
+                    if (ip6h->nexthdr!=new_proto)
+                    {
+                        ip6h->nexthdr=new_proto;
+                        goto PROTO_CHNG_PROC;
+                    }
                 }
                	return TRUE ;
+                
+                PROTO_CHNG_PROC:
+                hide_edit_ui(hDlg);
+                InvalidateRect(GetDlgItem(hDlg,ID_SED_HEX_EDIT), NULL, TRUE);
+                delete_all_rule(&gt_edit_stream);
+                build_tv(hwnd_tree);
+                return TRUE ;
+
             }
 
                 if(wParam==IDOK)
@@ -1966,34 +2138,16 @@ BOOL InsertItemFromPkt(HWND hWndListView, t_dump_pkt *pt_pkt, struct timeval *ba
     #endif
         ListView_SetItemText(hWndListView, index, 1, info);
 
-        if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
-        {
-        mac_n2str(info, pt_pkt->pkt_data+6);
+        get_src_addr(info, pt_eth_hdr);
         ListView_SetItemText(hWndListView, index, 2, info);
 
-        mac_n2str(info, pt_pkt->pkt_data);
+        get_dst_addr(info, pt_eth_hdr);
         ListView_SetItemText(hWndListView, index, 3, info);
 
-        get_eth_type_name(ntohs(pt_eth_hdr->type), info);
+        get_proto_name(info, pt_eth_hdr);
         ListView_SetItemText(hWndListView, index, 4, info);
 
 
-        }
-        else
-        {
-            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
-                ip_n2str(info, &(iph->saddr));
-                ListView_SetItemText(hWndListView, index, 2, info);
-
-                ip_n2str(info, &(iph->daddr));
-                ListView_SetItemText(hWndListView, index, 3, info);
-
-            get_protocol_name(iph->protocol, info);
-
-            ListView_SetItemText(hWndListView, index, 4, info);
-
-
-        }
 
 
 

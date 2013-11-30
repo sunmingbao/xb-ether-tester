@@ -11,6 +11,7 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
+#include "net.h"
 
 const char version[4]={'2','3','4','0'};
 
@@ -268,34 +269,15 @@ BOOL InsertItemFromStream(HWND hWndListView, t_stream* pt_stream)
 
         ListView_SetItemText(hWndListView, index, 3, pt_stream->name);
 
-        if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
-        {
-                mac_n2str(info, pt_stream->eth_packet.src);
-                ListView_SetItemText(hWndListView, index, 4, info);
+        get_src_addr(info, pt_eth_hdr);
+        ListView_SetItemText(hWndListView, index, 4, info);
 
+        get_dst_addr(info, pt_eth_hdr);
+        ListView_SetItemText(hWndListView, index, 5, info);
 
-                mac_n2str(info, pt_stream->eth_packet.dst);
-                ListView_SetItemText(hWndListView, index, 5, info);
-
-                get_eth_type_name(ntohs(pt_stream->eth_packet.type), info);
+        get_proto_name(info, pt_eth_hdr);
         ListView_SetItemText(hWndListView, index, 6, info);
 
-        }
-        else
-        {
-            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
-                ip_n2str(info, &(iph->saddr));
-                ListView_SetItemText(hWndListView, index, 4, info);
-
-                ip_n2str(info, &(iph->daddr));
-                ListView_SetItemText(hWndListView, index, 5, info);
-
-                get_protocol_name(iph->protocol, info);
-
-            ListView_SetItemText(hWndListView, index, 6, info);
-
-
-        }
 
         sprintf(info, "%d", pt_stream->len);
         ListView_SetItemText(hWndListView, index, 7, info);
@@ -413,6 +395,7 @@ void delete_stream(int idx)
     g_apt_streams[idx] = NULL;
 
     doc_modified=1;
+    copy_idx=-1;
 }
 
 int delete_sel_stream()
@@ -767,9 +750,25 @@ case WM_NOTIFY:
                 case    IDM_STREAM_SEL_RVS:
        				SelRvs(hwnd_lv);
        				return 0 ;
+                    
+                case    IDM_STREAM_COPY:
+       				copy_idx = GetIndex(hwnd_lv);
+       				return 0 ;
+
+                case    IDM_STREAM_PASTE:
+       				cpy_stream(&gt_edit_stream, g_apt_streams[copy_idx]);
+                    add_stream(&gt_edit_stream);
+                    re_populate_items();
+       				return 0 ;
 
                 case    IDM_STREAM_MAKE_FRAGS:
                 {
+                    if (!ip_pkt_can_frag(&(gt_edit_stream.eth_packet)))
+                    {
+                        WinPrintf(hwnd, TEXT("暂不支持对该类报文进行分片"));
+                        return 0 ;
+                    }
+                    
        				ret=DialogBox(g_hInstance, TEXT("FRAG_DLG"), hwnd, FragDlgProc);
 
        				return 0 ;
@@ -819,6 +818,8 @@ case   WM_KEYDOWN:
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_NEW, nr_cur_stream<MAX_STREAM_NUM ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_EDIT, idx>=0 ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_DEL, idx>=0 ? MF_ENABLED : MF_GRAYED);
+                EnableMenuItem ((HMENU) wParam, IDM_STREAM_COPY, idx>=0 ? MF_ENABLED : MF_GRAYED);
+                EnableMenuItem ((HMENU) wParam, IDM_STREAM_PASTE, copy_idx>=0 && item_cnt>copy_idx ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_DEL_SEL, sel_cnt ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_SEL_ALL, item_cnt ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_SEL_RVS, item_cnt ? MF_ENABLED : MF_GRAYED);

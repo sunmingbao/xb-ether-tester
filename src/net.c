@@ -11,6 +11,7 @@
 #include "common.h"
 #include <tchar.h>     
 #include <stdio.h>
+#include "net.h"
 
 void ip_str2n(void *field_addr, char *info)
 {
@@ -238,7 +239,7 @@ unsigned short tcp_udp_checksum(t_ip_hdr *iph)
        }
 
        addr = ip_data(iph);
-       count=ntohs(iph->tot_len)-iph->ihl*4;
+       count=ip_data_len(iph);
 
        while( count > 1 )  {
                sum += ntohs(*addr);
@@ -527,4 +528,158 @@ void get_eth_type_name(int type, char *info)
 
 }
 
+void get_src_addr(char *info, t_ether_packet *pt_eth_hdr)
+{
+        if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+        {
+            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+                ip_n2str(info, &(iph->saddr));
+
+        }
+        else if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+        {
+            t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
+                ip6_n2str(info, &(ip6h->saddr));
+        }
+        else
+        {
+            mac_n2str(info, pt_eth_hdr->src);
+        }
+
+}
+
+void get_dst_addr(char *info, t_ether_packet *pt_eth_hdr)
+{
+        if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+        {
+            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+                ip_n2str(info, &(iph->daddr));
+
+        }
+        else if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+        {
+            t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
+                ip6_n2str(info, &(ip6h->daddr));
+        }
+        else
+        {
+            mac_n2str(info, pt_eth_hdr->dst);
+        }
+
+}
+
+void get_proto_name(char *info, t_ether_packet *pt_eth_hdr)
+{
+        if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+        {
+            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+            get_protocol_name(iph->protocol, info);
+
+        }
+        else if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+        {
+            t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
+            get_protocol_name(ip6h->nexthdr, info);
+        }
+        else
+        {
+            get_eth_type_name(ntohs(pt_eth_hdr->type), info);
+        }
+
+}
+
+unsigned short tcp_udp_checksum6(t_ipv6_hdr *ip6h)
+{
+    t_tcp_hdr *pt_tcp_hdr = ip6_data(ip6h);
+    t_udp_hdr *pt_udp_hdr = ip6_data(ip6h);
+    short ori_sum = 0;
+    register long sum = 0;
+    unsigned short tmp;
+    t_tcp_udp_pseudo_hdr6 t_pseudo_hdr6 = 
+    {
+        {0}, {0}, 0, ip6h->nexthdr, htons(ip6_data_len(ip6h))
+    };
+    unsigned short* addr = (void *)(&t_pseudo_hdr6);
+    int count=sizeof(t_pseudo_hdr6);
+    memcpy(t_pseudo_hdr6.saddr, ip6h->saddr, IPV6_ADDR_LEN);
+    memcpy(t_pseudo_hdr6.daddr, ip6h->daddr, IPV6_ADDR_LEN);
+
+    if (ip6h->nexthdr==IPPROTO_TCP)
+    {
+        ori_sum = pt_tcp_hdr->check;
+        pt_tcp_hdr->check = 0;
+
+    }
+    else
+    {
+        ori_sum = pt_udp_hdr->check;
+        pt_udp_hdr->check = 0;
+
+    }
+
+        while( count > 1 )  {
+               sum += ntohs(*addr);
+               count -= 2;
+               addr++;
+       }
+
+       addr = ip6_data(ip6h);
+       count=ip6_data_len(ip6h);
+
+       while( count > 1 )  {
+               sum += ntohs(*addr);
+               count -= 2;
+               addr++;
+       }
+       
+       if( count > 0 )
+       {
+               tmp = *((unsigned char *)addr);
+               sum += (tmp<<8);
+       }
+
+           /*  Fold 32-bit sum to 16 bits */
+       while (sum>>16)
+           sum = (sum & 0xffff) + (sum >> 16);
+
+    if (ip6h->nexthdr==IPPROTO_TCP)
+    {
+        pt_tcp_hdr->check = ori_sum;
+
+    }
+    else
+    {
+        pt_udp_hdr->check = ori_sum;
+
+    }
+
+    return htons(~sum);
+
+}
+
+
+
+void tcp_update_check6(t_ipv6_hdr *ip6h)
+{
+    t_tcp_hdr *pt_tcp_hdr = ip6_data(ip6h);
+	pt_tcp_hdr->check = tcp_udp_checksum6(ip6h);
+}
+
+void udp_update_check6(t_ipv6_hdr *ip6h)
+{
+    t_udp_hdr *pt_udp_hdr = ip6_data(ip6h);
+	pt_udp_hdr->check = tcp_udp_checksum6(ip6h);
+}
+
+int tcp_checksum_wrong6(t_ipv6_hdr *ip6h)
+{
+    t_tcp_hdr *pt_tcp_hdr = ip6_data(ip6h);
+    return pt_tcp_hdr->check !=tcp_udp_checksum6(ip6h);
+}
+
+int udp_checksum_wrong6(t_ipv6_hdr *ip6h)
+{
+    t_udp_hdr *pt_udp_hdr = ip6_data(ip6h);
+    return pt_udp_hdr->check !=tcp_udp_checksum6(ip6h);
+}
 

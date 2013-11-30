@@ -11,6 +11,7 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
+#include "net.h"
 
 int need_stop=1;
 int need_cap_stop=1;
@@ -120,6 +121,7 @@ void init_net_card_combbox(HWND hwnd_comb)
 
 int        nr_cur_stream;
 t_stream    *g_apt_streams[MAX_STREAM_NUM];
+int        copy_idx=-1;
 
 void del_all_streams()
 {

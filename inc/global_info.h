@@ -13,9 +13,10 @@
 #define __GLOBAL_INFO_H_
 
 #include <windows.h>
-#include <stdint.h>
 #include "defs.h"
 #include "common.h"
+#include "net.h"
+
 extern const char version[4];
 
 extern HINSTANCE g_hInstance;
@@ -132,10 +133,6 @@ void clear_stats();
 void init_stats_ui();
 void stream_edit_data_change(HWND  hwnd, int offset);
 
-#define    ETHERNET_HDR_LEN  14
-#define    MAX_IP_PACKET_LEN 65535
-#define    MAX_PACKET_LEN    (ETHERNET_HDR_LEN+MAX_IP_PACKET_LEN)
-#define    MIN_PACKET_LEN    48
 
 #define    CFG_FILE_FILTER    "ethernet test config(*.etc)\0*.etc\0\0"
 #define    CFG_FILE_SUFFIX    "etc"
@@ -144,70 +141,6 @@ void stream_edit_data_change(HWND  hwnd, int offset);
 #define    PCAP_FILE_SUFFIX    "pcap"
 
 
-typedef struct
-{
-    char     valid;
-    uint32_t flags;
-    uint16_t offset;
-    uint8_t  width;
-    char     bits_from;
-    char     bits_len;
-    char     rsv[4];
-    uint8_t base_value[8];
-    uint8_t max_value[8];
-    uint32_t step_size;
-} __attribute__ ((aligned (1))) t_rule;
-
-#define    MAX_FIELD_RULE_NUM    (10)
-typedef struct
-{
-    int  selected;
-    char snd_cnt;
-    char rsv[7];
-    char name[64];
-    uint32_t flags;
-    char    rule_num;
-    char    rule_idx[MAX_FIELD_RULE_NUM];
-    t_rule  at_rules[MAX_FIELD_RULE_NUM];
-    int len;
-    union
-    {
-        t_ether_packet eth_packet;
-        unsigned char data[MAX_PACKET_LEN];
-    };
-
-    //non save info
-    uint32_t err_flags;
-
-} __attribute__ ((aligned (1))) t_stream;
-
-#define    ERR_IP_CHECKSUM     (0x1<<30)
-#define    ERR_UDP_CHECKSUM    (0x1<<29)
-#define    ERR_TCP_CHECKSUM    (0x1<<28)
-#define    ERR_PKT_LEN         (0x1<<27)
-#define    ERR_ICMP_CHECKSUM    (0x1<<26)
-#define    ERR_IGMP_CHECKSUM    (0x1<<25)
-
-#define    STREAM_HDR_LEN    ((unsigned long)(void *)(&(((t_stream *)NULL)->data)))
-
-#define    MAX_STREAM_NUM    100
-extern int  nr_cur_stream;
-extern t_stream    *g_apt_streams[MAX_STREAM_NUM];
-void init_stream(t_stream    *pt_streams);
-void make_frags(const t_stream *pt_stream, int frag_num);
-void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags);
-uint32_t  build_err_flags(t_ether_packet *pt_eth, int len);
-void delete_all_rule(t_stream *pt_stream);
-
-extern char *protocol_name_map[];
-
-#include <pcap.h>
-typedef struct
-{
-    struct pcap_pkthdr header;
-    uint32_t err_flags;
-    u_char  pkt_data[0];
-} t_dump_pkt;
 
 extern HWND    hwnd_net_card_comb;
 extern HWND    hwnd_capture_checkbox;
