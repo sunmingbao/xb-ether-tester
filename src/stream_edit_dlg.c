@@ -2725,7 +2725,9 @@ CLR_STAT:
                             }
 
                             strcpy(pcap_file_to_view, PKT_CAP_FILE_ONLY_CAP);
+                            ShowWindow(hDlg, 0);
                             DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hDlg, PktViewDlgProc);
+                            ShowWindow(hDlg, 1);
                				return TRUE ;
 
 
