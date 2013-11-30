@@ -718,14 +718,87 @@ exit:
     
 }
 
-void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
+void get_pkt_desc_info_v4(char *info, void* p_eth_hdr)
 {
     t_ether_packet *pt_eth_hdr = p_eth_hdr;
     t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
-    t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
-    t_arp_hdr *arp_hdr = (void *)(pt_eth_hdr->payload);
     t_icmp_hdr *icmp_hdr = ip_data(iph);
     t_tcp_hdr *tcp_hdr = ip_data(iph);
+    char info_2[64];
+
+    switch (iph->protocol)
+    {
+        case IPPROTO_ICMP:
+
+            if (icmp_hdr->type==8 && icmp_hdr->code==0)
+                strcpy(info, "ping request");
+            else if (icmp_hdr->type==0 && icmp_hdr->code==0)
+                strcpy(info, "ping reply");
+            else
+                sprintf(info, "type %hhu code %hhu", icmp_hdr->type, icmp_hdr->code);
+
+            return;
+            
+        case IPPROTO_IGMP:
+            strcpy(info, "IGMP");
+            return;
+
+        case IPPROTO_TCP:
+            sprintf(info, "port %hu->%hu[%s%s%s%s%s%s%s%s]"
+                , ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest)
+                ,tcp_hdr->cwr?"cwr ":""
+                ,tcp_hdr->ece?"ece ":""
+                ,tcp_hdr->urg?"urg ":""
+                ,tcp_hdr->ack?"ack ":""
+                ,tcp_hdr->psh?"psh ":""
+                ,tcp_hdr->rst?"rst ":""
+                ,tcp_hdr->syn?"syn ":""
+                ,tcp_hdr->fin?"fin ":"");
+
+            return;
+
+        case IPPROTO_UDP:
+            sprintf(info, "port %hu->%hu", ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest));
+            return;
+
+    }
+
+}
+
+void get_pkt_desc_info_v6(char *info, void* p_eth_hdr)
+{
+    t_ether_packet *pt_eth_hdr = p_eth_hdr;
+    t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
+    t_tcp_hdr *tcp_hdr = ip6_data(ip6h);
+
+    switch (ip6h->nexthdr)
+    {
+        case IPPROTO_TCP:
+            sprintf(info, "port %hu->%hu[%s%s%s%s%s%s%s%s]"
+                , ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest)
+                ,tcp_hdr->cwr?"cwr ":""
+                ,tcp_hdr->ece?"ece ":""
+                ,tcp_hdr->urg?"urg ":""
+                ,tcp_hdr->ack?"ack ":""
+                ,tcp_hdr->psh?"psh ":""
+                ,tcp_hdr->rst?"rst ":""
+                ,tcp_hdr->syn?"syn ":""
+                ,tcp_hdr->fin?"fin ":"");
+
+            return;
+
+        case IPPROTO_UDP:
+            sprintf(info, "port %hu->%hu", ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest));
+            return;
+
+    }
+
+}
+
+void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
+{
+    t_ether_packet *pt_eth_hdr = p_eth_hdr;
+    t_arp_hdr *arp_hdr = (void *)(pt_eth_hdr->payload);
     char info_2[64];
     int eth_type = ntohs(pt_eth_hdr->type);
 
@@ -736,10 +809,20 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
         case ETH_P_ARP:
             if (ntohs(arp_hdr->ar_op)==1)
             {
-                ip_n2str(info_2, arp_hdr->ar_tip);
-                sprintf(info, "who has %s? tell ", info_2);
-                ip_n2str(info_2, arp_hdr->ar_sip);
-                strcat(info, info_2);
+                if (4==arp_hdr->ar_pln)
+                {
+                    ip_n2str(info_2, arp_hdr->ar_tip);
+                    sprintf(info, "who has %s? tell ", info_2);
+                    ip_n2str(info_2, arp_hdr->ar_sip);
+                    strcat(info, info_2);
+                }
+                else if (16==arp_hdr->ar_pln)
+                {
+                    ip6_n2str(info_2, arp_hdr->ar_sip+22);
+                    sprintf(info, "who has %s? tell ", info_2);
+                    ip6_n2str(info_2, arp_hdr->ar_sip);
+                    strcat(info, info_2);
+                }
             }
             else if (ntohs(arp_hdr->ar_op)==2)
             {
@@ -787,48 +870,14 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
 
     }
 
-    if (eth_type==ETH_P_IPV6)
+    if (eth_type==ETH_P_IP)
     {
-        goto append_err_info;
+        get_pkt_desc_info_v4(info, p_eth_hdr);
     }
-    
-    switch (iph->protocol)
+    else
     {
-        case IPPROTO_ICMP:
-
-            if (icmp_hdr->type==8 && icmp_hdr->code==0)
-                strcpy(info, "ping request");
-            else if (icmp_hdr->type==0 && icmp_hdr->code==0)
-                strcpy(info, "ping reply");
-            else
-                sprintf(info, "type %hhu code %hhu", icmp_hdr->type, icmp_hdr->code);
-
-            goto append_err_info;
-            
-        case IPPROTO_IGMP:
-            strcpy(info, "IGMP");
-            goto append_err_info;
-
-        case IPPROTO_TCP:
-            sprintf(info, "port %hu->%hu[%s%s%s%s%s%s%s%s]"
-                , ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest)
-                ,tcp_hdr->cwr?"cwr ":""
-                ,tcp_hdr->ece?"ece ":""
-                ,tcp_hdr->urg?"urg ":""
-                ,tcp_hdr->ack?"ack ":""
-                ,tcp_hdr->psh?"psh ":""
-                ,tcp_hdr->rst?"rst ":""
-                ,tcp_hdr->syn?"syn ":""
-                ,tcp_hdr->fin?"fin ":"");
-
-            goto append_err_info;
-
-        case IPPROTO_UDP:
-            sprintf(info, "port %hu->%hu", ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest));
-            goto append_err_info;
-
+        get_pkt_desc_info_v6(info, p_eth_hdr);
     }
-
 
 append_err_info:
     append_err_text(info, err_flags);
