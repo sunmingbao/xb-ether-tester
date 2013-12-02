@@ -206,7 +206,16 @@ typedef struct
 
 	__u8	saddr[IPV6_ADDR_LEN];
 	__u8    daddr[IPV6_ADDR_LEN];
-} __attribute__ ((aligned (1)))  t_ipv6_hdr ;
+} __attribute__ ((aligned (1)))  t_ipv6_hdr;
+
+typedef struct 
+{
+	__u8			nexthdr;
+	__u8			rsv;
+
+	__u16	frag_off;
+	__u32   id;
+} __attribute__ ((aligned (1)))  t_ipv6_frag_hdr;
 
 static inline void * ip6_data(t_ipv6_hdr *ip6h)
 {
@@ -253,6 +262,19 @@ static inline int ip_pkt_is_frag(t_ether_packet *pt_eth_hdr)
         return (IPPROTO_FRAGMENT==ipv6h->nexthdr);
     
     return 0;
+}
+
+static inline int ip_frag_offset(t_ether_packet *pt_eth_hdr)
+{
+    t_ip_hdr *iph = pt_eth_hdr->payload;
+    t_ipv6_hdr *ipv6h = pt_eth_hdr->payload;
+    t_ipv6_frag_hdr *frag_hdr;
+    
+    if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+        return ntohs(iph->frag_off)&((1<<13) - 1);
+    
+    frag_hdr=ip6_data(ipv6h);
+    return ntohs(frag_hdr->frag_off)>>3;
 }
 
 static inline int ip_pkt_can_frag(t_ether_packet *pt_eth_hdr)

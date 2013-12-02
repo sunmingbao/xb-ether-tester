@@ -334,10 +334,12 @@ void update_item(HWND hWndListView, int index)
 #endif
 void update_grid_from_edit(int edit_iItem, int edit_iSubItem)
 {
-    TCHAR buf[32];
+    TCHAR buf[64];
     t_stream* pt_stream=g_apt_streams[edit_iItem];
     t_ether_packet *pt_eth_hdr = pt_stream->data;
     t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+    t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
+    int type = ntohs(pt_eth_hdr->type);
 
     GetWindowText(hwnd_dynamic_edit, buf, sizeof(buf));
     ShowWindow (hwnd_dynamic_edit, 0);
@@ -348,7 +350,7 @@ void update_grid_from_edit(int edit_iItem, int edit_iSubItem)
         return;
     }
 
-    if (ntohs(pt_eth_hdr->type)!=ETH_P_IP)
+    if (type!=ETH_P_IP && type!=ETH_P_IPV6)
     {
         if (edit_iSubItem==4)
         {
@@ -363,11 +365,18 @@ void update_grid_from_edit(int edit_iItem, int edit_iSubItem)
 
     if (edit_iSubItem==4)
     {
-        ip_str2n(&(iph->saddr), buf);
+        if (type==ETH_P_IP)
+            ip_str2n(&(iph->saddr), buf);
+        else
+            ip6_str2n(ip6h->saddr, buf);
     }
     else if (edit_iSubItem==5)
     {
-        ip_str2n(&(iph->daddr), buf);
+        if (type==ETH_P_IP)
+            ip_str2n(&(iph->daddr), buf);
+        else
+            ip6_str2n(ip6h->daddr, buf);
+
     }
     check_sum_proc(pt_stream);
 
@@ -585,7 +594,7 @@ LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
     static HMENU	hMenu ;
     POINT point ;
     int ret, idx;
-    TCHAR  buf[32];
+    TCHAR  buf[64];
 
     static int edit_iItem=-1 ;
     static int edit_iSubItem;
@@ -602,6 +611,8 @@ LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 WS_CHILD|ES_AUTOHSCROLL,
                 CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                 hwnd, ID_DYNAMIC_EDIT, g_hInstance, NULL) ;
+
+            SendMessage(hwnd_dynamic_edit, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
 
             hwnd_lv = CreateListView(hwnd);
             //InitListViewImageLists(hwnd_lv);
