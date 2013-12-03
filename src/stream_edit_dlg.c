@@ -1162,7 +1162,7 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
     }
 }
 
-int htvi_edit_able(HWND hDlg, HWND htv, HTREEITEM htvi)
+int htvi_edit_able(HWND hHexEdit, HWND htv, HTREEITEM htvi)
 {
     char info[128];
 
@@ -1172,10 +1172,12 @@ int htvi_edit_able(HWND hDlg, HWND htv, HTREEITEM htvi)
 
     if (NULL==strchr(info, ':'))
     {
-        int off = atoi(strchr(info, '=')+1);
-        int len = atoi(strrchr(info, '=')+1);
-        hex_win_sel(GetDlgItem(hDlg, ID_SED_HEX_EDIT), off, len);
-
+        if (NULL!=strchr(info, '='))
+        {
+            int off = atoi(strchr(info, '=')+1);
+            int len = atoi(strrchr(info, '=')+1);
+            hex_win_sel(hHexEdit, off, len);
+        }
         return 0;
     }
     
@@ -1664,9 +1666,9 @@ void update_check_sum_v6(t_stream *pt_stream)
 
 void update_check_sum(t_stream *pt_stream)
 {
-    if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IP)
+    if (ntohs(pt_stream->eth_packet.type)==ETH_P_IP)
         update_check_sum_v4(pt_stream);
-   else        
+   else if (ntohs(pt_stream->eth_packet.type)==ETH_P_IPV6)
        update_check_sum_v6(pt_stream);
 
 }
@@ -1696,13 +1698,10 @@ void update_len_v6(t_stream *pt_stream)
 
 void update_len(t_stream *pt_stream)
 {
-    if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IP)
+    if (ntohs(pt_stream->eth_packet.type)==ETH_P_IP)
         update_len_v4(pt_stream);
-   else        
+   else if (ntohs(pt_stream->eth_packet.type)==ETH_P_IPV6)
        update_len_v6(pt_stream);
-        
-
-
 }
 
 uint32_t  build_err_flags_v4(t_ether_packet *pt_eth, int len)
@@ -1845,7 +1844,16 @@ uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
 
 }
 
-void update_stream(HWND hDlg)
+void update_stream(t_stream* pt_stream)
+{
+    doc_modified=1;
+    update_len(pt_stream);
+    update_check_sum(pt_stream);
+    pt_stream->err_flags = build_err_flags((void *)(pt_stream->data), pt_stream->len);
+
+}
+
+void update_stream_from_dlg(HWND hDlg)
 {
     t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
 
@@ -1869,9 +1877,7 @@ void update_stream(HWND hDlg)
         ntohs(gt_edit_stream.eth_packet.type)!=ETH_P_IPV6)
         return; 
 
-    update_len(&gt_edit_stream);
-    update_check_sum(&gt_edit_stream);
-    gt_edit_stream.err_flags = build_err_flags((void *)(gt_edit_stream.data), gt_edit_stream.len);
+    update_stream(&gt_edit_stream);
 
 }
 
@@ -2043,7 +2049,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
           		{
               		case 	IDOK :
                     {
-                        update_stream(hDlg);
+                        update_stream_from_dlg(hDlg);
                     }
 
               		case 	IDCANCEL :
@@ -2124,7 +2130,7 @@ case WM_NOTIFY:
         
         htvi=(HTREEITEM)TreeView_GetSelection(hwnd_tree);
 
-        if (htvi_edit_able(hDlg, hwnd_tree, htvi))
+        if (htvi_edit_able(GetDlgItem(hDlg,ID_SED_HEX_EDIT), hwnd_tree, htvi))
         {
             Selected=htvi;
             show_edit_ui_for_tvi(hDlg, hwnd_tree, Selected);
@@ -2609,7 +2615,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             
             htvi=(HTREEITEM)TreeView_GetSelection(hwnd_tree);
 
-            if (htvi_edit_able(hDlg, hwnd_tree, htvi))
+            if (htvi_edit_able(GetDlgItem(hDlg, ID_VIEW_STREAM_HEX_EDIT), hwnd_tree, htvi))
             {
                 tvi.hItem = htvi;
                 tvi.mask=TVIF_PARAM;

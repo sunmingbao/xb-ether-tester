@@ -20,12 +20,13 @@ TEXTMETRIC textmetric;
 int cxChar, cyChar;
 int is_read_only;
 
-#define MAX_DATA_LEN    (2048)
 #define LINE_DATA_LEN    (16)
-#define LINE_NUMBER_CHAR_NUM    (10)
+#define LINE_NUMBER_CHAR_NUM    (7)
 #define LINE_DATA_CHAR_NUM    (LINE_DATA_LEN*3)
+#define LINE_SEP_CHAR_NUM    (3)
+#define LINE_DATA_READABLE_OFFSET    (LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+LINE_SEP_CHAR_NUM)
 #define LINE_DATA_READABLE_CHAR_NUM    (LINE_DATA_LEN)
-#define LINE_CHAR_NUM    (LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+LINE_DATA_READABLE_CHAR_NUM)
+#define LINE_CHAR_NUM    (LINE_DATA_READABLE_OFFSET+LINE_DATA_READABLE_CHAR_NUM)
 
 int cur_strm_idx;
 int line_width;
@@ -58,7 +59,7 @@ void format_line(char *buf, int line_idx, void *start_addr, int length)
     int i;
 
     buf[0]=0;
-    sprintf(str_addr, "%08x: ", line_idx*16);
+    sprintf(str_addr, "%05x: ", line_idx*16);
 
         for (i = 0; i < length; i++)
         {
@@ -213,9 +214,11 @@ static HMENU	hMenu ;
 
                     SetBkColor (hdc, RGB(0xFF,0xFF,0xFF)) ;
         		    TextOutA(hdc, cxChar*LINE_NUMBER_CHAR_NUM, i*cyChar, buf+LINE_NUMBER_CHAR_NUM, LINE_DATA_CHAR_NUM) ; 
-                    
+
+        		    TextOutA(hdc, cxChar*(LINE_DATA_READABLE_OFFSET-3), i*cyChar, " | ", 3) ; 
+
                     SetBkColor (hdc, RGB(0xFF,0xFF,0x00)) ;
-        		    TextOutA(hdc, cxChar*(LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM), i*cyChar
+        		    TextOutA(hdc, cxChar*(LINE_DATA_READABLE_OFFSET), i*cyChar
                     , buf+LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM, LINE_DATA_READABLE_CHAR_NUM) ; 
 
                 if (!sel_len 
@@ -231,7 +234,12 @@ static HMENU	hMenu ;
 
                     SetBkColor (hdc, RGB(0xFF,0x55,0xFF)) ;
         		    TextOutA(hdc, cxChar*(LINE_NUMBER_CHAR_NUM+a*3), i*cyChar, buf+LINE_NUMBER_CHAR_NUM+a*3, b*3) ; 
-        		    TextOutA(hdc, cxChar*(LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+a), i*cyChar
+
+                    SetBkColor (hdc, RGB(0xFF,0xFF,0xFF)) ;
+        		    TextOutA(hdc, cxChar*(LINE_DATA_READABLE_OFFSET-3), i*cyChar, " | ", 3) ; 
+
+                    SetBkColor (hdc, RGB(0xFF,0x55,0xFF)) ;
+        		    TextOutA(hdc, cxChar*(LINE_DATA_READABLE_OFFSET+a), i*cyChar
                     , buf+LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+a, b) ; 
 
                 }
@@ -241,7 +249,7 @@ static HMENU	hMenu ;
                     SetBkColor(hdc, RGB(0x00,0x00,0x00));
                     SetTextColor(hdc, RGB(0xff,0xff,0xff)) ;
 
-        		    TextOutA(hdc, cxChar*(LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+line_data_idx), i*cyChar
+        		    TextOutA(hdc, cxChar*(LINE_DATA_READABLE_OFFSET+line_data_idx), i*cyChar
                     , buf+LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+line_data_idx, 1) ; 
 
                 }

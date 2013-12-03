@@ -350,6 +350,12 @@ void update_grid_from_edit(int edit_iItem, int edit_iSubItem)
         return;
     }
 
+    if (edit_iSubItem==7)
+    {
+        pt_stream->len = atoi(buf);
+        goto exit;
+    }
+
     if (type!=ETH_P_IP && type!=ETH_P_IPV6)
     {
         if (edit_iSubItem==4)
@@ -378,8 +384,9 @@ void update_grid_from_edit(int edit_iItem, int edit_iSubItem)
             ip6_str2n(ip6h->daddr, buf);
 
     }
-    check_sum_proc(pt_stream);
 
+exit:
+    update_stream(pt_stream);
 }
 
 
@@ -653,7 +660,7 @@ case WM_NOTIFY:
         int iItem = ((LPNMITEMACTIVATE)lParam)->iItem;
         int iSubItem=((LPNMITEMACTIVATE)lParam)->iSubItem;
 
-        if (iItem>=0 && iSubItem>=3 && iSubItem<=5) 
+        if (iItem>=0 && ((iSubItem>=3 && iSubItem<=5) || iSubItem==7)) 
         {
 
             ListView_GetSubItemRect(hwnd_lv,iItem,iSubItem,LVIR_LABEL,&rect);
