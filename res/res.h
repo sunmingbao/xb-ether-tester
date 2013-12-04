@@ -124,17 +124,26 @@
 #define ID_PKT_CAP_VIEW_RESULT  40449
 #define ID_PKT_CAP_CFG_INFO     40450
 #define ID_PKT_CAP_CFG          40451
+
 #define ID_PKT_CAP_TOTAL        40452
-#define ID_PKT_CAP_ARP          40453
-#define ID_PKT_CAP_RARP         40454
-#define ID_PKT_CAP_OTHER_L2     40455
-#define ID_PKT_CAP_IP           40456
-#define ID_PKT_CAP_ICMP         40457
-#define ID_PKT_CAP_UDP          40458
-#define ID_PKT_CAP_TCP          40459
-#define ID_PKT_CAP_IPv6         40460
-#define ID_PKT_CAP_OTHER        40461
-#define ID_PKT_CAP_L2           40462
+
+#define ID_PKT_CAP_L2           40453
+
+#define ID_PKT_CAP_ARP          40454
+#define ID_PKT_CAP_RARP         40455
+#define ID_PKT_CAP_OTHER_L2     40456
+
+#define ID_PKT_CAP_IP           40470
+#define ID_PKT_CAP_ICMP         40471
+#define ID_PKT_CAP_UDP          40472
+#define ID_PKT_CAP_TCP          40473
+#define ID_PKT_CAP_OTHER        40474
+
+#define ID_PKT_CAP_IPv6         40480
+#define ID_PKT_CAP_ICMP6         40481
+#define ID_PKT_CAP_UDP6          40482
+#define ID_PKT_CAP_TCP6          40483
+#define ID_PKT_CAP_OTHER6        40484
 
 #define  ID_ABOUT_INFO          40500
 #define  ID_AB_SOURCE           40501

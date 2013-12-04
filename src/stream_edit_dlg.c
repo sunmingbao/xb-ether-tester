@@ -427,6 +427,17 @@ t_tvi_data gat_ipv6_hdr_tvis[]=
  {"dst ip", 38, 16, IS_IP6},
 };
 
+t_tvi_data gat_ipv6_frag_hdr_tvis[]=
+{
+ {"next hdr", 54, 1},
+ {"Reserved",    55, 1},
+ {"frag offset", 56, 2, 0, 0, 13},
+  {"Res", 56, 2, 0, 13, 2},
+  {"M", 56, 2, 0, 15, 1},
+ {"id", 58, 4},
+};
+
+
 t_tvi_data gt_tvi_data_icmp_type = {"type", 34, 1};
 t_tvi_data gt_tvi_data_icmp_code = {"code", 35, 1};
 t_tvi_data gt_tvi_data_icmp_checksum = {"checksum", 36, 2, SUPPORT_RULE|DISPLAY_HEX};
@@ -647,18 +658,29 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
         {
             if (ip_frag_offset(&(gt_edit_stream.eth_packet)))
             {
-                build_hdr_info(info, TEXT("ip(frag-x)"), 14, ip6_pkt_len(ip6h));
+                build_hdr_info(info, TEXT("ipv6(frag-x)"), 14, ip6_pkt_len(ip6h));
                 set_tvi_text(hwnd_tree, treeItem1, info);
-                return;
             }
-            
-            build_hdr_info(info, TEXT("ip(frag-1)"), 14, ip6_pkt_len(ip6h));
-            set_tvi_text(hwnd_tree, treeItem1, info);
-            return;
-        }
+            else
+            {
+                build_hdr_info(info, TEXT("ipv6(frag-1)"), 14, ip6_pkt_len(ip6h));
+                set_tvi_text(hwnd_tree, treeItem1, info);
+            }
 
-        build_hdr_info(info, TEXT("ipv6"), 14, ip6_pkt_len(ip6h));
-        set_tvi_text(hwnd_tree, treeItem1, info);
+            build_hdr_info(info, TEXT("frag"), 14+IPV6_HDR_LEN, ip6_data_len(ip6h));
+            treeItem1=insertItem(hwnd_tree, info, TVI_ROOT, TVI_LAST, -1, -1, NULL);
+
+            build_tvis(hwnd_tree, treeItem1
+                , 0, gat_ipv6_frag_hdr_tvis, ARRAY_SIZE(gat_ipv6_frag_hdr_tvis));
+
+            return;
+
+        }
+        else
+        {
+            build_hdr_info(info, TEXT("ipv6"), 14, ip6_pkt_len(ip6h));
+            set_tvi_text(hwnd_tree, treeItem1, info);
+        }
 
         if (ip6h->nexthdr==IPPROTO_UDP)
         {
@@ -2700,6 +2722,31 @@ void update_pkt_cap_stats_ip(t_ether_packet *pt_pkt)
     }
 }
 
+void update_pkt_cap_stats_ip6(t_ether_packet *pt_pkt)
+{
+    t_ipv6_hdr *ip6h=(void *)(pt_pkt->payload);
+
+    switch (ip6h->nexthdr)
+    {
+        case IPPROTO_ICMPV6:
+            inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_ICMP6), 1);
+            break;
+
+        case IPPROTO_UDP:
+            inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_UDP6), 1);
+            break;
+            
+        case IPPROTO_TCP:
+            inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_TCP6), 1);
+            break;
+
+        default:
+            inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_OTHER6), 1);
+
+    }
+}
+
+
 void update_pkt_cap_stats(t_ether_packet *pt_pkt)
 {
     inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_TOTAL), 1);
@@ -2710,6 +2757,11 @@ void update_pkt_cap_stats(t_ether_packet *pt_pkt)
             inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_IP), 1);
             update_pkt_cap_stats_ip(pt_pkt);
             break;
+        case ETH_P_IPV6:
+            inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_IPv6), 1);
+            update_pkt_cap_stats_ip6(pt_pkt);
+            break;
+
 
         case ETH_P_ARP:
             inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_L2), 1);
