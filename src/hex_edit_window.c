@@ -39,15 +39,13 @@ int line_num;
 int cur_hdr_line;
 
 #define  WM_HEX_EDIT_SEL     (WM_USER + 1)
-#define  WM_HEX_EDIT_DESEL   (WM_USER + 2)
+
 void hex_win_sel(HWND  hwnd, int offset, int len)
 {
     SendMessage(hwnd, WM_HEX_EDIT_SEL, offset, len);
 }
-void hex_win_desel(HWND  hwnd, int offset, int len)
-{
-    SendMessage(hwnd, WM_HEX_EDIT_DESEL, 0, 0);
-}
+
+
 int sel_offset;
 int sel_len;
 void format_line(char *buf, int line_idx, void *start_addr, int length)
@@ -189,7 +187,7 @@ static HMENU	hMenu ;
             int cur_edit_line = cur_hdr_line+row;
             int line_data_idx = (col-LINE_NUMBER_CHAR_NUM)/3;
             hdc = BeginPaint (hwnd, &ps) ;
-            SelectObject (hdc, GetStockObject(SYSTEM_FIXED_FONT)) ;
+            SelectObject(hdc, GetStockObject(SYSTEM_FIXED_FONT)) ;
 
             //draw some thing here
             GetClientRect(hwnd, &rect) ;
@@ -255,7 +253,7 @@ static HMENU	hMenu ;
                 }
 
             }
-            DeleteObject (SelectObject (hdc, GetStockObject(SYSTEM_FONT))) ;
+            DeleteObject(SelectObject (hdc, GetStockObject(SYSTEM_FONT))) ;
   			EndPaint (hwnd, &ps) ;
 
 			return 0 ;
@@ -465,12 +463,6 @@ case WM_LBUTTONDOWN:
 
         }
 
-        case WM_HEX_EDIT_DESEL:
-        {
-            sel_len = 0;
-            return 0;
-
-        }
 
     }
     

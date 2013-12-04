@@ -371,7 +371,7 @@ t_tvi_data gat_arp_tvis[]=
     {"protocol type", 16, 2},
 
     {"hdwr size", 18, 1},
-    {"protocol size", 19, 1},
+    {"protocol size", 19, 1, FLAG_REBUILD_TV},
     {"opcode", 20, 2, DISPLAY_HEX},
 
     {"sender mac", 22, 6, IS_MAC},
@@ -386,7 +386,7 @@ t_tvi_data gat_arp6_tvis[]=
     {"protocol type", 16, 2},
 
     {"hdwr size", 18, 1},
-    {"protocol size", 19, 1},
+    {"protocol size", 19, 1, FLAG_REBUILD_TV},
     {"opcode", 20, 2, DISPLAY_HEX},
 
     {"sender mac", 22, 6, IS_MAC},
@@ -486,6 +486,14 @@ LRESULT CALLBACK my_tv_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 int need_rebuild_tv;
 
+void hex_win_reinit(HWND  hwnd)
+{
+    SendMessage(hwnd, WM_CREATE, 0, 0);
+    resize_window(hwnd);
+    InvalidateRect(hwnd, NULL, TRUE) ;
+}
+
+
 void add_tvi(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data *pt_tvi_data)
 {
     HTREEITEM treeItem2;
@@ -506,7 +514,7 @@ void build_tvis(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data tvis
 void build_hdr_info(char *info, const char *str, int off, int len)
 {
 
-    sprintf(info, "%-15s [offset=%d;length=%d]", str, off, len);
+    sprintf(info, "%-12s[offset=%d;length=%d]", str, off, len);
 }
 
 void build_tv(HWND hwnd_tree)
@@ -690,7 +698,9 @@ void *get_tvi_lParam(HWND htv, HTREEITEM htvi)
     return (void *)(tvi.lParam);
 
 }
-void update_tv(HWND htv, int data_offset)
+
+#if 0
+static void update_tv(HWND htv, int data_offset)
 {
     char info[128];
 
@@ -729,7 +739,7 @@ void update_tv(HWND htv, int data_offset)
     }     while((htvi_p=TreeView_GetNextSibling(htv,htvi_p))!=NULL);
 
 }
-
+#endif
 void append_err_text(char *info, uint32_t err_flags)
 {
     if (err_flags==0) return;
@@ -1046,7 +1056,7 @@ int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int e
     if (pt_tvi_data->flags&FLAG_REBUILD_TV)
     {
         delete_all_rule(&gt_edit_stream);
-        build_tv(htv);
+        SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
         return 1;
     }
 
@@ -1971,11 +1981,13 @@ move_child_a2b_left_top(GetDlgItem(hDlg,IDOK), GetDlgItem(hDlg,IDCANCEL), 10);
 
 }
 
+
 BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
     HTREEITEM htvi;
     TVITEM tvi;
     HWND hwnd_tree=GetDlgItem(hDlg,ID_SED_TREE_VIEW);
+    HWND hwnd_hex_edit=GetDlgItem(hDlg,ID_SED_HEX_EDIT);
     TCHAR    info[32];
     int ret;
 
@@ -1993,7 +2005,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                 init_protocol_comb(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), 0);
 
 
-          		return TRUE ;
+          		return FALSE;
 
       case 	WM_CLOSE:
    				SendMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
@@ -2028,9 +2040,8 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                 
                 PROTO_CHNG_PROC:
                 hide_edit_ui(hDlg);
-                InvalidateRect(GetDlgItem(hDlg,ID_SED_HEX_EDIT), NULL, TRUE);
                 delete_all_rule(&gt_edit_stream);
-                build_tv(hwnd_tree);
+                SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
                 return TRUE ;
 
             }
@@ -2063,11 +2074,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                             char info[32];
                             GetDlgItemText(hDlg, ID_SED_LEN, info, sizeof(info));
                             gt_edit_stream.len=strtol(info+0,NULL,10);
-                            SendMessage(GetDlgItem(hDlg,ID_SED_HEX_EDIT), WM_CREATE, 0, 0);
-                            resize_window(GetDlgItem(hDlg,ID_SED_HEX_EDIT));
-                            //SendMessage(GetDlgItem(hDlg,ID_SED_HEX_EDIT), WM_PAINT, 0, 0);
-                            InvalidateRect(GetDlgItem(hDlg,ID_SED_HEX_EDIT), NULL, TRUE) ;
-
+                            SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
                        	    return TRUE ;
                         }
                         break;
@@ -2107,7 +2114,18 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                         update_from_rule_data(hwnd_tree, tmp_Selected);
                        	return TRUE ;
                     }
+                    
+                    case    ID_SED_UPDATE_NOW:
+                    {
+                        update_stream_from_dlg(hDlg);
+                        build_tv(hwnd_tree);
+                        hex_win_reinit(hwnd_hex_edit);
+                        //resize_window(hwnd_hex_edit);
+                        //InvalidateRect(hwnd_hex_edit, NULL, TRUE) ;
+                        //hex_win_sel(hwnd_hex_edit, 0, 0);
 
+                       	return TRUE ;
+                    }
 
               }
       		break ;
@@ -2155,7 +2173,7 @@ break;
 
     case STREAM_EDIT_DATA_CHANGE:
     {
-        update_tv(hwnd_tree, wParam);
+        //update_tv(hwnd_tree, wParam);
         return TRUE;
     }
         
@@ -2496,7 +2514,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
                     return FALSE;
                 }
                 gt_edit_stream.len=0;
-                SendMessage(GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT), WM_CREATE, 0, 0);
+                hex_win_reinit(GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT));
                 cur_view_pkt_idx=-1;
                 is_read_only=1;
 
@@ -2587,11 +2605,8 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
                 pt_pkt=get_lvi_lparam(hlv, cur_view_pkt_idx);
                 gt_edit_stream.len=pt_pkt->header.caplen;
                 memcpy(gt_edit_stream.data, pt_pkt->pkt_data, gt_edit_stream.len);
-                SendMessage(GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT), WM_CREATE, 0, 0);
-                resize_window(GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT));
-                //SendMessage(GetDlgItem(hDlg,ID_SED_HEX_EDIT), WM_PAINT, 0, 0);
-                InvalidateRect(GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT), NULL, TRUE) ;
                 build_tv(GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW));
+                hex_win_reinit(GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT));
 
             }
 
