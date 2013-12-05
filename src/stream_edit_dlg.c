@@ -510,7 +510,7 @@ void add_tvi(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data *pt_tvi
     HTREEITEM treeItem2;
     pt_tvi_data->data_offset=pt_tvi_data->ori_offset + adjust;
     treeItem2 = insertItem(hwnd_tree, TEXT(""), treeItem1, TVI_LAST, -1, -1, pt_tvi_data);
-    update_tvi_text(hwnd_tree, treeItem2);
+    update_tvi_proto_field(hwnd_tree, treeItem2);
 
 }
 
@@ -721,47 +721,21 @@ void *get_tvi_lParam(HWND htv, HTREEITEM htvi)
 
 }
 
-#if 0
-static void update_tv(HWND htv, int data_offset)
+int htvi_edit_able(HWND htv, HTREEITEM htvi)
 {
     char info[128];
 
-    t_tvi_data *pt_tvi_data;
-    HTREEITEM htvi_p, htvi_c;
+    get_tvi_text(htv, htvi, info, sizeof(info));
 
-    htvi_p=TreeView_GetRoot(htv);
-    do 
+    if (NULL==strchr(info, ':'))
     {
-        htvi_c=TreeView_GetChild(htv, htvi_p);
-
-        do
-        {
-
-            pt_tvi_data = get_tvi_lParam(htv, htvi_c);
-
-            if (data_offset>= pt_tvi_data->data_offset && 
-                data_offset< pt_tvi_data->data_offset+pt_tvi_data->len)
-            {
-
-                    if (pt_tvi_data->flags&FLAG_REBUILD_TV)
-                    {
-                        delete_all_rule(&gt_edit_stream);
-                        build_tv(htv);
-                    }
-                    else
-                    {
-                        update_tvi_text(htv, htvi_c);
-                    }
-                    
-                    return;
-
-            }
-        }while ((htvi_c=TreeView_GetNextSibling(htv,htvi_c))!=NULL);
-
-    }     while((htvi_p=TreeView_GetNextSibling(htv,htvi_p))!=NULL);
-
+        return 0;
+    }
+    
+    return 1;
 }
-#endif
+
+
 void append_err_text(char *info, uint32_t err_flags)
 {
     if (err_flags==0) return;
@@ -1031,7 +1005,21 @@ void get_tvi_text(HWND htv, HTREEITEM htvi, TCHAR *text, int buf_len)
     TreeView_GetItem(htv, &tvi);
 }
 
-void update_tvi_text(HWND htv, HTREEITEM htvi)
+int htvi_is_proto_hdr(HWND htv, HTREEITEM htvi)
+{
+    char info[128];
+
+    get_tvi_text(htv, htvi, info, sizeof(info));
+
+    if (NULL==strchr(info, '='))
+    {
+        return 0;
+    }
+    
+    return 1;
+}
+
+void update_tvi_proto_field(HWND htv, HTREEITEM htvi)
 {
     TVITEM tvi={0};
     t_tvi_data *pt_tvi_data;
@@ -1048,6 +1036,57 @@ void update_tvi_text(HWND htv, HTREEITEM htvi)
     sprintf(info, "%-13s: %s", pt_tvi_data->name, info_2);
     set_tvi_text(htv, htvi, info);
 
+}
+
+void update_tvi_proto_hdr(HWND htv, HTREEITEM htvi)
+{
+
+    char info[128], info_2[128];
+
+  
+    sprintf(info, "haha");
+    set_tvi_text(htv, htvi, info);
+
+}
+
+void update_tvi_text(HWND htv, HTREEITEM htvi)
+{
+
+    if (NULL==htvi) return 0;
+    
+    if (htvi_edit_able(htv, htvi))
+        update_tvi_proto_field(htv, htvi);
+    else if (htvi_is_proto_hdr(htv, htvi))
+        update_tvi_proto_hdr(htv, htvi);
+    
+}
+
+static void update_tv_sub(HWND htv, HTREEITEM htvi_p)
+{
+    HTREEITEM htvi_c;
+    update_tvi_text(htv, htvi_p);
+    htvi_c=TreeView_GetChild(htv, htvi_p);
+    
+    while (NULL != htvi_c)
+    {
+        update_tv_sub(htv, htvi_c);
+        htvi_c=TreeView_GetNextSibling(htv,htvi_c);
+    }
+}
+
+static void update_tv(HWND htv)
+{
+
+    HTREEITEM htvi_p, htvi_c;
+
+    htvi_p=TreeView_GetRoot(htv);
+    
+    while (NULL != htvi_p)
+    {
+        update_tv_sub(htv, htvi_p);
+        htvi_p=TreeView_GetNextSibling(htv,htvi_p);
+    }
+    
 }
 
 int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int edit_visible)
@@ -1073,7 +1112,9 @@ int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int e
     data_changed=memcmp(info, gt_edit_stream.data+pt_tvi_data->data_offset, pt_tvi_data->len);
     if (!data_changed) return 0;
     InvalidateRect(GetDlgItem(hDlg,ID_SED_HEX_EDIT), NULL, TRUE) ;
-    update_tvi_text(htv, htvi);
+    //update_tvi_text(htv, htvi);
+    update_stream_from_dlg(hDlg);
+    update_tv(htv);
 
     if (pt_tvi_data->flags&FLAG_REBUILD_TV)
     {
@@ -1194,26 +1235,21 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
     }
 }
 
-int htvi_edit_able(HWND hHexEdit, HWND htv, HTREEITEM htvi)
+
+int htvi_sel_hex(HWND hHexEdit, HWND htv, HTREEITEM htvi)
 {
     char info[128];
 
-    if (NULL==htvi) return 0;
-
     get_tvi_text(htv, htvi, info, sizeof(info));
 
-    if (NULL==strchr(info, ':'))
-    {
+
         if (NULL!=strchr(info, '='))
         {
             int off = atoi(strchr(info, '=')+1);
             int len = atoi(strrchr(info, '=')+1);
             hex_win_sel(hHexEdit, off, len);
         }
-        return 0;
-    }
-    
-    return 1;
+
 }
 
 void hide_edit_ui(HWND hDlg)
@@ -1878,7 +1914,6 @@ uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
 
 void update_stream(t_stream* pt_stream)
 {
-    doc_modified=1;
     update_len(pt_stream);
     update_check_sum(pt_stream);
     pt_stream->err_flags = build_err_flags((void *)(pt_stream->data), pt_stream->len);
@@ -2070,18 +2105,20 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
 
                 if(wParam==IDOK)
                 {
-                    if (GetFocus()==GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT))
+                    if (GetFocus()==GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT)
+                        ||GetFocus()==GetDlgItem(hDlg, ID_SED_LEN))
                     {
                         SetFocus(GetDlgItem(hDlg, ID_SED_TREE_VIEW));
-                        return TRUE ;
                     }
-
+                    
+                    return TRUE ;
                 }
                 
           		switch (LOWORD(wParam))
           		{
               		case 	IDOK :
                     {
+                        doc_modified=1;
                         update_stream_from_dlg(hDlg);
                     }
 
@@ -2170,11 +2207,13 @@ case WM_NOTIFY:
         
         htvi=(HTREEITEM)TreeView_GetSelection(hwnd_tree);
 
-        if (htvi_edit_able(GetDlgItem(hDlg,ID_SED_HEX_EDIT), hwnd_tree, htvi))
+        if (htvi_edit_able(hwnd_tree, htvi))
         {
             Selected=htvi;
             show_edit_ui_for_tvi(hDlg, hwnd_tree, Selected);
         }
+        else
+            htvi_sel_hex(GetDlgItem(hDlg,ID_SED_HEX_EDIT), hwnd_tree, htvi);
 
         return TRUE;
      }
@@ -2182,6 +2221,13 @@ case WM_NOTIFY:
 break;
 
 }
+
+    case WM_LBUTTONDOWN:
+    {
+        SetFocus(hwnd_tree);
+        return TRUE;
+
+    }
     case WM_CTLCOLOREDIT:
     {
         if (lParam==GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT))
@@ -2652,7 +2698,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             
             htvi=(HTREEITEM)TreeView_GetSelection(hwnd_tree);
 
-            if (htvi_edit_able(GetDlgItem(hDlg, ID_VIEW_STREAM_HEX_EDIT), hwnd_tree, htvi))
+            if (htvi_edit_able(hwnd_tree, htvi))
             {
                 tvi.hItem = htvi;
                 tvi.mask=TVIF_PARAM;
@@ -2660,7 +2706,8 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
                 pt_tvi_data = tvi.lParam;
                 hex_win_sel(GetDlgItem(hDlg, ID_VIEW_STREAM_HEX_EDIT), pt_tvi_data->data_offset, pt_tvi_data->len);
             }
-
+            else
+                htvi_sel_hex(GetDlgItem(hDlg, ID_VIEW_STREAM_HEX_EDIT), hwnd_tree, htvi);
             return TRUE;
          }
 
