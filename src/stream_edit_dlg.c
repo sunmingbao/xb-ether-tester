@@ -153,6 +153,9 @@ void bits_n2str(char *info, void * field_addr, int bytes_len, int bits_from, int
 
 t_stream gt_edit_stream;
 
+typedef void (* tvi_update_proto_hdr)(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream);
+
+
 typedef void (*init_field_func)(void *, t_rule *);
 typedef void (*update_field_func)(void *, t_rule *);
 
@@ -496,6 +499,7 @@ LRESULT CALLBACK my_tv_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 }
 
 int need_rebuild_tv;
+int stream_changed;
 
 void hex_win_reinit(HWND  hwnd)
 {
@@ -504,6 +508,16 @@ void hex_win_reinit(HWND  hwnd)
     InvalidateRect(hwnd, NULL, TRUE) ;
 }
 
+void *get_tvi_lParam(HWND htv, HTREEITEM htvi)
+{
+    TVITEM tvi={0};
+
+    tvi.hItem = htvi;
+    tvi.mask=TVIF_PARAM;
+    TreeView_GetItem(htv, &tvi);
+    return (void *)(tvi.lParam);
+
+}
 
 void add_tvi(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data *pt_tvi_data)
 {
@@ -528,6 +542,122 @@ void build_hdr_info(char *info, const char *str, int off, int len)
     sprintf(info, "%-12s[offset=%d;length=%d]", str, off, len);
 }
 
+
+void set_tvi_text(HWND htv, HTREEITEM htvi, TCHAR *text)
+{
+    TVITEM tvi={0};
+    tvi.hItem = htvi;
+    tvi.mask=TVIF_TEXT;
+    tvi.pszText=text;
+    TreeView_SetItem(htv,&tvi);
+
+}
+
+void get_tvi_text(HWND htv, HTREEITEM htvi, TCHAR *text, int buf_len)
+{
+    TVITEM tvi={0};
+    tvi.hItem = htvi;
+    tvi.mask=TVIF_TEXT;
+    tvi.pszText=text;
+    tvi.cchTextMax = buf_len;
+    TreeView_GetItem(htv, &tvi);
+}
+
+int htvi_is_proto_hdr(HWND htv, HTREEITEM htvi)
+{
+    char info[128];
+
+    get_tvi_text(htv, htvi, info, sizeof(info));
+
+    if (NULL==strchr(info, '='))
+    {
+        return 0;
+    }
+    
+    return 1;
+}
+
+void update_tvi_proto_field(HWND htv, HTREEITEM htvi)
+{
+    TVITEM tvi={0};
+    t_tvi_data *pt_tvi_data;
+    char info[128], info_2[128];
+    pt_tvi_data = get_tvi_lParam(htv, htvi);
+
+    field_n2str(info_2
+        , gt_edit_stream.data+pt_tvi_data->data_offset
+        ,pt_tvi_data->len
+        ,pt_tvi_data->bits_from
+        , pt_tvi_data->bits_len
+        ,pt_tvi_data->flags);
+  
+    sprintf(info, "%-13s: %s", pt_tvi_data->name, info_2);
+    set_tvi_text(htv, htvi, info);
+
+}
+
+void update_tvi_proto_hdr(HWND htv, HTREEITEM htvi)
+{
+
+    tvi_update_proto_hdr pt_tvi_data;
+    pt_tvi_data = get_tvi_lParam(htv, htvi);
+
+    if (NULL != pt_tvi_data)
+        pt_tvi_data(htv, htvi, &gt_edit_stream);
+    else  
+        set_tvi_text(htv, htvi, "haha");
+
+}
+
+void update_tvi_text(HWND htv, HTREEITEM htvi)
+{
+
+    if (NULL==htvi) return 0;
+    
+    if (htvi_edit_able(htv, htvi))
+        update_tvi_proto_field(htv, htvi);
+    else if (htvi_is_proto_hdr(htv, htvi))
+        update_tvi_proto_hdr(htv, htvi);
+    
+}
+
+
+void tvi_update_eth_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
+{
+    char info[128];
+    build_hdr_info(info, TEXT("ethernet"), 0, gt_edit_stream.len);
+    set_tvi_text(htv, htvi, info);
+}
+
+static void update_tv_sub(HWND htv, HTREEITEM htvi_p)
+{
+    HTREEITEM htvi_c;
+    update_tvi_text(htv, htvi_p);
+    htvi_c=TreeView_GetChild(htv, htvi_p);
+    
+    while (NULL != htvi_c)
+    {
+        update_tv_sub(htv, htvi_c);
+        htvi_c=TreeView_GetNextSibling(htv,htvi_c);
+    }
+}
+
+static void update_tv(HWND htv)
+{
+
+    HTREEITEM htvi_p, htvi_c;
+
+    htvi_p=TreeView_GetRoot(htv);
+    
+    while (NULL != htvi_p)
+    {
+        update_tv_sub(htv, htvi_p);
+        htvi_p=TreeView_GetNextSibling(htv,htvi_p);
+    }
+    
+}
+
+
 void build_tv(HWND hwnd_tree)
 {
     HTREEITEM treeItem1, treeItem2;
@@ -539,9 +669,8 @@ void build_tv(HWND hwnd_tree)
 
     TreeView_DeleteAllItems(hwnd_tree);
 
-    build_hdr_info(info, TEXT("ethernet"), 0, gt_edit_stream.len);
-    treeItem1=insertItem(hwnd_tree, info, TVI_ROOT, TVI_LAST, -1, -1, NULL);
-
+    treeItem1=insertItem(hwnd_tree, "ethernet", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_eth_hdr);
+    tvi_update_eth_hdr(hwnd_tree, treeItem1, &gt_edit_stream);
     build_tvis(hwnd_tree, treeItem1
         , 0, gat_eth_hdr_tvis, ARRAY_SIZE(gat_eth_hdr_tvis));
     
@@ -710,16 +839,6 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
     }
 }
 
-void *get_tvi_lParam(HWND htv, HTREEITEM htvi)
-{
-    TVITEM tvi={0};
-
-    tvi.hItem = htvi;
-    tvi.mask=TVIF_PARAM;
-    TreeView_GetItem(htv, &tvi);
-    return (void *)(tvi.lParam);
-
-}
 
 int htvi_edit_able(HWND htv, HTREEITEM htvi)
 {
@@ -985,109 +1104,6 @@ BOOL InitDlgFromStream(HWND hDlg, t_stream* pt_stream)
     return TRUE;
 }
 
-void set_tvi_text(HWND htv, HTREEITEM htvi, TCHAR *text)
-{
-    TVITEM tvi={0};
-    tvi.hItem = htvi;
-    tvi.mask=TVIF_TEXT;
-    tvi.pszText=text;
-    TreeView_SetItem(htv,&tvi);
-
-}
-
-void get_tvi_text(HWND htv, HTREEITEM htvi, TCHAR *text, int buf_len)
-{
-    TVITEM tvi={0};
-    tvi.hItem = htvi;
-    tvi.mask=TVIF_TEXT;
-    tvi.pszText=text;
-    tvi.cchTextMax = buf_len;
-    TreeView_GetItem(htv, &tvi);
-}
-
-int htvi_is_proto_hdr(HWND htv, HTREEITEM htvi)
-{
-    char info[128];
-
-    get_tvi_text(htv, htvi, info, sizeof(info));
-
-    if (NULL==strchr(info, '='))
-    {
-        return 0;
-    }
-    
-    return 1;
-}
-
-void update_tvi_proto_field(HWND htv, HTREEITEM htvi)
-{
-    TVITEM tvi={0};
-    t_tvi_data *pt_tvi_data;
-    char info[128], info_2[128];
-    pt_tvi_data = pt_tvi_data = get_tvi_lParam(htv, htvi);
-
-    field_n2str(info_2
-        , gt_edit_stream.data+pt_tvi_data->data_offset
-        ,pt_tvi_data->len
-        ,pt_tvi_data->bits_from
-        , pt_tvi_data->bits_len
-        ,pt_tvi_data->flags);
-  
-    sprintf(info, "%-13s: %s", pt_tvi_data->name, info_2);
-    set_tvi_text(htv, htvi, info);
-
-}
-
-void update_tvi_proto_hdr(HWND htv, HTREEITEM htvi)
-{
-
-    char info[128], info_2[128];
-
-  
-    sprintf(info, "haha");
-    set_tvi_text(htv, htvi, info);
-
-}
-
-void update_tvi_text(HWND htv, HTREEITEM htvi)
-{
-
-    if (NULL==htvi) return 0;
-    
-    if (htvi_edit_able(htv, htvi))
-        update_tvi_proto_field(htv, htvi);
-    else if (htvi_is_proto_hdr(htv, htvi))
-        update_tvi_proto_hdr(htv, htvi);
-    
-}
-
-static void update_tv_sub(HWND htv, HTREEITEM htvi_p)
-{
-    HTREEITEM htvi_c;
-    update_tvi_text(htv, htvi_p);
-    htvi_c=TreeView_GetChild(htv, htvi_p);
-    
-    while (NULL != htvi_c)
-    {
-        update_tv_sub(htv, htvi_c);
-        htvi_c=TreeView_GetNextSibling(htv,htvi_c);
-    }
-}
-
-static void update_tv(HWND htv)
-{
-
-    HTREEITEM htvi_p, htvi_c;
-
-    htvi_p=TreeView_GetRoot(htv);
-    
-    while (NULL != htvi_p)
-    {
-        update_tv_sub(htv, htvi_p);
-        htvi_p=TreeView_GetNextSibling(htv,htvi_p);
-    }
-    
-}
 
 int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int edit_visible)
 {
@@ -1118,7 +1134,6 @@ int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int e
 
     if (pt_tvi_data->flags&FLAG_REBUILD_TV)
     {
-        delete_all_rule(&gt_edit_stream);
         SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
         return 1;
     }
@@ -1924,6 +1939,8 @@ void update_stream_from_dlg(HWND hDlg)
 {
     t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
 
+    stream_changed=0;
+
     if (button_checked(GetDlgItem(hDlg, ID_SED_IP_CHECKSUM)))
         gt_edit_stream.flags |= CHECK_SUM_IP;
     else
@@ -2038,7 +2055,6 @@ move_child_a2b_left_top(GetDlgItem(hDlg,IDOK), GetDlgItem(hDlg,IDCANCEL), 10);
 
 }
 
-
 BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
     HTREEITEM htvi;
@@ -2097,7 +2113,6 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                 
                 PROTO_CHNG_PROC:
                 hide_edit_ui(hDlg);
-                delete_all_rule(&gt_edit_stream);
                 SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
                 return TRUE ;
 
@@ -2133,7 +2148,9 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                             char info[32];
                             GetDlgItemText(hDlg, ID_SED_LEN, info, sizeof(info));
                             gt_edit_stream.len=strtol(info+0,NULL,10);
-                            SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
+                            update_stream_from_dlg(hDlg);
+                            update_tv(hwnd_tree);
+
                        	    return TRUE ;
                         }
                         break;
@@ -2173,9 +2190,20 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                         update_from_rule_data(hwnd_tree, tmp_Selected);
                        	return TRUE ;
                     }
-                    
+
+                    case    ID_SED_HEX_EDIT:
+                    {
+                   		if (HIWORD(wParam)==EN_KILLFOCUS && stream_changed)
+                        {
+                            SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
+                            return TRUE ;
+                        }
+                        break;
+                    }
+
                     case    ID_SED_UPDATE_NOW:
                     {
+                        delete_all_rule(&gt_edit_stream);
                         update_stream_from_dlg(hDlg);
                         build_tv(hwnd_tree);
                         hex_win_reinit(hwnd_hex_edit);
@@ -2241,7 +2269,7 @@ break;
 
     case STREAM_EDIT_DATA_CHANGE:
     {
-        //update_tv(hwnd_tree, wParam);
+        stream_changed=1;
         return TRUE;
     }
         
