@@ -1217,6 +1217,8 @@ int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int e
     if (pt_tvi_data->flags&FLAG_REBUILD_TV)
     {
         SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
+        show_tip("字段变化规则已经删除，因为协议发生了变化");
+
         return 1;
     }
 
@@ -2196,6 +2198,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                 PROTO_CHNG_PROC:
                 hide_edit_ui(hDlg);
                 SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
+                show_tip("字段变化规则已经删除，因为协议发生了变化");
                 return TRUE ;
 
             }
@@ -2278,6 +2281,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                    		if (HIWORD(wParam)==EN_KILLFOCUS && stream_changed)
                         {
                             SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
+                            show_tip("字段变化规则已经删除，因为直接编辑了缓冲区");
                             return TRUE ;
                         }
                         break;

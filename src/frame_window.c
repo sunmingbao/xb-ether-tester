@@ -13,8 +13,6 @@
 
 #include "res.h"
 
-#define TIMER_STATUS_BAR 1
-#define TIMER_STATUS_GAP 100
 
 TCHAR   szFrameWinClassName[] = TEXT ("fsb_frame") ;
 HWND    hwnd_frame;
@@ -220,8 +218,7 @@ CreateStatusBar();
                 CW_USEDEFAULT,
                 hwnd, NULL, g_hInstance, NULL) ;
 
-            ShowWindow (hwnd_tip, 1) ;
-            UpdateWindow (hwnd_tip) ;
+            ShowWindow (hwnd_tip, 0) ;
 
             return 0 ;
 

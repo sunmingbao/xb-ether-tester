@@ -25,6 +25,11 @@ extern int init_over;
 extern int scrn_width;
 extern int scrn_height;
 
+#define TIMER_STATUS_BAR 1
+#define TIMER_STATUS_GAP 100
+
+#define TIMER_TIP_WIN    2
+#define TIMER_TIP_WIN_GAP 3000
 
 extern HWND    hwnd_frame;
 extern HWND hwndTip;
@@ -72,6 +77,7 @@ extern HWND hwnd_dynamic_edit;
 
 extern TCHAR szTipWinClassName[];
 extern HWND    hwnd_tip;
+void show_tip(TCHAR *info);
 
 extern TCHAR szStatsWinClassName[];
 extern HWND hwnd_stats;

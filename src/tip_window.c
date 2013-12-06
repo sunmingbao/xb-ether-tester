@@ -25,11 +25,13 @@ LRESULT CALLBACK Tip_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
     HDC hdc;
     PAINTSTRUCT ps ;
 	RECT		rect ;
+    TRACKMOUSEEVENT tme;   
+
 
     switch (message)
     {
         case WM_CREATE:
-            AnimateWindow(hwnd, 200, AW_BLEND);
+            AnimateWindow(hwnd, 2000, AW_BLEND);
             SetWindowPos(hwnd, HWND_TOP
                 , (scrn_width-TIP_WIN_WIDTH)/2,(scrn_height-TIP_WIN_HEIGHT)/2
                 ,TIP_WIN_WIDTH,TIP_WIN_HEIGHT
@@ -57,8 +59,26 @@ LRESULT CALLBACK Tip_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 			return 0 ;
         }
 
+        case WM_TIMER:
+        {
+            AnimateWindow(hwnd_tip, 2000, AW_BLEND|AW_HIDE);
+            KillTimer (hwnd, TIMER_TIP_WIN) ;
+            return 0 ;
+
+        }
+        
+        case WM_MOUSELEAVE:
+            SetTimer(hwnd, TIMER_TIP_WIN, TIMER_TIP_WIN_GAP, NULL);
+            return 0 ;
+
         case WM_MOUSEMOVE:
-            break;
+            ShowWindow(hwnd, 1);
+            KillTimer (hwnd, TIMER_TIP_WIN) ;
+            tme.cbSize=sizeof(TRACKMOUSEEVENT); //¼à¿ØÊó±êÀë¿ª   
+            tme.dwFlags=TME_LEAVE;   
+            tme.hwndTrack=hwnd;  
+            TrackMouseEvent(&tme);
+            return 0 ;
 
 }
     
@@ -93,6 +113,17 @@ int register_tip_win()
 }
 
 
+void show_tip(TCHAR *info)
+{
+    strcpy(tip_info, info);
+    SetWindowPos(hwnd_tip, HWND_TOP
+                , (scrn_width-TIP_WIN_WIDTH)/2,(scrn_height-TIP_WIN_HEIGHT)/2
+                ,TIP_WIN_WIDTH,TIP_WIN_HEIGHT
+                , 0);
+    InvalidateRect(hwnd_tip, NULL, TRUE) ;
+    ShowWindow(hwnd_tip, 1);
+    SetTimer(hwnd_tip, TIMER_TIP_WIN, TIMER_TIP_WIN_GAP, NULL);
+}
 
 
 
