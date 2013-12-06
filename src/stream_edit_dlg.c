@@ -2231,6 +2231,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                             gt_edit_stream.len=strtol(info+0,NULL,10);
                             update_stream_from_dlg(hDlg);
                             update_tv(hwnd_tree);
+                            hex_win_reinit(hwnd_hex_edit);
 
                        	    return TRUE ;
                         }

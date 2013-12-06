@@ -212,6 +212,17 @@ HMENU	 hMenu;
 
 CreateStatusBar();
 
+            hwnd_tip = CreateWindow (szTipWinClassName, TEXT ("tip win"),
+                WS_POPUP,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                CW_USEDEFAULT,
+                hwnd, NULL, g_hInstance, NULL) ;
+
+            ShowWindow (hwnd_tip, 1) ;
+            UpdateWindow (hwnd_tip) ;
+
             return 0 ;
 
 

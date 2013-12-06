@@ -15,6 +15,9 @@ HINSTANCE g_hInstance;
 TCHAR     szAppName[] = TEXT ("–°±¯“‘Ã´Õ¯≤‚ ‘“«") ;
 int init_over;
 
+int scrn_width;
+int scrn_height;
+
 void run_env_init()
 {
     char exe_file_path[MAX_FILE_PATH_LEN];
@@ -25,6 +28,9 @@ void run_env_init()
     pchar=strrchr(exe_file_path, '\\');
     *pchar=0;
     SetCurrentDirectory(exe_file_path);
+
+    scrn_width = GetSystemMetrics(SM_CXSCREEN);
+    scrn_height = GetSystemMetrics(SM_CYSCREEN);
 }
 
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -45,6 +51,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
     register_hex_edit_win();
     //register_flat_tab_win();
     register_stats_win();
+    register_tip_win();
 
     run_env_init();
     

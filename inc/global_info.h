@@ -22,6 +22,9 @@ extern const char version[4];
 extern HINSTANCE g_hInstance;
 extern TCHAR szAppName[];
 extern int init_over;
+extern int scrn_width;
+extern int scrn_height;
+
 
 extern HWND    hwnd_frame;
 extern HWND hwndTip;
@@ -67,8 +70,8 @@ extern HWND    hwnd_hex_edit_pcap;
 extern HWND    hwnd_hex_edit_strm;
 extern HWND hwnd_dynamic_edit;
 
-extern TCHAR szFlatTabWinClassName[];
-extern int flat_tab_height;
+extern TCHAR szTipWinClassName[];
+extern HWND    hwnd_tip;
 
 extern TCHAR szStatsWinClassName[];
 extern HWND hwnd_stats;
@@ -97,6 +100,7 @@ int register_bottom_win();
 int register_splt_wins();
 int register_hex_edit_win();
 int register_stats_win();
+int register_tip_win();
 int CreateToolbar();
 int CreateStatusBar();
 int create_windows(int iCmdShow);

@@ -10,7 +10,7 @@
 
 CC = gcc
 
-CFLAG = -Wall -O2  -D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0502 -DHAVE_REMOTE -DWPCAP 
+CFLAG = -Wall -O2  -D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0502 -DWINVER=0x0501 -DHAVE_REMOTE -DWPCAP 
 LDFLAG = -mwindows  -s  -lkernel32 -luser32 -lgdi32 -lcomctl32 -lws2_32 -lwpcap 
 
 
@@ -33,6 +33,7 @@ OBJECTS =  \
 	$(OBJ_DIR)\bottom_window.o \
 	$(OBJ_DIR)\splitters.o \
 	$(OBJ_DIR)\toolbar_statusbar.o \
+	$(OBJ_DIR)\tip_window.o \
 	$(OBJ_DIR)\hex_edit_window.o \
 	$(OBJ_DIR)\packets_rx_tx.o \
 	$(OBJ_DIR)\stats_window.o \
@@ -65,6 +66,8 @@ $(OBJ_DIR)\bottom_window.o: $(PRJ_DIR)\src\bottom_window.c
 $(OBJ_DIR)\splitters.o: $(PRJ_DIR)\src\splitters.c
 	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
 $(OBJ_DIR)\toolbar_statusbar.o: $(PRJ_DIR)\src\toolbar_statusbar.c
+	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+$(OBJ_DIR)\tip_window.o: $(PRJ_DIR)\src\tip_window.c
 	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
 $(OBJ_DIR)\hex_edit_window.o: $(PRJ_DIR)\src\hex_edit_window.c
 	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
