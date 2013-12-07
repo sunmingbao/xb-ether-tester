@@ -315,12 +315,16 @@ static inline int ip_frag_offset(t_ether_packet *pt_eth_hdr)
 static inline int ip_pkt_can_frag(t_ether_packet *pt_eth_hdr)
 {
     t_ip_hdr *iph = pt_eth_hdr->payload;
-    if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+    if (ip_pkt_is_frag(pt_eth_hdr))
+        return 0;
+    
+    if (ntohs(pt_eth_hdr->type)!=ETH_P_IP
+        && ntohs(pt_eth_hdr->type)!=ETH_P_IPV6)
     {
-        return 0==(ntohs(iph->frag_off)&((1ul<<14) - 1));
+        return 0;
     }
     
-    return 0;
+    return 1;
 }
 
 void get_protocol_name(int protocol, char *name);

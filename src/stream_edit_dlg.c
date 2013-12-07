@@ -2329,23 +2329,23 @@ void *alloc_stream()
     return pt_stream;
 }
 
-void make_frags(const t_stream *pt_stream, int frag_num)
+void make_frags_ipv4(const t_stream *pt_stream, int frag_num)
 {
     int i;
     t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
-    void *p_ip_data=(void *)iph + iph->ihl*4;
-    int ip_data_len = ntohs(iph->tot_len) - iph->ihl*4;
-    int data_unit_num = ip_data_len/8 + !!(ip_data_len%8);
+    void *p_ip_data=ip_data(iph);
+    int data_len = ip_data_len(iph);
+    int data_unit_num = data_len/8 + !!(data_len%8);
     int frag_data_unit_num = data_unit_num/frag_num 
         + !!(data_unit_num%frag_num);
 
     int frag_data_len = frag_data_unit_num*8;
-    int frag_len = frag_data_len + iph->ihl*4;
+    int frag_len = frag_data_len + ip_hdr_len(iph);
     int frag_frame_len = frag_len + sizeof(pt_stream->eth_packet);
 
     t_stream t_stream_tmp;
     t_ip_hdr *iph_frag=(void *)(t_stream_tmp.eth_packet.payload);
-    void *p_frag_data=(void *)iph_frag + iph->ihl*4;
+    void *p_frag_data=(void *)iph_frag + ip_hdr_len(iph);
 
     cpy_stream(&t_stream_tmp, pt_stream);
     delete_all_rule(&t_stream_tmp);
@@ -2360,17 +2360,69 @@ void make_frags(const t_stream *pt_stream, int frag_num)
         update_check_sum(&t_stream_tmp);
         add_stream(&t_stream_tmp);
     }
-
     t_stream_tmp.len = pt_stream->len - i*frag_data_len;
     iph_frag->tot_len = htons(t_stream_tmp.len - sizeof(pt_stream->eth_packet));
 
     iph_frag->frag_off = htons(frag_data_unit_num*i);
-    memcpy(p_frag_data, p_ip_data+frag_data_len*i, ip_data_len-frag_data_len*i);
+    memcpy(p_frag_data, p_ip_data+frag_data_len*i, data_len-frag_data_len*i);
     update_check_sum(&t_stream_tmp);
     add_stream(&t_stream_tmp);
 }
 
+void make_frags_ipv6(const t_stream *pt_stream, int frag_num)
+{
+    int i;
+    t_ipv6_hdr *ip6h=(void *)(pt_stream->eth_packet.payload);
+    void *p_ip_data=ip6_data(ip6h);
+    int data_len = ip6_data_len(ip6h);
+    int data_unit_num = data_len/8 + !!(data_len%8);
+    int frag_data_unit_num = data_unit_num/frag_num 
+        + !!(data_unit_num%frag_num);
 
+    int frag_data_len = frag_data_unit_num*8;
+    int frag_len = frag_data_len + 8 + IPV6_HDR_LEN;
+    int frag_frame_len = frag_len + sizeof(pt_stream->eth_packet);
+
+    t_stream t_stream_tmp;
+    t_ipv6_hdr *ip6h_frag=(void *)(t_stream_tmp.eth_packet.payload);
+    t_ipv6_frag_hdr t_ipv6_frag_hdr_tmp={ip6h->nexthdr, 0, 0, 2013};
+    void *p_frag_data= (void *)ip6h_frag + IPV6_HDR_LEN;
+
+    cpy_stream(&t_stream_tmp, pt_stream);
+    delete_all_rule(&t_stream_tmp);
+
+    t_stream_tmp.len = frag_frame_len;
+    ip6h_frag->nexthdr=IPPROTO_FRAGMENT;
+    ip6h_frag->payload_len= htons(frag_frame_len-sizeof(pt_stream->eth_packet)-IPV6_HDR_LEN);
+    for (i=0; i<frag_num-1; i++)
+    {
+        t_ipv6_frag_hdr_tmp.frag_off =  (((frag_data_unit_num*i)<<3) | 1);
+        t_ipv6_frag_hdr_tmp.frag_off = htons(t_ipv6_frag_hdr_tmp.frag_off);
+        memcpy(p_frag_data, &t_ipv6_frag_hdr_tmp, 8);
+        memcpy(p_frag_data+8, p_ip_data+frag_data_len*i, frag_data_len);
+        update_check_sum(&t_stream_tmp);
+        add_stream(&t_stream_tmp);
+    }
+
+    t_stream_tmp.len = 8 + pt_stream->len - i*frag_data_len;
+    ip6h_frag->payload_len = htons(t_stream_tmp.len - sizeof(pt_stream->eth_packet) - IPV6_HDR_LEN);
+
+    t_ipv6_frag_hdr_tmp.frag_off = htons((frag_data_unit_num*i)<<3);
+    memcpy(p_frag_data, &t_ipv6_frag_hdr_tmp, 8);
+    memcpy(p_frag_data+8, p_ip_data+frag_data_len*i, data_len-frag_data_len*i);
+    update_check_sum(&t_stream_tmp);
+    add_stream(&t_stream_tmp);
+}
+
+void make_frags(const t_stream *pt_stream, int frag_num)
+{
+    t_ether_packet *pt_eth_hdr = (void *)(pt_stream->data);
+    if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+        make_frags_ipv4(pt_stream, frag_num);
+    else if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+        make_frags_ipv6(pt_stream, frag_num);
+
+}
 void init_ui_stream_edit(HWND hDlg)
 {
     RECT rect0, rect1, rect2;
