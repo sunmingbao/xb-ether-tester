@@ -20,6 +20,11 @@ TCHAR tip_info[128]={"this is a tip. 这是一条提示"};
 #define    TIP_WIN_WIDTH    (700)
 #define    TIP_WIN_HEIGHT   (cyChar*2)
 
+#define    TIP_WIN_ACTION_HIDE    (0)
+#define    TIP_WIN_ACTION_SHOW    (1)
+
+int tip_win_action, tip_win_alpha;
+
 LRESULT CALLBACK Tip_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc;
@@ -31,12 +36,12 @@ LRESULT CALLBACK Tip_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
     switch (message)
     {
         case WM_CREATE:
-            AnimateWindow(hwnd, 2000, AW_BLEND);
             SetWindowPos(hwnd, HWND_TOP
                 , (scrn_width-TIP_WIN_WIDTH)/2,(scrn_height-TIP_WIN_HEIGHT)/2
                 ,TIP_WIN_WIDTH,TIP_WIN_HEIGHT
                 , 0);
-
+            
+SetWindowLong(hwnd,GWL_EXSTYLE,GetWindowLong(hwnd,GWL_EXSTYLE)|WS_EX_LAYERED);
             return 0 ;
 
 
@@ -61,19 +66,47 @@ LRESULT CALLBACK Tip_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
         case WM_TIMER:
         {
-            AnimateWindow(hwnd_tip, 2000, AW_BLEND|AW_HIDE);
-            KillTimer (hwnd, TIMER_TIP_WIN) ;
-            return 0 ;
+            if (wParam==TIMER_TIP_WIN_SHOW)
+            {
+                if (tip_win_alpha>=255)
+                {
+                    KillTimer (hwnd, TIMER_TIP_WIN_SHOW);
+                    SetTimer(hwnd_tip, TIMER_TIP_WIN_HIDE, TIMER_TIP_WIN_HIDE_GAP, NULL);
+                    return 0;
+                }
+
+                tip_win_alpha+=5;
+                SetLayeredWindowAttributes(hwnd,0,tip_win_alpha,LWA_ALPHA); 
+                InvalidateRect(hwnd_tip, NULL, TRUE);
+                return 0;
+            }
+
+
+            tip_win_alpha-=5;
+            SetLayeredWindowAttributes(hwnd,0,tip_win_alpha,LWA_ALPHA); 
+            InvalidateRect(hwnd_tip, NULL, TRUE);
+
+            if (tip_win_alpha<=0)
+            {
+                KillTimer (hwnd, TIMER_TIP_WIN_HIDE) ;
+                ShowWindow(hwnd, 0);
+            }
+
+            return 0;
 
         }
         
         case WM_MOUSELEAVE:
-            SetTimer(hwnd, TIMER_TIP_WIN, TIMER_TIP_WIN_GAP, NULL);
+            SetTimer(hwnd, TIMER_TIP_WIN_HIDE, TIMER_TIP_WIN_HIDE_GAP, NULL);
             return 0 ;
 
         case WM_MOUSEMOVE:
-            ShowWindow(hwnd, 1);
-            KillTimer (hwnd, TIMER_TIP_WIN) ;
+            tip_win_alpha=255;
+            SetLayeredWindowAttributes(hwnd,0,tip_win_alpha,LWA_ALPHA); 
+            InvalidateRect(hwnd_tip, NULL, TRUE);
+
+            KillTimer (hwnd, TIMER_TIP_WIN_SHOW);
+            KillTimer (hwnd, TIMER_TIP_WIN_HIDE);
             tme.cbSize=sizeof(TRACKMOUSEEVENT); //监控鼠标离开   
             tme.dwFlags=TME_LEAVE;   
             tme.hwndTrack=hwnd;  
@@ -115,14 +148,20 @@ int register_tip_win()
 
 void show_tip(TCHAR *info)
 {
+    tip_win_action=TIP_WIN_ACTION_SHOW;
     strcpy(tip_info, info);
     SetWindowPos(hwnd_tip, HWND_TOP
                 , (scrn_width-TIP_WIN_WIDTH)/2,(scrn_height-TIP_WIN_HEIGHT)/2
                 ,TIP_WIN_WIDTH,TIP_WIN_HEIGHT
                 , 0);
-    InvalidateRect(hwnd_tip, NULL, TRUE) ;
+
+    tip_win_alpha = 0;
+    SetLayeredWindowAttributes(hwnd_tip,0,tip_win_alpha,LWA_ALPHA); 
+
     ShowWindow(hwnd_tip, 1);
-    SetTimer(hwnd_tip, TIMER_TIP_WIN, TIMER_TIP_WIN_GAP, NULL);
+    InvalidateRect(hwnd_tip, NULL, TRUE) ;
+
+    SetTimer(hwnd_tip, TIMER_TIP_WIN_SHOW, TIMER_TIP_WIN_SHOW_GAP, NULL);
 }
 
 

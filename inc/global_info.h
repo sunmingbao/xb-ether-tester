@@ -28,8 +28,11 @@ extern int scrn_height;
 #define TIMER_STATUS_BAR 1
 #define TIMER_STATUS_GAP 100
 
-#define TIMER_TIP_WIN    2
-#define TIMER_TIP_WIN_GAP 3000
+#define TIMER_TIP_WIN_SHOW    2
+#define TIMER_TIP_WIN_SHOW_GAP 5
+
+#define TIMER_TIP_WIN_HIDE    3
+#define TIMER_TIP_WIN_HIDE_GAP 100
 
 extern HWND    hwnd_frame;
 extern HWND hwndTip;
