@@ -1255,6 +1255,7 @@ void get_pkt_desc_info_v6(char *info, void* p_eth_hdr)
     t_ether_packet *pt_eth_hdr = p_eth_hdr;
     t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
     t_tcp_hdr *tcp_hdr = ip6_data(ip6h);
+    t_icmp_hdr *pt_icmp_hdr=ip6_data(ip6h);
 
     switch (ip6h->nexthdr)
     {
@@ -1274,6 +1275,16 @@ void get_pkt_desc_info_v6(char *info, void* p_eth_hdr)
 
         case IPPROTO_UDP:
             sprintf(info, "port %hu->%hu", ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest));
+            return;
+
+        case IPPROTO_ICMPV6:
+            if ((pt_icmp_hdr->type==128)  && (pt_icmp_hdr->code==0) )
+                strcpy(info, "ping request");
+            else if ((pt_icmp_hdr->type==129)  && (pt_icmp_hdr->code==0) )
+                strcpy(info, "ping reply");
+            else
+                sprintf(info, "type %hhu code %hhu", pt_icmp_hdr->type, pt_icmp_hdr->code);
+
             return;
 
     }
