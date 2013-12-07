@@ -32,7 +32,10 @@ extern int scrn_height;
 #define TIMER_TIP_WIN_SHOW_GAP 5
 
 #define TIMER_TIP_WIN_HIDE    3
-#define TIMER_TIP_WIN_HIDE_GAP 100
+#define TIMER_TIP_WIN_HIDE_GAP 50
+
+#define TIMER_TIP_WIN_LAST    4
+#define TIMER_TIP_WIN_LAST_GAP 750
 
 extern HWND    hwnd_frame;
 extern HWND hwndTip;

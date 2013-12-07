@@ -41,7 +41,7 @@ LRESULT CALLBACK Tip_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                 ,TIP_WIN_WIDTH,TIP_WIN_HEIGHT
                 , 0);
             
-SetWindowLong(hwnd,GWL_EXSTYLE,GetWindowLong(hwnd,GWL_EXSTYLE)|WS_EX_LAYERED);
+            SetWindowLong(hwnd,GWL_EXSTYLE,GetWindowLong(hwnd,GWL_EXSTYLE)|WS_EX_LAYERED);
             return 0 ;
 
 
@@ -71,7 +71,7 @@ SetWindowLong(hwnd,GWL_EXSTYLE,GetWindowLong(hwnd,GWL_EXSTYLE)|WS_EX_LAYERED);
                 if (tip_win_alpha>=255)
                 {
                     KillTimer (hwnd, TIMER_TIP_WIN_SHOW);
-                    SetTimer(hwnd_tip, TIMER_TIP_WIN_HIDE, TIMER_TIP_WIN_HIDE_GAP, NULL);
+                    SetTimer(hwnd_tip, TIMER_TIP_WIN_LAST, TIMER_TIP_WIN_LAST_GAP, NULL);
                     return 0;
                 }
 
@@ -81,23 +81,29 @@ SetWindowLong(hwnd,GWL_EXSTYLE,GetWindowLong(hwnd,GWL_EXSTYLE)|WS_EX_LAYERED);
                 return 0;
             }
 
-
-            tip_win_alpha-=5;
-            SetLayeredWindowAttributes(hwnd,0,tip_win_alpha,LWA_ALPHA); 
-            InvalidateRect(hwnd_tip, NULL, TRUE);
-
-            if (tip_win_alpha<=0)
+            else if (wParam==TIMER_TIP_WIN_HIDE)
             {
-                KillTimer (hwnd, TIMER_TIP_WIN_HIDE) ;
-                ShowWindow(hwnd, 0);
+                tip_win_alpha-=5;
+                SetLayeredWindowAttributes(hwnd,0,tip_win_alpha,LWA_ALPHA); 
+                InvalidateRect(hwnd_tip, NULL, TRUE);
+
+                if (tip_win_alpha<=0)
+                {
+                    KillTimer (hwnd, TIMER_TIP_WIN_HIDE) ;
+                    ShowWindow(hwnd, 0);
+                }
+
+                return 0;
             }
 
+            KillTimer (hwnd, TIMER_TIP_WIN_LAST);
+            SetTimer(hwnd_tip, TIMER_TIP_WIN_HIDE, TIMER_TIP_WIN_HIDE_GAP, NULL);
             return 0;
 
         }
         
         case WM_MOUSELEAVE:
-            SetTimer(hwnd, TIMER_TIP_WIN_HIDE, TIMER_TIP_WIN_HIDE_GAP, NULL);
+            SetTimer(hwnd, TIMER_TIP_WIN_LAST, TIMER_TIP_WIN_LAST_GAP, NULL);
             return 0 ;
 
         case WM_MOUSEMOVE:
@@ -107,6 +113,7 @@ SetWindowLong(hwnd,GWL_EXSTYLE,GetWindowLong(hwnd,GWL_EXSTYLE)|WS_EX_LAYERED);
 
             KillTimer (hwnd, TIMER_TIP_WIN_SHOW);
             KillTimer (hwnd, TIMER_TIP_WIN_HIDE);
+            KillTimer (hwnd, TIMER_TIP_WIN_LAST);
             tme.cbSize=sizeof(TRACKMOUSEEVENT); //¼à¿ØÊó±êÀë¿ª   
             tme.dwFlags=TME_LEAVE;   
             tme.hwndTrack=hwnd;  
@@ -153,12 +160,12 @@ void show_tip(TCHAR *info)
     SetWindowPos(hwnd_tip, HWND_TOP
                 , (scrn_width-TIP_WIN_WIDTH)/2,(scrn_height-TIP_WIN_HEIGHT)/2
                 ,TIP_WIN_WIDTH,TIP_WIN_HEIGHT
-                , 0);
+                , SWP_NOACTIVATE);
 
     tip_win_alpha = 0;
     SetLayeredWindowAttributes(hwnd_tip,0,tip_win_alpha,LWA_ALPHA); 
 
-    ShowWindow(hwnd_tip, 1);
+    ShowWindow(hwnd_tip, SW_SHOWNOACTIVATE);
     InvalidateRect(hwnd_tip, NULL, TRUE) ;
 
     SetTimer(hwnd_tip, TIMER_TIP_WIN_SHOW, TIMER_TIP_WIN_SHOW_GAP, NULL);

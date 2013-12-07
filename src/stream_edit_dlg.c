@@ -2023,8 +2023,6 @@ void update_stream_from_dlg(HWND hDlg)
 {
     t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
 
-    stream_changed=0;
-
     if (button_checked(GetDlgItem(hDlg, ID_SED_IP_CHECKSUM)))
         gt_edit_stream.flags |= CHECK_SUM_IP;
     else
@@ -2282,6 +2280,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                         {
                             SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
                             show_tip("字段变化规则已经删除，因为直接编辑了缓冲区");
+                            stream_changed = 0;
                             return TRUE ;
                         }
                         break;
@@ -2338,7 +2337,7 @@ break;
 
     case WM_LBUTTONDOWN:
     {
-        SetFocus(hwnd_tree);
+        SetFocus(hDlg);
         return TRUE;
 
     }
