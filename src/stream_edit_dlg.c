@@ -3322,7 +3322,7 @@ void update_pkt_cap_stats(t_ether_packet *pt_pkt)
 void clr_cap_dlg_stat(HWND hDlg)
 {
     int i;
-    for (i=ID_PKT_CAP_TOTAL; i<=ID_PKT_CAP_L2; i++)
+    for (i=ID_PKT_CAP_TOTAL; i<=ID_PKT_CAP_OTHER6; i++)
     set_int_text(GetDlgItem(hDlg, i), 0);
 }
 
