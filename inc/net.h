@@ -128,6 +128,18 @@ static inline int icmp_hdr_len(void *p_icmp_hdr)
     return FIXED_ICMP_HDR_LEN;
 }
 
+static inline int icmp6_hdr_len(void *p_icmp_hdr)
+{
+    t_icmp_hdr *pt_icmp_hdr = p_icmp_hdr;
+    if ((pt_icmp_hdr->type==128 || pt_icmp_hdr->type==129)
+        && pt_icmp_hdr->code==0 )
+    {
+        return FIXED_ICMP_ECHO_HDR_LEN;
+
+    }
+    return FIXED_ICMP_HDR_LEN;
+}
+
 typedef struct
 {
 	__u8 type;
@@ -387,8 +399,12 @@ void get_proto_name(char *info, t_ether_packet *pt_eth_hdr);
 
 int udp_checksum_wrong6(t_ipv6_hdr *ip6h);
 int tcp_checksum_wrong6(t_ipv6_hdr *ip6h);
+int icmp_checksum_wrong6(t_ipv6_hdr *ip6h);
+
 void udp_update_check6(t_ipv6_hdr *ip6h);
 void tcp_update_check6(t_ipv6_hdr *ip6h);
+void icmp_update_check6(t_ipv6_hdr *ip6h);
+
 unsigned short tcp_udp_checksum6(t_ipv6_hdr *ip6h);
 
 extern char *protocol_name_map[];

@@ -726,12 +726,12 @@ void tvi_update_ip6_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         {
             if (ip_frag_offset(&(pt_edit_stream->eth_packet)))
             {
-                build_hdr_info(info, TEXT("ipv6(frag-x)"), 14, ip6_pkt_len(ip6h));
+                build_hdr_info(info, TEXT("ipv6(frag-x)"), 14, IPV6_HDR_LEN);
                 set_tvi_text(htv, htvi, info);
             }
             else
             {
-                build_hdr_info(info, TEXT("ipv6(frag-1)"), 14, ip6_pkt_len(ip6h));
+                build_hdr_info(info, TEXT("ipv6(frag-1)"), 14, IPV6_HDR_LEN);
                 set_tvi_text(htv, htvi, info);
             }           
 
@@ -739,7 +739,7 @@ void tvi_update_ip6_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         }
         else
         {
-            build_hdr_info(info, TEXT("ipv6"), 14, ip6_pkt_len(ip6h));
+            build_hdr_info(info, TEXT("ipv6"), 14, IPV6_HDR_LEN);
             set_tvi_text(htv, htvi, info);
         }
 
@@ -752,16 +752,14 @@ void tvi_update_ip6_upper_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream
   
     t_ipv6_hdr *ip6h=(void *)(pt_edit_stream->eth_packet.payload);
     
-    if (ip6h->nexthdr==IPPROTO_ICMP)
-        build_hdr_info(info, TEXT("icmp"),  14+IPV6_HDR_LEN, ip6_data_len(ip6h));
-   else if (ip6h->nexthdr==IPPROTO_IGMP)
-       build_hdr_info(info, TEXT("igmp"),  14+IPV6_HDR_LEN, ip6_data_len(ip6h));
+    if (ip6h->nexthdr==IPPROTO_ICMPV6)
+        build_hdr_info(info, TEXT("icmp"),  14+IPV6_HDR_LEN, icmp6_hdr_len(ip6_data(ip6h)));
    else if (ip6h->nexthdr==IPPROTO_TCP)
-       build_hdr_info(info, TEXT("tcp"),  14+IPV6_HDR_LEN, ip6_data_len(ip6h));
+       build_hdr_info(info, TEXT("tcp"),  14+IPV6_HDR_LEN, tcp_hdr_len(ip6_data(ip6h)));
    else if (ip6h->nexthdr==IPPROTO_UDP)
-       build_hdr_info(info, TEXT("udp"),  14+IPV6_HDR_LEN, ip6_data_len(ip6h));
+       build_hdr_info(info, TEXT("udp"),  14+IPV6_HDR_LEN, sizeof(t_udp_hdr));
    else if (ip6h->nexthdr==IPPROTO_FRAGMENT)
-       build_hdr_info(info, TEXT("frag"),  14+IPV6_HDR_LEN, ip6_data_len(ip6h));
+       build_hdr_info(info, TEXT("frag"),  14+IPV6_HDR_LEN, 8);
 
         set_tvi_text(htv, htvi, info);
 
@@ -815,6 +813,12 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
             goto exit;
 
         }
+        else
+        {
+            offset = 14+ip_hdr_len(iph);
+            len = ip_data_len(iph)-ip_hdr_len(iph);
+            goto exit;
+        }
 
 
 
@@ -824,10 +828,24 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         t_ipv6_hdr *ip6h=(void *)(pt_edit_stream->eth_packet.payload);
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
-            if (ip_frag_offset(&(pt_edit_stream->eth_packet)))
+                offset = 14+IPV6_HDR_LEN+8;
+                len = ip6_data_len(ip6h)-8;
+                goto exit;
+        }
+        if (ip6h->nexthdr==IPPROTO_ICMPV6)
+        {
+            t_icmp_hdr *pt_icmp_hdr=ip6_data(ip6h);
+            if ((pt_icmp_hdr->type==128 || pt_icmp_hdr->type==129)
+                && pt_icmp_hdr->code==0 )
             {
-                offset = 14+IPV6_HDR_LEN;
-                len = ip6_data_len(ip6h);
+                offset = 14+IPV6_HDR_LEN+FIXED_ICMP_ECHO_HDR_LEN;
+                len = ip6_data_len(ip6h)-FIXED_ICMP_ECHO_HDR_LEN;
+                goto exit;
+            }
+            else
+            {
+                offset = 14+IPV6_HDR_LEN+FIXED_ICMP_HDR_LEN;
+                len = ip6_data_len(ip6h)-FIXED_ICMP_HDR_LEN;
                 goto exit;
             }
         }
@@ -845,6 +863,12 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
             len = ip6_data_len(ip6h)-tcp_hdr_len(pt_tcp_hdr);
             goto exit;
 
+        }
+        else
+        {
+            offset = 14+IPV6_HDR_LEN;
+            len = ip6_data_len(ip6h)-IPV6_HDR_LEN;
+            goto exit;
         }
 
     }
@@ -971,13 +995,13 @@ void build_tv(HWND hwnd_tree)
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
 
             build_tvis(hwnd_tree, treeItem1
-                , 0, gat_icmp_hdr_tvis, ARRAY_SIZE(gat_icmp_hdr_tvis));
+                , adjust, gat_icmp_hdr_tvis, ARRAY_SIZE(gat_icmp_hdr_tvis));
             
             if ((pt_icmp_hdr->type==8 || pt_icmp_hdr->type==0)
                 && pt_icmp_hdr->code==0 )
             {
                 build_tvis(hwnd_tree, treeItem1
-                , 0, gat_icmp_echo_hdr_tvis, ARRAY_SIZE(gat_icmp_echo_hdr_tvis));
+                , adjust, gat_icmp_echo_hdr_tvis, ARRAY_SIZE(gat_icmp_echo_hdr_tvis));
             }
 
             treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
@@ -990,7 +1014,7 @@ void build_tv(HWND hwnd_tree)
             treeItem1=insertItem(hwnd_tree, "igmp", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
-                , 0, gat_igmp_hdr_tvis, ARRAY_SIZE(gat_igmp_hdr_tvis));
+                , adjust, gat_igmp_hdr_tvis, ARRAY_SIZE(gat_igmp_hdr_tvis));
         }
         else if (iph->protocol==IPPROTO_UDP)
         {
@@ -1022,6 +1046,11 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
         }
+        else
+        {
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
+        }
 
     }
     else if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IPV6)
@@ -1041,6 +1070,29 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
                 , 0, gat_ipv6_frag_hdr_tvis, ARRAY_SIZE(gat_ipv6_frag_hdr_tvis));
+            
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
+
+        }
+        else if (ip6h->nexthdr==IPPROTO_ICMPV6)
+        {
+            t_icmp_hdr *pt_icmp_hdr=ip6_data(ip6h);
+            treeItem1=insertItem(hwnd_tree, "icmpv6", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip6_upper_hdr);
+            update_tvi_proto_hdr(hwnd_tree, treeItem1);
+
+            build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_icmp_hdr_tvis, ARRAY_SIZE(gat_icmp_hdr_tvis));
+            
+            if ((pt_icmp_hdr->type==128 || pt_icmp_hdr->type==129)
+                && pt_icmp_hdr->code==0 )
+            {
+                build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_icmp_echo_hdr_tvis, ARRAY_SIZE(gat_icmp_echo_hdr_tvis));
+            }
+
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
         }
 
@@ -1050,6 +1102,10 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_udp_hdr_tvis, ARRAY_SIZE(gat_udp_hdr_tvis));
+
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
+
         }
         else if (ip6h->nexthdr==IPPROTO_TCP)
         {
@@ -1065,7 +1121,16 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
 
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_tcp_hdr_tvis+12, 3);
+            
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
+
+        }
+        else
+        {
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
         }
 
     }
@@ -1985,6 +2050,8 @@ void update_check_sum_v6(t_stream *pt_stream)
         tcp_update_check6(ip6h);
     else if (ip6h->nexthdr==IPPROTO_UDP && (pt_stream->flags & CHECK_SUM_UDP))
         udp_update_check6(ip6h);
+    else if (ip6h->nexthdr==IPPROTO_ICMPV6 && (pt_stream->flags & CHECK_SUM_ICMP))
+        icmp_update_check6(ip6h);
 
 }
 
@@ -2124,7 +2191,17 @@ uint32_t  build_err_flags_v6(t_ether_packet *pt_eth, int len)
             return err_flags; 
     }
 
-    if (ip6h->nexthdr==IPPROTO_TCP)
+    if (ip6h->nexthdr==IPPROTO_ICMPV6)
+    {
+        if (icmp_checksum_wrong6(ip6h))
+        {
+            err_flags |= ERR_ICMP_CHECKSUM;
+            return err_flags; 
+        }
+
+    }
+
+    else if (ip6h->nexthdr==IPPROTO_TCP)
     {
         if (tcp_checksum_wrong6(ip6h))
         {

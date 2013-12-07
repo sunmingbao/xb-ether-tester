@@ -592,6 +592,7 @@ unsigned short tcp_udp_checksum6(t_ipv6_hdr *ip6h)
 {
     t_tcp_hdr *pt_tcp_hdr = ip6_data(ip6h);
     t_udp_hdr *pt_udp_hdr = ip6_data(ip6h);
+    t_icmp_hdr *pt_icmp_hdr = ip6_data(ip6h);
     short ori_sum = 0;
     register long sum = 0;
     unsigned short tmp;
@@ -610,12 +611,19 @@ unsigned short tcp_udp_checksum6(t_ipv6_hdr *ip6h)
         pt_tcp_hdr->check = 0;
 
     }
-    else
+    else if(ip6h->nexthdr==IPPROTO_UDP)
     {
         ori_sum = pt_udp_hdr->check;
         pt_udp_hdr->check = 0;
 
     }
+    else if (ip6h->nexthdr==IPPROTO_ICMPV6)
+    {
+        ori_sum = pt_icmp_hdr->checksum;
+        pt_icmp_hdr->checksum = 0;
+
+    }
+
 
         while( count > 1 )  {
                sum += ntohs(*addr);
@@ -647,9 +655,14 @@ unsigned short tcp_udp_checksum6(t_ipv6_hdr *ip6h)
         pt_tcp_hdr->check = ori_sum;
 
     }
-    else
+    else if (ip6h->nexthdr==IPPROTO_UDP)
     {
         pt_udp_hdr->check = ori_sum;
+
+    }
+    else if (ip6h->nexthdr==IPPROTO_ICMPV6)
+    {
+        pt_icmp_hdr->checksum = ori_sum;
 
     }
 
@@ -657,6 +670,11 @@ unsigned short tcp_udp_checksum6(t_ipv6_hdr *ip6h)
 
 }
 
+void icmp_update_check6(t_ipv6_hdr *ip6h)
+{
+    t_icmp_hdr *pt_icmp_hdr = ip6_data(ip6h);
+	pt_icmp_hdr->checksum = tcp_udp_checksum6(ip6h);
+}
 
 
 void tcp_update_check6(t_ipv6_hdr *ip6h)
@@ -681,5 +699,11 @@ int udp_checksum_wrong6(t_ipv6_hdr *ip6h)
 {
     t_udp_hdr *pt_udp_hdr = ip6_data(ip6h);
     return pt_udp_hdr->check !=tcp_udp_checksum6(ip6h);
+}
+
+int icmp_checksum_wrong6(t_ipv6_hdr *ip6h)
+{
+    t_icmp_hdr *pt_icmp_hdr = ip6_data(ip6h);
+    return pt_icmp_hdr->checksum !=tcp_udp_checksum6(ip6h);
 }
 
