@@ -15,7 +15,7 @@
 
 TCHAR szTipWinClassName[] = TEXT ("TipWin");
 HWND    hwnd_tip;
-TCHAR tip_info[128]={"this is a tip. 这是一条提示"};
+TCHAR tip_info[128];
 
 #define    TIP_WIN_WIDTH    (700)
 #define    TIP_WIN_HEIGHT   (cyChar*2)
@@ -120,7 +120,7 @@ LRESULT CALLBACK Tip_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             TrackMouseEvent(&tme);
             return 0 ;
 
-}
+    }
     
     return DefWindowProc (hwnd, message, wParam, lParam) ;
 }

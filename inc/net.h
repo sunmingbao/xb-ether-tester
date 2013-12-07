@@ -114,6 +114,19 @@ typedef struct
 	} frag;
   } un;
 } __attribute__ ((aligned (1))) t_icmp_hdr;
+#define  FIXED_ICMP_HDR_LEN    (4)
+#define  FIXED_ICMP_ECHO_HDR_LEN    (8)
+static inline int icmp_hdr_len(void *p_icmp_hdr)
+{
+    t_icmp_hdr *pt_icmp_hdr = p_icmp_hdr;
+    if ((pt_icmp_hdr->type==8 || pt_icmp_hdr->type==0)
+        && pt_icmp_hdr->code==0 )
+    {
+        return FIXED_ICMP_ECHO_HDR_LEN;
+
+    }
+    return FIXED_ICMP_HDR_LEN;
+}
 
 typedef struct
 {
@@ -158,6 +171,10 @@ typedef struct
 	__u16	check;
 	__u16	urg_ptr;
 } __attribute__ ((aligned (1))) t_tcp_hdr ;
+static inline int tcp_hdr_len(void *pt_tcp_hdr)
+{
+    return ((t_tcp_hdr *)pt_tcp_hdr)->doff*4;
+}
 
 typedef struct 
 {
@@ -172,6 +189,7 @@ void udp_update_check(t_ip_hdr *iph);
 int tcp_checksum_wrong(t_ip_hdr *iph);
 int udp_checksum_wrong(t_ip_hdr *iph);
 
+#define    FIXED_ARP_HDR_LEN    (8)
 typedef struct
 {
 	unsigned short	ar_hrd;		/* format of hardware address	*/
@@ -191,6 +209,11 @@ typedef struct
 #endif
 
 } __attribute__ ((aligned (1)))  t_arp_hdr;
+
+static inline int arp_pkt_len(t_arp_hdr *pt_arp_hdr)
+{
+    return FIXED_ARP_HDR_LEN + 12 + pt_arp_hdr->ar_pln*2;
+}
 
 #define IPV6_HDR_LEN    40
 #define IPV6_ADDR_LEN   16
