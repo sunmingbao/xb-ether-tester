@@ -50,7 +50,7 @@ void u16_n2str(char *info, void * field_addr, int is_hex)
     if (is_hex)
             sprintf(info, "0x%04hx"
             , ntohs(*(unsigned short *)field_addr));
-else
+    else
             sprintf(info, "%hu"
             , ntohs(*(unsigned short *)field_addr));
 }
@@ -1535,6 +1535,33 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
         ShowWindow(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), 1);
 
     }
+    else if (pt_tvi_data->data_offset==12)
+    {
+        HWND comb_eth=GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB_ETH);
+        int type_idx;
+        init_eth_type_comb(comb_eth);
+        type_idx = get_eth_type_name(ntohs(gt_edit_stream.eth_packet.type), NULL);
+        if (type_idx>=0)
+        {
+            SendMessage(comb_eth, CB_SETCURSEL, (WPARAM)type_idx, (LPARAM)0);
+        }
+        else
+        {
+            sprintf(info, "0x%04hx", ntohs(gt_edit_stream.eth_packet.type));
+            ComboBox_AddString(comb_eth,(LPARAM)info);
+            SendMessage(comb_eth, CB_SETCURSEL, (WPARAM)ComboBox_GetCount(comb_eth)-1, (LPARAM)0);
+        }
+        MoveWindow(comb_eth
+        ,rect1.left
+        ,rect1.top
+        ,cxChar*20
+        ,150
+        ,TRUE);
+
+        ShowWindow(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB_ETH), 1);
+
+    }
+
     else
     {
         field_n2str(info_2
@@ -1588,6 +1615,7 @@ void hide_edit_ui(HWND hDlg)
 {
     ShowWindow(GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT), 0);
     ShowWindow(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), 0);
+    ShowWindow(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB_ETH), 0);
     ShowWindow(GetDlgItem(hDlg, ID_SED_DYNAMIC_RULE_BUTTON), 0);
 }
 
@@ -2499,29 +2527,45 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
 
             if (HIWORD(wParam)==CBN_SELCHANGE)
             {
-                int new_proto=SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB)
-                        , (UINT) CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
+                if (LOWORD(wParam)==ID_SED_DYNAMIC_COMB)
+                {
+                    int new_proto=SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB)
+                            , (UINT) CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
 
-                if (ETH_P_IP==ntohs(gt_edit_stream.eth_packet.type))
-                {
-                    t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
-                    if (iph->protocol!=new_proto)
+                    if (ETH_P_IP==ntohs(gt_edit_stream.eth_packet.type))
                     {
-                        iph->protocol=new_proto;
+                        t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+                        if (iph->protocol!=new_proto)
+                        {
+                            iph->protocol=new_proto;
+                            goto PROTO_CHNG_PROC;
+                        }
+                    }
+                    else if (ETH_P_IPV6==ntohs(gt_edit_stream.eth_packet.type))
+                    {
+                        t_ipv6_hdr *ip6h=(void *)(gt_edit_stream.eth_packet.payload);
+                        if (ip6h->nexthdr!=new_proto)
+                        {
+                            ip6h->nexthdr=new_proto;
+                            goto PROTO_CHNG_PROC;
+                        }
+                    }
+                   	return TRUE ;
+                    
+
+                }
+                else
+                {
+                    int type=get_eth_type_comb(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB_ETH));
+                    if (type!=ntohs(gt_edit_stream.eth_packet.type))
+                    {
+                        gt_edit_stream.eth_packet.type = htons(type);
                         goto PROTO_CHNG_PROC;
                     }
+                    return TRUE ;
+
                 }
-                else if (ETH_P_IPV6==ntohs(gt_edit_stream.eth_packet.type))
-                {
-                    t_ipv6_hdr *ip6h=(void *)(gt_edit_stream.eth_packet.payload);
-                    if (ip6h->nexthdr!=new_proto)
-                    {
-                        ip6h->nexthdr=new_proto;
-                        goto PROTO_CHNG_PROC;
-                    }
-                }
-               	return TRUE ;
-                
+
                 PROTO_CHNG_PROC:
                 hide_edit_ui(hDlg);
                 SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);

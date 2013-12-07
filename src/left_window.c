@@ -563,6 +563,8 @@ void init_protocol_comb(HWND comb, int add_all)
 {
     int i;
     char info[64], info_2[32];
+
+    clear_comb(comb);
     if (add_all)
         SendMessage(comb,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"all");
     for (i=0;i<=255;i++)

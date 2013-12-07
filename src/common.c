@@ -702,3 +702,18 @@ void center_child_win(HWND hwndParent, HWND hwndWindow)
 
 #endif
 
+void clear_comb(HWND hwndCtl)
+{
+    while(ComboBox_GetCount(hwndCtl)>0)
+    {
+        ComboBox_DeleteString(hwndCtl, 0);
+    }
+}
+
+int str2int(char *info)
+{
+    if (strchr(info, 'x') || strchr(info, 'X'))
+        return strtol(info+0,NULL,16);
+    else        
+        return strtol(info+0,NULL,10);
+}

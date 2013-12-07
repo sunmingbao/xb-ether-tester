@@ -328,7 +328,7 @@ static inline int ip_pkt_can_frag(t_ether_packet *pt_eth_hdr)
 }
 
 void get_protocol_name(int protocol, char *name);
-void get_eth_type_name(int type, char *info);
+int get_eth_type_name(int type, char *info);
 
 
 

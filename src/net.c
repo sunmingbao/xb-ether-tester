@@ -318,6 +318,83 @@ int icmp_igmp_checksum_wrong(t_ip_hdr *iph)
     return icmph->checksum !=icmp_igmp_check(iph);
 }
 
+typedef struct
+{
+    char *name;
+    int   value;
+} t_eth_type;
+
+t_eth_type gat_eth_type[]=
+{
+    {"IP",   ETH_P_IP},
+    {"ARP",  ETH_P_ARP},
+    {"RARP", ETH_P_RARP},
+    {"IPV6", ETH_P_IPV6},
+    {"PPP_DISC", ETH_P_PPP_DISC},
+    {"PPP_SESS", ETH_P_PPP_SES},
+    {"LOOP", ETH_P_LOOP},
+    {"ECHO", ETH_P_ECHO},
+
+};
+
+int get_eth_type_name(int type, char *info)
+{
+    int i;
+    for (i=0;i<ARRAY_SIZE(gat_eth_type);i++)
+    {
+        if (type==gat_eth_type[i].value)
+        {
+            if (info!=NULL)
+            strcpy(info, gat_eth_type[i].name);
+            return i;
+        }
+    }
+
+    if (info!=NULL)
+        sprintf(info, "0x%04x", type);
+    return -1;
+
+}
+
+int get_eth_type_value(char *name)
+{
+    int i;
+    for (i=0;i<ARRAY_SIZE(gat_eth_type);i++)
+    {
+        if (0==strcmp(gat_eth_type[i].name, name))
+        {
+            return gat_eth_type[i].value;
+        }
+    }
+
+    return str2int(name);
+
+}
+
+void init_eth_type_comb(HWND comb)
+{
+    int i;
+    char info[64], info_2[32];
+
+    clear_comb(comb);
+
+    for (i=0;i<ARRAY_SIZE(gat_eth_type);i++)
+    {
+        ComboBox_AddString(comb,(LPARAM)gat_eth_type[i].name);
+    }
+}
+
+int get_eth_type_comb(HWND comb)
+{
+    int i;
+    char info[64], info_2[32];
+
+    ComboBox_GetText(comb, info, sizeof(info));
+
+    return get_eth_type_value(info);
+}
+
+
 char *protocol_name_map[] = 
 {
 "HOPOPT",
@@ -488,45 +565,6 @@ void get_protocol_name(int protocol, char *name)
     }
 }
 
-void get_eth_type_name(int type, char *info)
-{
-    switch (type)
-    {
-
-        case ETH_P_IP:
-            strcpy(info, "ip");
-            return;
-
-        case ETH_P_ARP:
-            strcpy(info, "arp");
-            return;
-            
-        case ETH_P_RARP:
-            strcpy(info, "rarp");
-            return;
-
-        case ETH_P_LOOP:
-            strcpy(info, "LOOP");
-            return;
-
-        case ETH_P_ECHO:
-            strcpy(info, "ECHO");
-            return;
-
-        case ETH_P_PPP_DISC:
-        case ETH_P_PPP_SES:
-            strcpy(info, "PPPoE");
-            return;
-            
-        case ETH_P_IPV6:
-            strcpy(info, "ipv6");
-            return;
-
-    }
-
-    sprintf(info, "0x%04x", type);
-
-}
 
 void get_src_addr(char *info, t_ether_packet *pt_eth_hdr)
 {

@@ -75,6 +75,7 @@
 #define  ID_SED_DYNAMIC_RULE_BUTTON 40112
 #define  ID_SED_UPDATE_LEN           40113
 #define  ID_SED_UPDATE_NOW           40114
+#define  ID_SED_DYNAMIC_COMB_ETH    40115
 
 #define  ID_DYNAMIC_EDIT            40200
 

@@ -207,6 +207,7 @@ void h_arrange_win_id(HWND hleader, int nr_member, int hmember_ids[], int offset
 void v_arrange_win_id(HWND hleader, int nr_member, int hmember_ids[], int offset);
 int a_include_b_right(HWND a, HWND b);
 
-
+void clear_comb(HWND hwndCtl);
+int str2int(char *info);
 #endif
 
