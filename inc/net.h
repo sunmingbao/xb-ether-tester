@@ -401,11 +401,11 @@ extern int  nr_cur_stream;
 extern int  copy_idx;
 extern t_stream    *g_apt_streams[MAX_STREAM_NUM];
 void init_stream(t_stream    *pt_streams);
-void make_frags(const t_stream *pt_stream, int frag_num);
+int make_frags(const t_stream *pt_stream, int frag_num);
 void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags);
 uint32_t  build_err_flags(t_ether_packet *pt_eth, int len);
 void update_stream(t_stream* pt_stream);
-void delete_all_rule(t_stream *pt_stream);
+int delete_all_rule(t_stream *pt_stream);
 
 void get_src_addr(char *info, t_ether_packet *pt_eth_hdr);
 void get_dst_addr(char *info, t_ether_packet *pt_eth_hdr);

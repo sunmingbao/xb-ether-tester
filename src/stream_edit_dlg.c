@@ -2489,7 +2489,7 @@ int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
     return ret;
 }
 
-void make_frags_ipv6(const t_stream *pt_stream, int frag_num)
+int make_frags_ipv6(const t_stream *pt_stream, int frag_num)
 {
     int i, ret;
     t_ipv6_hdr *ip6h=(void *)(pt_stream->eth_packet.payload);
