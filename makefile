@@ -87,11 +87,10 @@ installer:
 	makensis $(PRJ_DIR)\xb_ether_tester.nsi
 	
 clean:
-#	cmd /c del /F /Q $(target) $(OBJECTS)
-	cmd /c del /F /Q "$(OBJ_DIR)\\*"
+	-cmd.exe /c del /F /Q  $(OBJ_DIR)\\*
 
 prepare:
-	-cmd /c mkdir $(OBJ_DIR)
+	-cmd.exe /c mkdir  $(OBJ_DIR)
 	
 all: default installer
 
