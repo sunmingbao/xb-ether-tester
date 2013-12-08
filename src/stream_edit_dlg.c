@@ -1790,16 +1790,19 @@ void init_rule_data(HWND htv, HTREEITEM htvi)
     }
 }
 
-void delete_all_rule(t_stream *pt_stream)
+int delete_all_rule(t_stream *pt_stream)
 {
     int i;
     t_rule *pt_rule;
+    int rule_num = pt_stream->rule_num;
     pt_stream->rule_num=0;
     for (i=0; i<MAX_FIELD_RULE_NUM; i++)
     {
         pt_rule = &(pt_stream->at_rules[i]);
         pt_rule->valid=0;
     }
+
+    return rule_num;
 }
 
 void delete_rule(t_stream *pt_stream, int idx)
@@ -2445,9 +2448,9 @@ void *alloc_stream()
     return pt_stream;
 }
 
-void make_frags_ipv4(const t_stream *pt_stream, int frag_num)
+int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
 {
-    int i;
+    int i, ret;
     t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
     void *p_ip_data=ip_data(iph);
     int data_len = ip_data_len(iph);
@@ -2464,7 +2467,7 @@ void make_frags_ipv4(const t_stream *pt_stream, int frag_num)
     void *p_frag_data=(void *)iph_frag + ip_hdr_len(iph);
 
     cpy_stream(&t_stream_tmp, pt_stream);
-    delete_all_rule(&t_stream_tmp);
+    ret=delete_all_rule(&t_stream_tmp);
 
     t_stream_tmp.len = frag_frame_len;
     iph_frag->tot_len = htons(frag_len);
@@ -2483,11 +2486,12 @@ void make_frags_ipv4(const t_stream *pt_stream, int frag_num)
     memcpy(p_frag_data, p_ip_data+frag_data_len*i, data_len-frag_data_len*i);
     update_check_sum(&t_stream_tmp);
     add_stream(&t_stream_tmp);
+    return ret;
 }
 
 void make_frags_ipv6(const t_stream *pt_stream, int frag_num)
 {
-    int i;
+    int i, ret;
     t_ipv6_hdr *ip6h=(void *)(pt_stream->eth_packet.payload);
     void *p_ip_data=ip6_data(ip6h);
     int data_len = ip6_data_len(ip6h);
@@ -2505,7 +2509,7 @@ void make_frags_ipv6(const t_stream *pt_stream, int frag_num)
     void *p_frag_data= (void *)ip6h_frag + IPV6_HDR_LEN;
 
     cpy_stream(&t_stream_tmp, pt_stream);
-    delete_all_rule(&t_stream_tmp);
+    ret=delete_all_rule(&t_stream_tmp);
 
     t_stream_tmp.len = frag_frame_len;
     ip6h_frag->nexthdr=IPPROTO_FRAGMENT;
@@ -2528,16 +2532,18 @@ void make_frags_ipv6(const t_stream *pt_stream, int frag_num)
     memcpy(p_frag_data+8, p_ip_data+frag_data_len*i, data_len-frag_data_len*i);
     update_check_sum(&t_stream_tmp);
     add_stream(&t_stream_tmp);
+    return ret;
 }
 
-void make_frags(const t_stream *pt_stream, int frag_num)
+int make_frags(const t_stream *pt_stream, int frag_num)
 {
     t_ether_packet *pt_eth_hdr = (void *)(pt_stream->data);
     if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
-        make_frags_ipv4(pt_stream, frag_num);
+        return make_frags_ipv4(pt_stream, frag_num);
     else if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
-        make_frags_ipv6(pt_stream, frag_num);
+        return make_frags_ipv6(pt_stream, frag_num);
 
+    return 0;
 }
 void init_ui_stream_edit(HWND hDlg)
 {
@@ -3543,8 +3549,9 @@ BOOL CALLBACK FragDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
                             return TRUE;
                         }
                     
-                        make_frags(g_apt_streams[GetIndex(hwnd_lv)], frag_num);
+                        ret=make_frags(g_apt_streams[GetIndex(hwnd_lv)], frag_num);
                         re_populate_items();
+                        if (ret) show_tip("注意，字段变化规则已经从分片报文中删除");
                     }
 
               		case 	IDCANCEL :

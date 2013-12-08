@@ -788,7 +788,6 @@ case WM_NOTIFY:
                     }
                     
        				ret=DialogBox(g_hInstance, TEXT("FRAG_DLG"), hwnd, FragDlgProc);
-                    show_tip("注意，字段变化规则已经从分片报文中删除");
 
        				return 0 ;
                 }
