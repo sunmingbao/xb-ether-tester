@@ -413,17 +413,17 @@ t_tvi_data gat_arp6_tvis[]=
 t_tvi_data gat_ip_hdr_tvis[]=
 {
  {"ver",    14, 1, 0, 0, 4},
- {"hdr_len", 14, 1, 0, 4, 4},
+ {"hdr_len", 14, 1, FLAG_REBUILD_TV, 4, 4},
  {"tos", 15, 1, SUPPORT_RULE},
  {"total len", 16, 2},
  {"id", 18, 2, SUPPORT_RULE},
- {"rsv", 20, 1, SUPPORT_RULE, 0, 1},
-  {"df",  20, 1, SUPPORT_RULE, 1, 1},
-  {"mf",  20, 1, SUPPORT_RULE, 2, 1, FLAG_REBUILD_TV},
+ {"rsv", 20, 1, 0, 0, 1},
+  {"df",  20, 1, 0, 1, 1},
+  {"mf",  20, 1, FLAG_REBUILD_TV, 2, 1},
  {"frag offset", 20, 2, FLAG_REBUILD_TV, 3, 13},
  {"ttl", 22, 1, SUPPORT_RULE},
  {"protocol", 23, 1, FLAG_REBUILD_TV},
- {"check sum", 24, 2, SUPPORT_RULE|DISPLAY_HEX},
+ {"check sum", 24, 2, DISPLAY_HEX},
 
  {"src ip", 26, 4, SUPPORT_RULE|IS_IP},
  {"dst ip", 30, 4, SUPPORT_RULE|IS_IP},
@@ -432,10 +432,10 @@ t_tvi_data gat_ip_hdr_tvis[]=
 t_tvi_data gat_ipv6_hdr_tvis[]=
 {
  {"ver",    14, 4, 0, 0, 4},
- {"traffic class", 14, 4, 0, 4, 8},
-  {"flow label", 14, 4, 0, 12, 20},
+ {"traffic class", 14, 4, SUPPORT_RULE, 4, 8},
+  {"flow label", 14, 4, SUPPORT_RULE, 12, 20},
  {"payload Len", 18, 2},
- {"next hdr", 20, 1},
+ {"next hdr", 20, 1, FLAG_REBUILD_TV},
  {"hop limit", 21, 1, SUPPORT_RULE},
 
  {"src ip", 22, 16, IS_IP6},
@@ -444,19 +444,19 @@ t_tvi_data gat_ipv6_hdr_tvis[]=
 
 t_tvi_data gat_ipv6_frag_hdr_tvis[]=
 {
- {"next hdr", 54, 1},
+ {"next hdr", 54, 1, FLAG_REBUILD_TV},
  {"Reserved",    55, 1},
- {"frag offset", 56, 2, 0, 0, 13},
+ {"frag offset", 56, 2, FLAG_REBUILD_TV, 0, 13},
   {"Res", 56, 2, 0, 13, 2},
-  {"M", 56, 2, 0, 15, 1},
- {"id", 58, 4},
+  {"M", 56, 2, FLAG_REBUILD_TV, 15, 1},
+ {"id", 58, 4, SUPPORT_RULE},
 };
 
 t_tvi_data gat_icmp_hdr_tvis[]=
 {
   {"type", 34, 1, FLAG_REBUILD_TV},
   {"code", 35, 1, FLAG_REBUILD_TV},
-  {"checksum", 36, 2, SUPPORT_RULE|DISPLAY_HEX},
+  {"checksum", 36, 2, DISPLAY_HEX},
 };
 
 t_tvi_data gat_icmp_echo_hdr_tvis[]=
@@ -469,8 +469,8 @@ t_tvi_data gat_igmp_hdr_tvis[]=
 {
   {"type", 34, 1},
   {"code", 35, 1},
-  {"checksum", 36, 2, SUPPORT_RULE|DISPLAY_HEX},
-  {"group", 38, 4, SUPPORT_RULE},
+  {"checksum", 36, 2, DISPLAY_HEX},
+  {"group", 38, 4, SUPPORT_RULE|IS_IP},
 };
 
 t_tvi_data gat_udp_hdr_tvis[]=
@@ -478,7 +478,7 @@ t_tvi_data gat_udp_hdr_tvis[]=
  {"source port", 34, 2, SUPPORT_RULE},
  {"dest   port", 36, 2, SUPPORT_RULE},
  {"length", 38, 2, SUPPORT_RULE},
- {"checksum", 40, 2, SUPPORT_RULE|DISPLAY_HEX},
+ {"checksum", 40, 2, DISPLAY_HEX},
 };
 
 t_tvi_data gat_tcp_hdr_tvis[]=
@@ -487,7 +487,7 @@ t_tvi_data gat_tcp_hdr_tvis[]=
  {"dest   port", 36, 2, SUPPORT_RULE},
  {"seq", 38, 4, SUPPORT_RULE},
  {"ack", 42, 4, SUPPORT_RULE},
- {"hdr_len", 46, 1, SUPPORT_RULE|DISPLAY_HEX, 0, 4},
+ {"hdr_len", 46, 1, SUPPORT_RULE, 0, 4},
  {"rsv", 46, 2, SUPPORT_RULE|DISPLAY_HEX, 4,6},
  {"URG", 47, 1, SUPPORT_RULE, 2,1},
  {"ACK", 47, 1, SUPPORT_RULE, 3,1},
@@ -497,7 +497,7 @@ t_tvi_data gat_tcp_hdr_tvis[]=
  {"FIN", 47, 1, SUPPORT_RULE, 7,1},
 
  {"win size", 48, 2, SUPPORT_RULE},
- {"checksum", 50, 2, SUPPORT_RULE|DISPLAY_HEX},
+ {"checksum", 50, 2, DISPLAY_HEX},
  {"urgent_p", 52, 2, SUPPORT_RULE},
 };
 
