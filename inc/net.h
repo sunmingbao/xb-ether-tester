@@ -196,6 +196,16 @@ typedef struct
 	__u16	check;
 } __attribute__ ((aligned (1))) t_udp_hdr;
 
+static inline int udp_data_len(t_ip_hdr *iph)
+{
+    return ip_data_len(iph) - sizeof(t_udp_hdr);
+}
+
+static inline int tcp_data_len(t_ip_hdr *iph)
+{
+    return ip_data_len(iph) - tcp_hdr_len(ip_data(iph));
+}
+
 void tcp_update_check(t_ip_hdr *iph);
 void udp_update_check(t_ip_hdr *iph);
 int tcp_checksum_wrong(t_ip_hdr *iph);

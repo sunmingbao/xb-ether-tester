@@ -487,7 +487,7 @@ t_tvi_data gat_tcp_hdr_tvis[]=
  {"dest   port", 36, 2, SUPPORT_RULE},
  {"seq", 38, 4, SUPPORT_RULE},
  {"ack", 42, 4, SUPPORT_RULE},
- {"hdr_len", 46, 1, SUPPORT_RULE, 0, 4},
+ {"hdr_len", 46, 1, FLAG_REBUILD_TV, 0, 4},
  {"rsv", 46, 2, SUPPORT_RULE|DISPLAY_HEX, 4,6},
  {"URG", 47, 1, SUPPORT_RULE, 2,1},
  {"ACK", 47, 1, SUPPORT_RULE, 3,1},
@@ -609,6 +609,20 @@ int htvi_is_data(HWND htv, HTREEITEM htvi)
     return 1;
 }
 
+int htvi_is_option(HWND htv, HTREEITEM htvi)
+{
+    char info[128];
+
+    get_tvi_text(htv, htvi, info, sizeof(info));
+
+    if (0!=memcmp(info, "options", 7))
+    {
+        return 0;
+    }
+    
+    return 1;
+}
+
 void update_tvi_proto_field(HWND htv, HTREEITEM htvi)
 {
     TVITEM tvi={0};
@@ -641,6 +655,19 @@ void update_tvi_proto_hdr(HWND htv, HTREEITEM htvi)
 
 }
 
+void update_tvi_options(HWND htv, HTREEITEM htvi)
+{
+
+    tvi_update_proto_hdr pt_tvi_data;
+    pt_tvi_data = get_tvi_lParam(htv, htvi);
+
+    if (NULL != pt_tvi_data)
+        pt_tvi_data(htv, htvi, &gt_edit_stream);
+    else  
+        set_tvi_text(htv, htvi, "haha");
+
+}
+
 void update_tvi_text(HWND htv, HTREEITEM htvi)
 {
 
@@ -652,7 +679,9 @@ void update_tvi_text(HWND htv, HTREEITEM htvi)
         update_tvi_proto_hdr(htv, htvi);
     else if (htvi_is_data(htv, htvi))
         tvi_update_data(htv, htvi, &gt_edit_stream);
-    
+    else if (htvi_is_option(htv, htvi))
+        update_tvi_options(htv, htvi);
+
 }
 
 
@@ -807,7 +836,7 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         }
         else if (iph->protocol==IPPROTO_TCP)
         {
-            t_udp_hdr *pt_tcp_hdr=ip_data(iph);
+            t_tcp_hdr *pt_tcp_hdr=ip_data(iph);
             offset = 14+ip_hdr_len(iph)+tcp_hdr_len(pt_tcp_hdr);
             len = ip_data_len(iph)-tcp_hdr_len(pt_tcp_hdr);
             goto exit;
@@ -896,6 +925,37 @@ exit:
     set_tvi_text(htv, htvi, info);
 }
 
+void tvi_update_options_tcp(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
+{
+    char info[128];
+    int offset, len;
+
+        t_ip_hdr *iph=(void *)(pt_edit_stream->eth_packet.payload);
+        t_tcp_hdr *pt_tcp_hdr=ip_data(iph);
+
+            offset = 14+ip_hdr_len(iph)+sizeof(t_tcp_hdr);
+            len = tcp_hdr_len(pt_tcp_hdr)-sizeof(t_tcp_hdr);
+
+
+    sprintf(info, TEXT("options (offset=%d;length=%d)"), offset, len);
+    set_tvi_text(htv, htvi, info);
+}
+
+void tvi_update_options_ip(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
+{
+    char info[128];
+    int offset, len;
+
+        t_ip_hdr *iph=(void *)(pt_edit_stream->eth_packet.payload);
+
+        offset = 14+sizeof(t_ip_hdr);
+        len = ip_hdr_len(iph)-sizeof(t_ip_hdr);
+
+
+    sprintf(info, TEXT("options (offset=%d;length=%d)"), offset, len);
+    set_tvi_text(htv, htvi, info);
+}
+
 static void update_tv_sub(HWND htv, HTREEITEM htvi_p)
 {
     HTREEITEM htvi_c;
@@ -975,6 +1035,13 @@ void build_tv(HWND hwnd_tree)
 
         build_tvis(hwnd_tree, treeItem1
                 , 0, gat_ip_hdr_tvis, ARRAY_SIZE(gat_ip_hdr_tvis));
+
+        if (ip_hdr_len(iph)>FIXED_IP_HDR_LEN)
+        {
+
+            treeItem2=insertItem(hwnd_tree, TEXT("options"), treeItem1, TVI_LAST, -1, -1, tvi_update_options_ip);
+            update_tvi_options(hwnd_tree, treeItem2);
+        }
         
 
         if (ip_pkt_is_frag(&(gt_edit_stream.eth_packet)))
@@ -1022,10 +1089,11 @@ void build_tv(HWND hwnd_tree)
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_udp_hdr_tvis, ARRAY_SIZE(gat_udp_hdr_tvis));
-
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
-            tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
-
+            if (udp_data_len(iph)>0)
+            {
+                treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+                tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
+            }
         }
         else if (iph->protocol==IPPROTO_TCP)
         {
@@ -1042,9 +1110,18 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_tcp_hdr_tvis+12, 3);
 
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
-            tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
+            if (tcp_hdr_len(ip_data(iph))>sizeof(t_tcp_hdr))
+            {
 
+                treeItem2=insertItem(hwnd_tree, TEXT("options"), treeItem1, TVI_LAST, -1, -1, tvi_update_options_tcp);
+                update_tvi_options(hwnd_tree, treeItem2);
+            }
+            
+            if (tcp_data_len(iph)>0)
+            {
+                treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+                tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
+            }
         }
         else
         {
