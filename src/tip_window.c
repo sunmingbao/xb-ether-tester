@@ -15,7 +15,7 @@
 
 TCHAR szTipWinClassName[] = TEXT ("TipWin");
 HWND    hwnd_tip;
-TCHAR tip_info[128];
+TCHAR tip_info[256];
 
 #define    TIP_WIN_WIDTH    (700)
 #define    TIP_WIN_HEIGHT   (cyChar*2)
@@ -155,11 +155,14 @@ int register_tip_win()
 
 void show_tip(TCHAR *info)
 {
+    int width = TIP_WIN_WIDTH;
+    int text_width=strlen(info)*cxChar;
     tip_win_action=TIP_WIN_ACTION_SHOW;
     strcpy(tip_info, info);
+    if (width<=text_width) width = text_width + 2*cxChar;
     SetWindowPos(hwnd_tip, HWND_TOP
-                , (scrn_width-TIP_WIN_WIDTH)/2,(scrn_height-TIP_WIN_HEIGHT)/2
-                ,TIP_WIN_WIDTH,TIP_WIN_HEIGHT
+                , (scrn_width-width)/2,(scrn_height-TIP_WIN_HEIGHT)/2
+                ,width,TIP_WIN_HEIGHT
                 , SWP_NOACTIVATE);
 
     tip_win_alpha = 0;
