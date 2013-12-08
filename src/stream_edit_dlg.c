@@ -1526,8 +1526,10 @@ hide_edit_ui(hDlg);
 
     if (pt_tvi_data->flags&FLAG_REBUILD_TV)
     {
+        if (delete_all_rule(&gt_edit_stream))
+            show_tip("字段变化规则已经删除，因为报文结构有变化");
+        
         SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
-        show_tip("字段变化规则已经删除，因为报文结构有变化");
 
         return 1;
     }
@@ -2651,8 +2653,10 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
 
                 PROTO_CHNG_PROC:
                 hide_edit_ui(hDlg);
+                if (delete_all_rule(&gt_edit_stream))
+                    show_tip("字段变化规则已经删除，因为报文结构有变化");
+
                 SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
-                show_tip("字段变化规则已经删除，因为报文结构有变化");
                 return TRUE ;
 
             }
@@ -2740,8 +2744,10 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                     {
                    		if (HIWORD(wParam)==EN_KILLFOCUS && stream_changed)
                         {
+                            if (delete_all_rule(&gt_edit_stream))
+                                show_tip("字段变化规则已经删除，因为直接编辑了缓冲区");
+
                             SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
-                            show_tip("字段变化规则已经删除，因为直接编辑了缓冲区");
                             stream_changed = 0;
                             return TRUE ;
                         }
@@ -2750,7 +2756,6 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
 
                     case    ID_SED_UPDATE_NOW:
                     {
-                        delete_all_rule(&gt_edit_stream);
                         update_stream_from_dlg(hDlg);
                         build_tv(hwnd_tree);
                         hex_win_reinit(hwnd_hex_edit);

@@ -510,9 +510,7 @@ int load_stream(char *file_path)
 
     if (version_tmp[0]=='1')
     {
-        MessageBox (NULL
-        , TEXT ("配置文件格式为老的1.x版本。字段变化规则信息将丢失。\r\n下次保存配置时，将保存为新版本的格式。"),
-          szAppName, MB_ICONERROR) ;
+        show_tip(TEXT ("配置文件格式为老的1.x版本。字段变化规则信息将丢失。\r\n下次保存配置时，将保存为新版本的格式。"));
         for(i=0;i<nr_cur_stream;i++)
         {
             delete_all_rule(g_apt_streams[i]);
