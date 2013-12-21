@@ -365,21 +365,28 @@ case WM_GETDLGCODE:
                     
 
                 if (write_high_bit)
-                    {
-          		test_buf[data_idx]&=0xf;
-                test_buf[data_idx]|= wParam<<4;
-                col+=1;
-                    }
+                {
+              		test_buf[data_idx]&=0xf;
+                    test_buf[data_idx]|= wParam<<4;
+                    col+=1;
+                }
                 else
-                    {
+                {
           		test_buf[data_idx]&=0xf0;
                 test_buf[data_idx]|= wParam;
-                if ((data_idx+1<cur_data_len)
-                    &&
-                    (col<56))
-                col+=2;
-
+                if (data_idx<cur_data_len-1)
+                {
+                    col+=2;
+                    if (col>=LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM)
+                    {
+                        col = LINE_NUMBER_CHAR_NUM;
+                        row++;
                     }
+                }
+
+                
+
+                }
                 SetCaretPos(col*cxChar, row*cyChar);
                 InvalidateRect (hwnd, NULL, TRUE) ;
                 //SetCaretPos(cur_caret_x, cur_caret_y);
