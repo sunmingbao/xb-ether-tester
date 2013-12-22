@@ -376,11 +376,9 @@ case WM_GETDLGCODE:
                 test_buf[data_idx]|= wParam;
                 if (data_idx<cur_data_len-1)
                 {
-                    col+=2;
-                    if (col>=LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM)
+                    if (col<LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM-2)
                     {
-                        col = LINE_NUMBER_CHAR_NUM;
-                        row++;
+                        col+=2;
                     }
                 }
 
