@@ -72,6 +72,7 @@ void rx_tx_init()
     gt_fc_cfg.speed_type = SPEED_TYPE_HIGH;
     gt_fc_cfg.speed_value= 1000;
     gt_fc_cfg.snd_times_cnt = -1;
+    update_fc_gap();
     
     get_all_devs();
 }
@@ -485,6 +486,32 @@ int save_stream(char *file_path)
     doc_modified=0;
 }
 
+void update_fc_gap()
+{
+    if (SPEED_TYPE_HIGH==gt_fc_cfg.speed_type)
+    {
+        if (gt_fc_cfg.speed_value==1)
+        {
+            snd_gap_s = 0;
+            snd_gap_us = 1000000;
+        }
+        else
+        {
+            snd_gap_s = 0;
+            snd_gap_us = 1000000/gt_fc_cfg.speed_value;
+        }
+            
+    
+    }
+    else
+    {
+        snd_gap_s = gt_fc_cfg.speed_value;
+        snd_gap_us = 0;
+    
+    }
+
+}
+
 int load_stream(char *file_path)
 {
     FILE *file=fopen(file_path, "rb");
@@ -494,6 +521,7 @@ int load_stream(char *file_path)
 
     fread(version_tmp, sizeof(version), 1, file);
     fread(&gt_fc_cfg, sizeof(gt_fc_cfg), 1, file);
+    update_fc_gap();
     fread(&gt_pkt_cap_cfg, PKT_CAP_CFG_FIX_LEN, 1, file);
     fread(gt_pkt_cap_cfg.filter_str_usr, gt_pkt_cap_cfg.filter_str_len, 1, file);
     gt_pkt_cap_cfg.filter_str_usr[gt_pkt_cap_cfg.filter_str_len]=0;

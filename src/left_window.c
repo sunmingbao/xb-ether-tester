@@ -315,27 +315,7 @@ ui_update_fc_cfg(hDlg);
 
                             gt_fc_cfg.snd_times_cnt = ret;
 
-                            if (SPEED_TYPE_HIGH==gt_fc_cfg.speed_type)
-                            {
-                                if (gt_fc_cfg.speed_value==1)
-                                {
-                                    snd_gap_s = 0;
-                                    snd_gap_us = 1000000;
-                                }
-                                else
-                                {
-                                    snd_gap_s = 0;
-                                    snd_gap_us = 1000000/gt_fc_cfg.speed_value;
-                                }
-                                    
-
-                            }
-                            else
-                            {
-                                snd_gap_s = gt_fc_cfg.speed_value;
-                                snd_gap_us = 0;
-
-                            }
+                            update_fc_gap();
                             update_statusbar();
                             doc_modified=1;
                     }

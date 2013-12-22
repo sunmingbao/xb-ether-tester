@@ -166,6 +166,7 @@ void rx_tx_init();
 void init_net_card_combbox(HWND hwnd_comb);
 int select_if(int idx);
 int is_filter_valid(char *packet_filter);
+void update_fc_gap();
 
 int re_populate_items();
 LRESULT CALLBACK my_lv_proc (HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
