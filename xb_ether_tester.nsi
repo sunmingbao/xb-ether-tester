@@ -12,7 +12,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "小兵以太网测试仪"
-!define PRODUCT_VERSION "2.5.3"
+!define PRODUCT_VERSION "2.5.4"
 !define PRODUCT_PUBLISHER "孙明保"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\xb_ether_tester.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
