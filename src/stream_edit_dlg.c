@@ -370,135 +370,135 @@ t_tvi_data gat_eth_hdr_tvis[]=
 
 t_tvi_data gat_arp_base_tvis[]=
 {
-    {"hdwr type", 14, 2, DISPLAY_HEX},
-    {"protocol type", 16, 2},
+    {"hdwr type", 0, 2, DISPLAY_HEX},
+    {"protocol type", 2, 2},
 
-    {"hdwr size", 18, 1},
-    {"protocol size", 19, 1, FLAG_REBUILD_TV},
-    {"opcode", 20, 2, DISPLAY_HEX},
+    {"hdwr size", 4, 1},
+    {"protocol size", 5, 1, FLAG_REBUILD_TV},
+    {"opcode", 6, 2, DISPLAY_HEX},
 
 };
 
 
 t_tvi_data gat_arp_tvis[]=
 {
-    {"hdwr type", 14, 2, DISPLAY_HEX},
-    {"protocol type", 16, 2},
+    {"hdwr type", 0, 2, DISPLAY_HEX},
+    {"protocol type", 2, 2},
 
-    {"hdwr size", 18, 1},
-    {"protocol size", 19, 1, FLAG_REBUILD_TV},
-    {"opcode", 20, 2, DISPLAY_HEX},
+    {"hdwr size", 4, 1},
+    {"protocol size", 5, 1, FLAG_REBUILD_TV},
+    {"opcode", 6, 2, DISPLAY_HEX},
 
-    {"sender mac", 22, 6, IS_MAC},
-    {"sender ip", 28, 4, IS_IP},
-    {"target mac", 32, 6, IS_MAC},
-    {"target ip", 38, 4, IS_IP},
+    {"sender mac", 8, 6, IS_MAC},
+    {"sender ip", 14, 4, IS_IP},
+    {"target mac", 18, 6, IS_MAC},
+    {"target ip", 24, 4, IS_IP},
 };
 
 t_tvi_data gat_arp6_tvis[]=
 {
-    {"hdwr type", 14, 2, DISPLAY_HEX},
-    {"protocol type", 16, 2},
+    {"hdwr type", 0, 2, DISPLAY_HEX},
+    {"protocol type", 2, 2},
 
-    {"hdwr size", 18, 1},
-    {"protocol size", 19, 1, FLAG_REBUILD_TV},
-    {"opcode", 20, 2, DISPLAY_HEX},
+    {"hdwr size", 4, 1},
+    {"protocol size", 5, 1, FLAG_REBUILD_TV},
+    {"opcode", 6, 2, DISPLAY_HEX},
 
-    {"sender mac", 22, 6, IS_MAC},
-    {"sender ip", 28, 16, IS_IP6},
-    {"target mac", 32, 6, IS_MAC},
-    {"target ip", 38, 16, IS_IP6},
+    {"sender mac", 8, 6, IS_MAC},
+    {"sender ip", 14, 16, IS_IP6},
+    {"target mac", 30, 6, IS_MAC},
+    {"target ip", 36, 16, IS_IP6},
 };
 
 t_tvi_data gat_ip_hdr_tvis[]=
 {
- {"ver",    14, 1, 0, 0, 4},
- {"hdr_len", 14, 1, FLAG_REBUILD_TV, 4, 4},
- {"tos", 15, 1, SUPPORT_RULE},
- {"total len", 16, 2},
- {"id", 18, 2, SUPPORT_RULE},
- {"rsv", 20, 1, 0, 0, 1},
-  {"df",  20, 1, 0, 1, 1},
-  {"mf",  20, 1, FLAG_REBUILD_TV, 2, 1},
- {"frag offset", 20, 2, FLAG_REBUILD_TV, 3, 13},
- {"ttl", 22, 1, SUPPORT_RULE},
- {"protocol", 23, 1, FLAG_REBUILD_TV},
- {"check sum", 24, 2, DISPLAY_HEX},
+ {"ver",    0, 1, 0, 0, 4},
+ {"hdr_len", 0, 1, FLAG_REBUILD_TV, 4, 4},
+ {"tos", 1, 1, SUPPORT_RULE},
+ {"total len", 2, 2},
+ {"id", 4, 2, SUPPORT_RULE},
+ {"rsv", 6, 1, 0, 0, 1},
+  {"df",  6, 1, 0, 1, 1},
+  {"mf",  6, 1, FLAG_REBUILD_TV, 2, 1},
+ {"frag offset", 6, 2, FLAG_REBUILD_TV, 3, 13},
+ {"ttl", 8, 1, SUPPORT_RULE},
+ {"protocol", 9, 1, FLAG_REBUILD_TV},
+ {"check sum", 10, 2, DISPLAY_HEX},
 
- {"src ip", 26, 4, SUPPORT_RULE|IS_IP},
- {"dst ip", 30, 4, SUPPORT_RULE|IS_IP},
+ {"src ip", 12, 4, SUPPORT_RULE|IS_IP},
+ {"dst ip", 16, 4, SUPPORT_RULE|IS_IP},
 };
 
 t_tvi_data gat_ipv6_hdr_tvis[]=
 {
- {"ver",    14, 4, 0, 0, 4},
- {"traffic class", 14, 4, SUPPORT_RULE, 4, 8},
-  {"flow label", 14, 4, SUPPORT_RULE, 12, 20},
- {"payload Len", 18, 2},
- {"next hdr", 20, 1, FLAG_REBUILD_TV},
- {"hop limit", 21, 1, SUPPORT_RULE},
+ {"ver",    0, 4, 0, 0, 4},
+ {"traffic class", 0, 4, SUPPORT_RULE, 4, 8},
+  {"flow label", 0, 4, SUPPORT_RULE, 12, 20},
+ {"payload Len", 4, 2},
+ {"next hdr", 6, 1, FLAG_REBUILD_TV},
+ {"hop limit", 7, 1, SUPPORT_RULE},
 
- {"src ip", 22, 16, IS_IP6},
- {"dst ip", 38, 16, IS_IP6},
+ {"src ip", 8, 16, IS_IP6},
+ {"dst ip", 24, 16, IS_IP6},
 };
 
 t_tvi_data gat_ipv6_frag_hdr_tvis[]=
 {
- {"next hdr", 54, 1, FLAG_REBUILD_TV},
- {"Reserved",    55, 1},
- {"frag offset", 56, 2, FLAG_REBUILD_TV, 0, 13},
-  {"Res", 56, 2, 0, 13, 2},
-  {"M", 56, 2, FLAG_REBUILD_TV, 15, 1},
- {"id", 58, 4, SUPPORT_RULE},
+ {"next hdr", 0, 1, FLAG_REBUILD_TV},
+ {"Reserved",    1, 1},
+ {"frag offset", 2, 2, FLAG_REBUILD_TV, 0, 13},
+  {"Res", 2, 2, 0, 13, 2},
+  {"M", 2, 2, FLAG_REBUILD_TV, 15, 1},
+ {"id", 4, 4, SUPPORT_RULE},
 };
 
 t_tvi_data gat_icmp_hdr_tvis[]=
 {
-  {"type", 34, 1, FLAG_REBUILD_TV},
-  {"code", 35, 1, FLAG_REBUILD_TV},
-  {"checksum", 36, 2, DISPLAY_HEX},
+  {"type", 0, 1, FLAG_REBUILD_TV},
+  {"code", 1, 1, FLAG_REBUILD_TV},
+  {"checksum", 2, 2, DISPLAY_HEX},
 };
 
 t_tvi_data gat_icmp_echo_hdr_tvis[]=
 {
-  {"id", 38, 2, SUPPORT_RULE},
-  {"sequence", 40, 2, SUPPORT_RULE},
+  {"id", 4, 2, SUPPORT_RULE},
+  {"sequence", 6, 2, SUPPORT_RULE},
 };
 
 t_tvi_data gat_igmp_hdr_tvis[]=
 {
-  {"type", 34, 1},
-  {"code", 35, 1},
-  {"checksum", 36, 2, DISPLAY_HEX},
-  {"group", 38, 4, SUPPORT_RULE|IS_IP},
+  {"type", 0, 1},
+  {"code", 1, 1},
+  {"checksum", 2, 2, DISPLAY_HEX},
+  {"group", 4, 4, SUPPORT_RULE|IS_IP},
 };
 
 t_tvi_data gat_udp_hdr_tvis[]=
 {
- {"source port", 34, 2, SUPPORT_RULE},
- {"dest   port", 36, 2, SUPPORT_RULE},
- {"length", 38, 2, SUPPORT_RULE},
- {"checksum", 40, 2, DISPLAY_HEX},
+ {"source port", 0, 2, SUPPORT_RULE},
+ {"dest   port", 2, 2, SUPPORT_RULE},
+ {"length", 4, 2, SUPPORT_RULE},
+ {"checksum", 6, 2, DISPLAY_HEX},
 };
 
 t_tvi_data gat_tcp_hdr_tvis[]=
 {
- {"source port", 34, 2, SUPPORT_RULE},
- {"dest   port", 36, 2, SUPPORT_RULE},
- {"seq", 38, 4, SUPPORT_RULE},
- {"ack", 42, 4, SUPPORT_RULE},
- {"hdr_len", 46, 1, FLAG_REBUILD_TV, 0, 4},
- {"rsv", 46, 2, SUPPORT_RULE|DISPLAY_HEX, 4,6},
- {"URG", 47, 1, SUPPORT_RULE, 2,1},
- {"ACK", 47, 1, SUPPORT_RULE, 3,1},
- {"PSH", 47, 1, SUPPORT_RULE, 4,1},
- {"RST", 47, 1, SUPPORT_RULE, 5,1},
- {"SYN", 47, 1, SUPPORT_RULE, 6,1},
- {"FIN", 47, 1, SUPPORT_RULE, 7,1},
+ {"source port", 0, 2, SUPPORT_RULE},
+ {"dest   port", 2, 2, SUPPORT_RULE},
+ {"seq", 4, 4, SUPPORT_RULE},
+ {"ack", 8, 4, SUPPORT_RULE},
+ {"hdr_len", 12, 1, FLAG_REBUILD_TV, 0, 4},
+ {"rsv", 12, 2, SUPPORT_RULE|DISPLAY_HEX, 4,6},
+ {"URG", 13, 1, SUPPORT_RULE, 2,1},
+ {"ACK", 13, 1, SUPPORT_RULE, 3,1},
+ {"PSH", 13, 1, SUPPORT_RULE, 4,1},
+ {"RST", 13, 1, SUPPORT_RULE, 5,1},
+ {"SYN", 13, 1, SUPPORT_RULE, 6,1},
+ {"FIN", 13, 1, SUPPORT_RULE, 7,1},
 
- {"win size", 48, 2, SUPPORT_RULE},
- {"checksum", 50, 2, DISPLAY_HEX},
- {"urgent_p", 52, 2, SUPPORT_RULE},
+ {"win size", 14, 2, SUPPORT_RULE},
+ {"checksum", 16, 2, DISPLAY_HEX},
+ {"urgent_p", 18, 2, SUPPORT_RULE},
 };
 
 HTREEITEM Selected=NULL;
@@ -921,7 +921,7 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 
 
 exit:
-    sprintf(info, TEXT("data (offset=%d;length=%d)"), offset, len);
+    sprintf(info, TEXT("%-12s[offset=%d;length=%d]"), "data", offset, len);
     set_tvi_text(htv, htvi, info);
 }
 
@@ -999,8 +999,9 @@ void build_tv(HWND hwnd_tree)
     treeItem1=insertItem(hwnd_tree, "ethernet", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_eth_hdr);
     update_tvi_proto_hdr(hwnd_tree, treeItem1);
     build_tvis(hwnd_tree, treeItem1
-        , 0, gat_eth_hdr_tvis, ARRAY_SIZE(gat_eth_hdr_tvis));
-    
+        , adjust, gat_eth_hdr_tvis, ARRAY_SIZE(gat_eth_hdr_tvis));
+
+    adjust += 14;
     if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_ARP)
     {
         t_arp_hdr *pt_arp = (void *)(gt_edit_stream.eth_packet.payload);
@@ -1009,17 +1010,17 @@ void build_tv(HWND hwnd_tree)
         if (4==pt_arp->ar_pln)
         {
             build_tvis(hwnd_tree, treeItem1
-                , 0, gat_arp_tvis, ARRAY_SIZE(gat_arp_tvis));
+                , adjust, gat_arp_tvis, ARRAY_SIZE(gat_arp_tvis));
         }
         else if (16==pt_arp->ar_pln)
         {
             build_tvis(hwnd_tree, treeItem1
-                , 0, gat_arp6_tvis, ARRAY_SIZE(gat_arp6_tvis));
+                , adjust, gat_arp6_tvis, ARRAY_SIZE(gat_arp6_tvis));
         }
         else
         {
             build_tvis(hwnd_tree, treeItem1
-                , 0, gat_arp_base_tvis, ARRAY_SIZE(gat_arp_base_tvis));
+                , adjust, gat_arp_base_tvis, ARRAY_SIZE(gat_arp_base_tvis));
             treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
@@ -1030,11 +1031,10 @@ void build_tv(HWND hwnd_tree)
         t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
         treeItem1=insertItem(hwnd_tree, TEXT("ip"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip_hdr);
         update_tvi_proto_hdr(hwnd_tree, treeItem1);
-        adjust = ip_hdr_len(iph)-FIXED_IP_HDR_LEN;
 
 
         build_tvis(hwnd_tree, treeItem1
-                , 0, gat_ip_hdr_tvis, ARRAY_SIZE(gat_ip_hdr_tvis));
+                , adjust, gat_ip_hdr_tvis, ARRAY_SIZE(gat_ip_hdr_tvis));
 
         if (ip_hdr_len(iph)>FIXED_IP_HDR_LEN)
         {
@@ -1043,6 +1043,7 @@ void build_tv(HWND hwnd_tree)
             update_tvi_options(hwnd_tree, treeItem2);
         }
         
+        adjust += ip_hdr_len(iph);
 
         if (ip_pkt_is_frag(&(gt_edit_stream.eth_packet)))
         {
@@ -1135,18 +1136,18 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
         t_ipv6_hdr *ip6h=(void *)(gt_edit_stream.eth_packet.payload);
         treeItem1=insertItem(hwnd_tree, TEXT("ipv6"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip6_hdr);
         update_tvi_proto_hdr(hwnd_tree, treeItem1);
-        adjust = IPV6_HDR_LEN-FIXED_IP_HDR_LEN;
 
         build_tvis(hwnd_tree, treeItem1
-                , 0, gat_ipv6_hdr_tvis, ARRAY_SIZE(gat_ipv6_hdr_tvis));
+                , adjust, gat_ipv6_hdr_tvis, ARRAY_SIZE(gat_ipv6_hdr_tvis));
 
+        adjust += IPV6_HDR_LEN;
         if (ip_pkt_is_frag(&(gt_edit_stream.eth_packet)))
         {
 
             treeItem1=insertItem(hwnd_tree, "frag", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip6_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
-                , 0, gat_ipv6_frag_hdr_tvis, ARRAY_SIZE(gat_ipv6_frag_hdr_tvis));
+                , adjust, gat_ipv6_frag_hdr_tvis, ARRAY_SIZE(gat_ipv6_frag_hdr_tvis));
             
             treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
