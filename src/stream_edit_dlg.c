@@ -587,7 +587,7 @@ int htvi_is_proto_hdr(HWND htv, HTREEITEM htvi)
 
     get_tvi_text(htv, htvi, info, sizeof(info));
 
-    if (NULL==strchr(info, '='))
+    if (NULL==strchr(info, '['))
     {
         return 0;
     }
@@ -921,13 +921,20 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 
 
 exit:
-    sprintf(info, TEXT("%-12s[offset=%d;length=%d]"), "data", offset, len);
+    sprintf(info, TEXT("%-12s(offset=%d;length=%d)"), "data", offset, len);
     set_tvi_text(htv, htvi, info);
+}
+
+void set_tvi_text_options(HWND htv, HTREEITEM htvi, int offset, int len)
+{
+    char info[128];
+    sprintf(info, TEXT("%-10s(offset=%d;length=%d)"),"options", offset, len);
+    set_tvi_text(htv, htvi, info);
+
 }
 
 void tvi_update_options_tcp(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
-    char info[128];
     int offset, len;
 
         t_ip_hdr *iph=(void *)(pt_edit_stream->eth_packet.payload);
@@ -937,13 +944,11 @@ void tvi_update_options_tcp(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
             len = tcp_hdr_len(pt_tcp_hdr)-sizeof(t_tcp_hdr);
 
 
-    sprintf(info, TEXT("options (offset=%d;length=%d)"), offset, len);
-    set_tvi_text(htv, htvi, info);
+    set_tvi_text_options(htv, htvi, offset, len);
 }
 
 void tvi_update_options_ip(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
-    char info[128];
     int offset, len;
 
         t_ip_hdr *iph=(void *)(pt_edit_stream->eth_packet.payload);
@@ -952,8 +957,7 @@ void tvi_update_options_ip(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         len = ip_hdr_len(iph)-sizeof(t_ip_hdr);
 
 
-    sprintf(info, TEXT("options (offset=%d;length=%d)"), offset, len);
-    set_tvi_text(htv, htvi, info);
+    set_tvi_text_options(htv, htvi, offset, len);
 }
 
 static void update_tv_sub(HWND htv, HTREEITEM htvi_p)
