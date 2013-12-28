@@ -8,24 +8,26 @@
 # ” œ‰: sunmingbao@126.com
 # 
 
-CC = gcc
+BUILD_TIME:=$(shell echo %date:~0,10%) $(shell echo %time:~0,8%)
 
-CFLAG = -Wall -O2  -D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0502 -DWINVER=0x0501 -DHAVE_REMOTE -DWPCAP 
-LDFLAG = -mwindows  -s  -lkernel32 -luser32 -lgdi32 -lcomctl32 -lws2_32 -lwpcap 
+CC := gcc
+
+CFLAG := -Wall -O2  -DBUILD_TIME='"$(BUILD_TIME)"' -D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0502 -DWINVER=0x0501 -DHAVE_REMOTE -DWPCAP 
+LDFLAG := -mwindows  -s  -lkernel32 -luser32 -lgdi32 -lcomctl32 -lws2_32 -lwpcap 
 
 
 
-PRJ_DIR=.
-OBJ_DIR=$(PRJ_DIR)\obj
+PRJ_DIR:=.
+OBJ_DIR:=$(PRJ_DIR)\obj
 
 # -------------------------------------------------------------------------
 # Do not modify the rest of this file!
 # -------------------------------------------------------------------------
 
 ### Variables: ###
-target = $(OBJ_DIR)\xb_ether_tester.exe
+target := $(OBJ_DIR)\xb_ether_tester.exe
 
-OBJECTS =  \
+OBJECTS :=  \
 	$(OBJ_DIR)\main.o \
 	$(OBJ_DIR)\frame_window.o \
 	$(OBJ_DIR)\left_window.o \

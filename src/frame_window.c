@@ -735,7 +735,7 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
 
     sprintf(info
         , "%s    V%c.%c.%c\r\n"
-        "(build at %s %s) \r\n\r\n"
+        "(编译时间: %s) \r\n\r\n"
         "作者：孙明保 \r\n\r\n"
         "======================\r\n\r\n"
         "本软件为免费、开源软件。\r\n"
@@ -752,7 +752,7 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
         "QQ:7743896"
         , szAppName
         , version[0] , version[1] , version[2]
-        , __DATE__, __TIME__);
+        , BUILD_TIME);
      	switch (message)
      	{
      	case 	WM_INITDIALOG :
