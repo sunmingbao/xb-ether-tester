@@ -134,7 +134,7 @@ void bits_str2n(void *field_addr, char *info, int bytes_len, int bits_from, int 
 
 }
 
-void bits_n2str(char *info, void * field_addr, int bytes_len, int bits_from, int bits_len)
+unsigned bits_value(void * field_addr, int bytes_len, int bits_from, int bits_len)
 {
     unsigned whole_value, shift_len=bytes_len*8 - bits_from - bits_len;
     
@@ -147,8 +147,14 @@ void bits_n2str(char *info, void * field_addr, int bytes_len, int bits_from, int
 
         whole_value=(whole_value>>shift_len);
         whole_value&=((1<<bits_len)-1);
-            sprintf(info, "%u"
-            , whole_value);
+        return whole_value;
+}
+
+void bits_n2str(char *info, void * field_addr, int bytes_len, int bits_from, int bits_len)
+{
+    sprintf(info
+        , "%u"
+        , bits_value(field_addr, bytes_len, bits_from, bits_len));
 }
 
 t_stream gt_edit_stream;
@@ -203,17 +209,6 @@ void update_u32_n(void *data, t_rule *pt_rule)
 
 }
 
-#define    CHECK_SUM_IP      0x1
-#define    CHECK_SUM_ICMP    0x2
-#define    CHECK_SUM_IGMP    0x4
-#define    CHECK_SUM_UDP     0x8
-#define    CHECK_SUM_TCP     0x10
-#define    CHECK_SUM_ALL  \
-    (CHECK_SUM_IP|CHECK_SUM_ICMP|CHECK_SUM_IGMP|CHECK_SUM_UDP|CHECK_SUM_TCP)
-
-#define    IP_LEN    0x20
-#define    UDP_LEN   0x40
-#define    LEN_ALL  (IP_LEN|UDP_LEN)
 
 void init_stream(t_stream    *pt_streams)
 {
@@ -269,6 +264,8 @@ typedef struct
 #define    IS_IP              0x1<<26
 #define    IS_IP6             0x1<<25
 #define    ETH_TYPE_FIELD     0x1<<24
+#define    IP_HDR_LEN_FIELD   0x1<<23
+#define    TCP_HDR_LEN_FIELD  0x1<<22
 
 void field_n2str(char *info, void *field_addr, int len, int bits_from, int bits_len, uint32_t flags)
 {
@@ -425,7 +422,7 @@ t_tvi_data gat_arp6_tvis[]=
 t_tvi_data gat_ip_hdr_tvis[]=
 {
  {"ver",    0, 1, 0, 0, 4},
- {"hdr_len", 0, 1, FLAG_REBUILD_TV, 4, 4},
+ {"hdr_len", 0, 1, FLAG_REBUILD_TV|IP_HDR_LEN_FIELD, 4, 4},
  {"tos", 1, 1, SUPPORT_RULE},
  {"total len", 2, 2},
  {"id", 4, 2, SUPPORT_RULE},
@@ -499,7 +496,7 @@ t_tvi_data gat_tcp_hdr_tvis[]=
  {"dest   port", 2, 2, SUPPORT_RULE},
  {"seq", 4, 4, SUPPORT_RULE},
  {"ack", 8, 4, SUPPORT_RULE},
- {"hdr_len", 12, 1, FLAG_REBUILD_TV, 0, 4},
+ {"hdr_len", 12, 1, FLAG_REBUILD_TV|TCP_HDR_LEN_FIELD, 0, 4},
  {"rsv", 12, 2, SUPPORT_RULE|DISPLAY_HEX, 4,6},
  {"URG", 13, 1, SUPPORT_RULE, 2,1},
  {"ACK", 13, 1, SUPPORT_RULE, 3,1},
@@ -700,7 +697,7 @@ void update_tvi_text(HWND htv, HTREEITEM htvi)
 void tvi_update_eth_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
-    build_hdr_info(info, TEXT("ethernet"), 0, 14);
+    build_hdr_info(info, TEXT("ethernet"), 0, eth_hdr_len(pt_edit_stream->data));
     set_tvi_text(htv, htvi, info);
 }
 
@@ -709,31 +706,31 @@ void tvi_update_arp_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
     char info[128];
 
     t_arp_hdr *pt_arp = eth_data(pt_edit_stream->data);
-    build_hdr_info(info, TEXT("arp"), 14, arp_pkt_len(pt_arp));
+    build_hdr_info(info, TEXT("arp"), eth_hdr_len(pt_edit_stream->data), arp_pkt_len(pt_arp));
     set_tvi_text(htv, htvi, info);
 }
 
 void tvi_update_ip_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
-  
+    int eth_len = eth_hdr_len(pt_edit_stream->data);
     t_ip_hdr *iph=eth_data(pt_edit_stream->data);
     
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
             if (ip_frag_offset(&(pt_edit_stream->eth_packet)))
             {
-                build_hdr_info(info, TEXT("ip(frag-x)"), 14, ip_hdr_len(iph));
+                build_hdr_info(info, TEXT("ip(frag-x)"), eth_len, ip_hdr_len(iph));
                 set_tvi_text(htv, htvi, info);
                 return;
             }
             
-            build_hdr_info(info, TEXT("ip(frag-1)"), 14, ip_hdr_len(iph));
+            build_hdr_info(info, TEXT("ip(frag-1)"), eth_len, ip_hdr_len(iph));
             set_tvi_text(htv, htvi, info);
             return;
         }
 
-        build_hdr_info(info, TEXT("ip"), 14, ip_hdr_len(iph));
+        build_hdr_info(info, TEXT("ip"), eth_len, ip_hdr_len(iph));
         set_tvi_text(htv, htvi, info);
 
 }
@@ -741,17 +738,17 @@ void tvi_update_ip_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 void tvi_update_ip_upper_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
-  
+    int eth_len = eth_hdr_len(pt_edit_stream->data);
     t_ip_hdr *iph=eth_data(pt_edit_stream->data);
     
     if (iph->protocol==IPPROTO_ICMP)
-        build_hdr_info(info, TEXT("icmp"), 14+ip_hdr_len(iph), icmp_hdr_len(ip_data(iph)));
+        build_hdr_info(info, TEXT("icmp"), eth_len+ip_hdr_len(iph), icmp_hdr_len(ip_data(iph)));
    else if (iph->protocol==IPPROTO_IGMP)
-       build_hdr_info(info, TEXT("igmp"), 14+ip_hdr_len(iph),  sizeof(t_igmp_hdr));
+       build_hdr_info(info, TEXT("igmp"), eth_len+ip_hdr_len(iph),  sizeof(t_igmp_hdr));
    else if (iph->protocol==IPPROTO_TCP)
-       build_hdr_info(info, TEXT("tcp"), 14+ip_hdr_len(iph), tcp_hdr_len(ip_data(iph)));
+       build_hdr_info(info, TEXT("tcp"), eth_len+ip_hdr_len(iph), tcp_hdr_len(ip_data(iph)));
    else if (iph->protocol==IPPROTO_UDP)
-       build_hdr_info(info, TEXT("udp"), 14+ip_hdr_len(iph), sizeof(t_udp_hdr));
+       build_hdr_info(info, TEXT("udp"), eth_len+ip_hdr_len(iph), sizeof(t_udp_hdr));
        
         set_tvi_text(htv, htvi, info);
 
@@ -760,19 +757,19 @@ void tvi_update_ip_upper_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 void tvi_update_ip6_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
-  
+    int eth_len = eth_hdr_len(pt_edit_stream->data);
     t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
     
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
             if (ip_frag_offset(&(pt_edit_stream->eth_packet)))
             {
-                build_hdr_info(info, TEXT("ipv6(frag-x)"), 14, IPV6_HDR_LEN);
+                build_hdr_info(info, TEXT("ipv6(frag-x)"), eth_len, IPV6_HDR_LEN);
                 set_tvi_text(htv, htvi, info);
             }
             else
             {
-                build_hdr_info(info, TEXT("ipv6(frag-1)"), 14, IPV6_HDR_LEN);
+                build_hdr_info(info, TEXT("ipv6(frag-1)"), eth_len, IPV6_HDR_LEN);
                 set_tvi_text(htv, htvi, info);
             }           
 
@@ -780,7 +777,7 @@ void tvi_update_ip6_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         }
         else
         {
-            build_hdr_info(info, TEXT("ipv6"), 14, IPV6_HDR_LEN);
+            build_hdr_info(info, TEXT("ipv6"), eth_len, IPV6_HDR_LEN);
             set_tvi_text(htv, htvi, info);
         }
 
@@ -790,17 +787,17 @@ void tvi_update_ip6_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 void tvi_update_ip6_upper_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
-  
+    int eth_len = eth_hdr_len(pt_edit_stream->data);
     t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
     
     if (ip6h->nexthdr==IPPROTO_ICMPV6)
-        build_hdr_info(info, TEXT("icmp"),  14+IPV6_HDR_LEN, icmp6_hdr_len(ip6_data(ip6h)));
+        build_hdr_info(info, TEXT("icmp"),  eth_len+IPV6_HDR_LEN, icmp6_hdr_len(ip6_data(ip6h)));
    else if (ip6h->nexthdr==IPPROTO_TCP)
-       build_hdr_info(info, TEXT("tcp"),  14+IPV6_HDR_LEN, tcp_hdr_len(ip6_data(ip6h)));
+       build_hdr_info(info, TEXT("tcp"),  eth_len+IPV6_HDR_LEN, tcp_hdr_len(ip6_data(ip6h)));
    else if (ip6h->nexthdr==IPPROTO_UDP)
-       build_hdr_info(info, TEXT("udp"),  14+IPV6_HDR_LEN, sizeof(t_udp_hdr));
+       build_hdr_info(info, TEXT("udp"),  eth_len+IPV6_HDR_LEN, sizeof(t_udp_hdr));
    else if (ip6h->nexthdr==IPPROTO_FRAGMENT)
-       build_hdr_info(info, TEXT("frag"),  14+IPV6_HDR_LEN, 8);
+       build_hdr_info(info, TEXT("frag"),  eth_len+IPV6_HDR_LEN, 8);
 
         set_tvi_text(htv, htvi, info);
 
@@ -811,6 +808,7 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
     char info[128];
     int offset, len;
     int type = eth_type(pt_edit_stream->data);
+    int eth_len = eth_hdr_len(pt_edit_stream->data);
     if (type==ETH_P_IP)
     {
         t_ip_hdr *iph=eth_data(pt_edit_stream->data);
@@ -818,7 +816,7 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         {
             if (ip_frag_offset(&(pt_edit_stream->eth_packet)))
             {
-                offset = 14+ip_hdr_len(iph);
+                offset = eth_len+ip_hdr_len(iph);
                 len = ip_data_len(iph);
                 goto exit;
             }
@@ -830,34 +828,34 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
             if ((pt_icmp_hdr->type==8 || pt_icmp_hdr->type==0)
                 && pt_icmp_hdr->code==0 )
             {
-                offset = 14+ip_hdr_len(iph)+FIXED_ICMP_ECHO_HDR_LEN;
+                offset = eth_len+ip_hdr_len(iph)+FIXED_ICMP_ECHO_HDR_LEN;
                 len = ip_data_len(iph)-FIXED_ICMP_ECHO_HDR_LEN;
                 goto exit;
             }
             else
             {
-                offset = 14+ip_hdr_len(iph)+FIXED_ICMP_HDR_LEN;
+                offset = eth_len+ip_hdr_len(iph)+FIXED_ICMP_HDR_LEN;
                 len = ip_data_len(iph)-FIXED_ICMP_HDR_LEN;
                 goto exit;
             }
         }
         else if (iph->protocol==IPPROTO_UDP)
         {
-            offset = 14+ip_hdr_len(iph)+sizeof(t_udp_hdr);
+            offset = eth_len+ip_hdr_len(iph)+sizeof(t_udp_hdr);
             len = ip_data_len(iph)-sizeof(t_udp_hdr);
             goto exit;
         }
         else if (iph->protocol==IPPROTO_TCP)
         {
             t_tcp_hdr *pt_tcp_hdr=ip_data(iph);
-            offset = 14+ip_hdr_len(iph)+tcp_hdr_len(pt_tcp_hdr);
+            offset = eth_len+ip_hdr_len(iph)+tcp_hdr_len(pt_tcp_hdr);
             len = ip_data_len(iph)-tcp_hdr_len(pt_tcp_hdr);
             goto exit;
 
         }
         else
         {
-            offset = 14+ip_hdr_len(iph);
+            offset = eth_len+ip_hdr_len(iph);
             len = ip_data_len(iph)-ip_hdr_len(iph);
             goto exit;
         }
@@ -870,7 +868,7 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
-                offset = 14+IPV6_HDR_LEN+8;
+                offset = eth_len+IPV6_HDR_LEN+8;
                 len = ip6_data_len(ip6h)-8;
                 goto exit;
         }
@@ -880,13 +878,13 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
             if ((pt_icmp_hdr->type==128 || pt_icmp_hdr->type==129)
                 && pt_icmp_hdr->code==0 )
             {
-                offset = 14+IPV6_HDR_LEN+FIXED_ICMP_ECHO_HDR_LEN;
+                offset = eth_len+IPV6_HDR_LEN+FIXED_ICMP_ECHO_HDR_LEN;
                 len = ip6_data_len(ip6h)-FIXED_ICMP_ECHO_HDR_LEN;
                 goto exit;
             }
             else
             {
-                offset = 14+IPV6_HDR_LEN+FIXED_ICMP_HDR_LEN;
+                offset = eth_len+IPV6_HDR_LEN+FIXED_ICMP_HDR_LEN;
                 len = ip6_data_len(ip6h)-FIXED_ICMP_HDR_LEN;
                 goto exit;
             }
@@ -894,21 +892,21 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 
         else if (ip6h->nexthdr==IPPROTO_UDP)
         {
-            offset = 14+IPV6_HDR_LEN+sizeof(t_udp_hdr);
+            offset = eth_len+IPV6_HDR_LEN+sizeof(t_udp_hdr);
             len = ip6_data_len(ip6h)-sizeof(t_udp_hdr);
             goto exit;
         }
         else if (ip6h->nexthdr==IPPROTO_TCP)
         {
             t_udp_hdr *pt_tcp_hdr=ip6_data(ip6h);
-            offset = 14+IPV6_HDR_LEN+tcp_hdr_len(pt_tcp_hdr);
+            offset = eth_len+IPV6_HDR_LEN+tcp_hdr_len(pt_tcp_hdr);
             len = ip6_data_len(ip6h)-tcp_hdr_len(pt_tcp_hdr);
             goto exit;
 
         }
         else
         {
-            offset = 14+IPV6_HDR_LEN;
+            offset = eth_len+IPV6_HDR_LEN;
             len = ip6_data_len(ip6h)-IPV6_HDR_LEN;
             goto exit;
         }
@@ -919,7 +917,7 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
-            offset = 14+FIXED_ARP_HDR_LEN;
+            offset = eth_len+FIXED_ARP_HDR_LEN;
             len = pt_edit_stream->len-offset;
             goto exit;
         
@@ -928,8 +926,8 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
     }
     else
     {
-            offset = 14;
-            len = pt_edit_stream->len-14;
+            offset = eth_len;
+            len = pt_edit_stream->len-eth_len;
     }
 
 
@@ -949,11 +947,11 @@ void set_tvi_text_options(HWND htv, HTREEITEM htvi, int offset, int len)
 void tvi_update_options_tcp(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     int offset, len;
-
+int eth_len = eth_hdr_len(pt_edit_stream->data);
         t_ip_hdr *iph=eth_data(pt_edit_stream->data);
         t_tcp_hdr *pt_tcp_hdr=ip_data(iph);
 
-            offset = 14+ip_hdr_len(iph)+sizeof(t_tcp_hdr);
+            offset = eth_len+ip_hdr_len(iph)+sizeof(t_tcp_hdr);
             len = tcp_hdr_len(pt_tcp_hdr)-sizeof(t_tcp_hdr);
 
 
@@ -966,7 +964,7 @@ void tvi_update_options_ip(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 
         t_ip_hdr *iph=eth_data(pt_edit_stream->data);
 
-        offset = 14+sizeof(t_ip_hdr);
+        offset = eth_hdr_len(pt_edit_stream->data) + sizeof(t_ip_hdr);
         len = ip_hdr_len(iph)-sizeof(t_ip_hdr);
 
 
@@ -1260,227 +1258,6 @@ int htvi_edit_able(HWND htv, HTREEITEM htvi)
 }
 
 
-void append_err_text(char *info, uint32_t err_flags)
-{
-    if (err_flags==0) return;
-    
-    strcat(info, "(error:");
-    if (err_flags&ERR_IP_CHECKSUM)
-    {
-        strcat(info, "ip check sum");
-        goto exit;
-    }
-
-    if (err_flags&ERR_ICMP_CHECKSUM)
-    {
-        strcat(info, "icmp check sum");
-        goto exit;
-    }
-
-    if (err_flags&ERR_IGMP_CHECKSUM)
-    {
-        strcat(info, "igmp check sum");
-        goto exit;
-    }
-
-    if (err_flags&ERR_TCP_CHECKSUM)
-    {
-        strcat(info, "tcp check sum");
-        goto exit;
-    }
-
-    if (err_flags&ERR_UDP_CHECKSUM)
-    {
-        strcat(info, "udp check sum");
-        goto exit;
-    }
-
-    if (err_flags&ERR_PKT_LEN)
-    {
-        strcat(info, "packet length");
-        goto exit;
-    }
-exit:
-    strcat(info, ")");
-    
-}
-
-void get_pkt_desc_info_v4(char *info, void* p_eth_hdr)
-{
-    t_ip_hdr *iph=eth_data(p_eth_hdr);
-    t_icmp_hdr *icmp_hdr = ip_data(iph);
-    t_tcp_hdr *tcp_hdr = ip_data(iph);
-    char info_2[64];
-
-    switch (iph->protocol)
-    {
-        case IPPROTO_ICMP:
-
-            if (icmp_hdr->type==8 && icmp_hdr->code==0)
-                strcpy(info, "ping request");
-            else if (icmp_hdr->type==0 && icmp_hdr->code==0)
-                strcpy(info, "ping reply");
-            else
-                sprintf(info, "type %hhu code %hhu", icmp_hdr->type, icmp_hdr->code);
-
-            return;
-            
-        case IPPROTO_IGMP:
-            strcpy(info, "IGMP");
-            return;
-
-        case IPPROTO_TCP:
-            sprintf(info, "port %hu->%hu[%s%s%s%s%s%s%s%s]"
-                , ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest)
-                ,tcp_hdr->cwr?"cwr ":""
-                ,tcp_hdr->ece?"ece ":""
-                ,tcp_hdr->urg?"urg ":""
-                ,tcp_hdr->ack?"ack ":""
-                ,tcp_hdr->psh?"psh ":""
-                ,tcp_hdr->rst?"rst ":""
-                ,tcp_hdr->syn?"syn ":""
-                ,tcp_hdr->fin?"fin ":"");
-
-            return;
-
-        case IPPROTO_UDP:
-            sprintf(info, "port %hu->%hu", ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest));
-            return;
-
-    }
-
-}
-
-void get_pkt_desc_info_v6(char *info, void* p_eth_hdr)
-{
-    t_ipv6_hdr *ip6h=eth_data(p_eth_hdr);
-    t_tcp_hdr *tcp_hdr = ip6_data(ip6h);
-    t_icmp_hdr *pt_icmp_hdr=ip6_data(ip6h);
-
-    switch (ip6h->nexthdr)
-    {
-        case IPPROTO_TCP:
-            sprintf(info, "port %hu->%hu[%s%s%s%s%s%s%s%s]"
-                , ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest)
-                ,tcp_hdr->cwr?"cwr ":""
-                ,tcp_hdr->ece?"ece ":""
-                ,tcp_hdr->urg?"urg ":""
-                ,tcp_hdr->ack?"ack ":""
-                ,tcp_hdr->psh?"psh ":""
-                ,tcp_hdr->rst?"rst ":""
-                ,tcp_hdr->syn?"syn ":""
-                ,tcp_hdr->fin?"fin ":"");
-
-            return;
-
-        case IPPROTO_UDP:
-            sprintf(info, "port %hu->%hu", ntohs(tcp_hdr->source), ntohs(tcp_hdr->dest));
-            return;
-
-        case IPPROTO_ICMPV6:
-            if ((pt_icmp_hdr->type==128)  && (pt_icmp_hdr->code==0) )
-                strcpy(info, "ping request");
-            else if ((pt_icmp_hdr->type==129)  && (pt_icmp_hdr->code==0) )
-                strcpy(info, "ping reply");
-            else
-                sprintf(info, "type %hhu code %hhu", pt_icmp_hdr->type, pt_icmp_hdr->code);
-
-            return;
-
-    }
-
-}
-
-void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
-{
-    t_ether_packet *pt_eth_hdr = p_eth_hdr;
-    t_arp_hdr *arp_hdr = eth_data(pt_eth_hdr);
-    char info_2[64];
-    int type = eth_type(pt_eth_hdr);
-
-    info[0]=0;
-    
-    switch (type)
-    {
-        case ETH_P_ARP:
-            if (ntohs(arp_hdr->ar_op)==1)
-            {
-                if (4==arp_hdr->ar_pln)
-                {
-                    ip_n2str(info_2, arp_hdr->ar_tip);
-                    sprintf(info, "who has %s? tell ", info_2);
-                    ip_n2str(info_2, arp_hdr->ar_sip);
-                    strcat(info, info_2);
-                }
-                else if (16==arp_hdr->ar_pln)
-                {
-                    ip6_n2str(info_2, arp_hdr->ar_sip+22);
-                    sprintf(info, "who has %s? tell ", info_2);
-                    ip6_n2str(info_2, arp_hdr->ar_sip);
-                    strcat(info, info_2);
-                }
-            }
-            else if (ntohs(arp_hdr->ar_op)==2)
-            {
-                ip_n2str(info_2, arp_hdr->ar_sip);
-                sprintf(info, "%s is at ", info_2);
-                mac_n2str(info_2, arp_hdr->ar_sha);
-                strcat(info, info_2);
-            }
-            
-            goto append_err_info;
-            
-        case ETH_P_RARP:
-            strcpy(info, "rarp");
-            goto append_err_info;
-
-        case ETH_P_LOOP:
-            strcpy(info, "Ethernet Loopback packet");
-            goto append_err_info;
-
-        case ETH_P_ECHO:
-            strcpy(info, "Ethernet Echo packet");
-            goto append_err_info;
-            
-        case ETH_P_PPP_DISC:
-            strcpy(info, "PPPoE discovery messages");
-            goto append_err_info;
-            
-        case ETH_P_PPP_SES:
-            strcpy(info, "PPPoE session messages");
-            goto append_err_info;
-            
-
-    }
-
-    if (type!=ETH_P_IP && type!=ETH_P_IPV6)
-    {
-        sprintf(info, "eth type:0x%04x", type);
-            goto append_err_info;
-    }
-
-    if (ip_pkt_is_frag(pt_eth_hdr))
-    {
-        sprintf(info, "frag ");
-        goto append_err_info;
-
-    }
-
-    if (type==ETH_P_IP)
-    {
-        get_pkt_desc_info_v4(info, p_eth_hdr);
-    }
-    else
-    {
-        get_pkt_desc_info_v6(info, p_eth_hdr);
-    }
-
-append_err_info:
-    append_err_text(info, err_flags);
-
-    return;
-
-}
 
 BOOL InitDlgFromStream(HWND hDlg, t_stream* pt_stream)
 {
@@ -1518,22 +1295,56 @@ BOOL InitDlgFromStream(HWND hDlg, t_stream* pt_stream)
     return TRUE;
 }
 
+void resize_hdr_len(HWND hDlg, int is_ip_hdr, int old_value, int new_value)
+{
 
+    int eth_len=eth_hdr_len(gt_edit_stream.data);
+    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
+    int off;
+
+    if (is_ip_hdr)
+    {
+        off = eth_len + old_value*4;
+    }
+    else
+    {
+        off = eth_len + ip_hdr_len(iph)+old_value*4;
+        
+    }
+    if (new_value>old_value)
+    {
+        insert_bytes(hDlg, off, (new_value-old_value)*4);
+
+    }
+    else
+    {
+        del_bytes(hDlg, off-(old_value-new_value)*4, (old_value-new_value)*4);
+
+    }
+}
 int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int edit_visible)
 {
     char info[64], info_2[64];
     t_ip_hdr *iph= eth_data(gt_edit_stream.data);
-
     t_tvi_data *pt_tvi_data;
     int data_changed;
+    int old_value, new_value;
+    void *field_addr; 
     
     GetWindowText(hedit, info_2, sizeof(info_2));
 hide_edit_ui(hDlg);
     pt_tvi_data = get_tvi_lParam(htv, htvi);
-    memcpy(info, gt_edit_stream.data+pt_tvi_data->data_offset, pt_tvi_data->len);
+    field_addr = gt_edit_stream.data+pt_tvi_data->data_offset;
+    memcpy(info, field_addr, pt_tvi_data->len);
 
+    if ((pt_tvi_data->flags&IP_HDR_LEN_FIELD) 
+        || (pt_tvi_data->flags&TCP_HDR_LEN_FIELD))
+    {
+        old_value = 
+          bits_value(field_addr, pt_tvi_data->len, pt_tvi_data->bits_from, pt_tvi_data->bits_len);
+    }
     field_str2n(info_2
-        , gt_edit_stream.data+pt_tvi_data->data_offset
+        , field_addr
         , pt_tvi_data->len
         , pt_tvi_data->bits_from
         , pt_tvi_data->bits_len
@@ -1541,6 +1352,15 @@ hide_edit_ui(hDlg);
     
     data_changed=memcmp(info, gt_edit_stream.data+pt_tvi_data->data_offset, pt_tvi_data->len);
     if (!data_changed) return 0;
+
+    if ((pt_tvi_data->flags&IP_HDR_LEN_FIELD) 
+        || (pt_tvi_data->flags&TCP_HDR_LEN_FIELD))
+    {
+        new_value = 
+          bits_value(field_addr, pt_tvi_data->len, pt_tvi_data->bits_from, pt_tvi_data->bits_len);
+
+        resize_hdr_len(hDlg, pt_tvi_data->flags&IP_HDR_LEN_FIELD, old_value, new_value);
+    }
 
     InvalidateRect(GetDlgItem(hDlg,ID_SED_HEX_EDIT), NULL, TRUE) ;
     //update_tvi_text(htv, htvi);
@@ -1573,6 +1393,7 @@ int tvi_char_width(HWND htv)
 #endif
 
 int cur_field_addr;
+int cur_field_offset;
 void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
 {
     TVITEM tvi={0};
@@ -1645,6 +1466,7 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
         HWND comb_eth=GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB_ETH);
         int type_idx;
         init_eth_type_comb(comb_eth);
+        cur_field_offset = pt_tvi_data->data_offset;
         cur_field_addr = gt_edit_stream.data+pt_tvi_data->data_offset;
         type_idx = get_eth_type_name(get_eth_type_from_addr(cur_field_addr), NULL);
         if (type_idx>=0)
@@ -2170,81 +1992,6 @@ BOOL CALLBACK RuleCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
   	return FALSE ;
 }
 
-void update_check_sum_v4(t_stream *pt_stream)
-{
-    t_ip_hdr *iph=eth_data(pt_stream->data);
-    if (pt_stream->flags & CHECK_SUM_IP)
-        ip_update_check(iph);
-
-    if (ip_pkt_is_frag(&(pt_stream->eth_packet))) return;
-    
-    if (iph->protocol==IPPROTO_ICMP && (pt_stream->flags & CHECK_SUM_ICMP))
-        icmp_igmp_update_check(iph);
-    else if (iph->protocol==IPPROTO_IGMP && (pt_stream->flags & CHECK_SUM_IGMP))
-        icmp_igmp_update_check(iph);
-    else if (iph->protocol==IPPROTO_TCP && (pt_stream->flags & CHECK_SUM_TCP))
-        tcp_update_check(iph);
-    else if (iph->protocol==IPPROTO_UDP && (pt_stream->flags & CHECK_SUM_UDP))
-        udp_update_check(iph);
-
-}
-
-void update_check_sum_v6(t_stream *pt_stream)
-{
-    t_ipv6_hdr *ip6h=eth_data(pt_stream->data);
-
-    if (ip_pkt_is_frag(&(pt_stream->eth_packet))) return;
-
-    if (ip6h->nexthdr==IPPROTO_TCP && (pt_stream->flags & CHECK_SUM_TCP))
-        tcp_update_check6(ip6h);
-    else if (ip6h->nexthdr==IPPROTO_UDP && (pt_stream->flags & CHECK_SUM_UDP))
-        udp_update_check6(ip6h);
-    else if (ip6h->nexthdr==IPPROTO_ICMPV6 && (pt_stream->flags & CHECK_SUM_ICMP))
-        icmp_update_check6(ip6h);
-
-}
-
-void update_check_sum(t_stream *pt_stream)
-{
-    int type = eth_type(pt_stream->data);
-    if (type==ETH_P_IP)
-        update_check_sum_v4(pt_stream);
-   else if (type==ETH_P_IPV6)
-       update_check_sum_v6(pt_stream);
-
-}
-
-
-void update_len_v4(t_stream *pt_stream)
-{
-    t_ip_hdr *iph=eth_data(pt_stream->data);
-    t_udp_hdr *udph=ip_data(iph);
-    if (pt_stream->flags & IP_LEN)
-        iph->tot_len = htons(pt_stream->len - eth_hdr_len(pt_stream->data));
-    if (iph->protocol==IPPROTO_UDP && (pt_stream->flags & UDP_LEN))
-        udph->len = htons(pt_stream->len - eth_hdr_len(pt_stream->data) - iph->ihl*4);
-
-}
-
-void update_len_v6(t_stream *pt_stream)
-{
-    t_ipv6_hdr *ip6h =eth_data(pt_stream->data);
-    t_udp_hdr *udph=ip6_data(ip6h);
-    if (pt_stream->flags & IP_LEN)
-        set_ip6_pkt_len(ip6h, pt_stream->len - eth_hdr_len(pt_stream->data));
-    if (ip6h->nexthdr==IPPROTO_UDP && (pt_stream->flags & UDP_LEN))
-        udph->len = htons(ip6_data_len(ip6h));
-
-}
-
-void update_len(t_stream *pt_stream)
-{
-int type = eth_type(pt_stream->data);
-    if (type==ETH_P_IP)
-        update_len_v4(pt_stream);
-   else if (type==ETH_P_IPV6)
-       update_len_v6(pt_stream);
-}
 
 uint32_t  build_err_flags_v4(t_ether_packet *pt_eth, int len)
 {
@@ -2429,7 +2176,6 @@ void update_stream(t_stream* pt_stream)
 
 void update_stream_from_dlg(HWND hDlg)
 {
-    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
     int type = eth_type(gt_edit_stream.data);
 
     if (button_checked(GetDlgItem(hDlg, ID_SED_IP_CHECKSUM)))
@@ -2485,6 +2231,7 @@ void *alloc_stream()
 int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
 {
     int i, ret;
+    int eth_len=eth_hdr_len(pt_stream->data);
     t_ip_hdr *iph=eth_data(pt_stream->data);
     void *p_ip_data=ip_data(iph);
     int data_len = ip_data_len(iph);
@@ -2494,13 +2241,15 @@ int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
 
     int frag_data_len = frag_data_unit_num*8;
     int frag_len = frag_data_len + ip_hdr_len(iph);
-    int frag_frame_len = frag_len + sizeof(pt_stream->eth_packet);
+    int frag_frame_len = frag_len + eth_len;
 
     t_stream t_stream_tmp;
-    t_ip_hdr *iph_frag=eth_data(t_stream_tmp.data);
-    void *p_frag_data=(void *)iph_frag + ip_hdr_len(iph);
+    t_ip_hdr *iph_frag;
+    void *p_frag_data;
 
     cpy_stream(&t_stream_tmp, pt_stream);
+    iph_frag=eth_data(t_stream_tmp.data);
+    p_frag_data=(void *)iph_frag + ip_hdr_len(iph);
     ret=delete_all_rule(&t_stream_tmp);
 
     t_stream_tmp.len = frag_frame_len;
@@ -2514,7 +2263,7 @@ int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
         add_stream(&t_stream_tmp);
     }
     t_stream_tmp.len = pt_stream->len - i*frag_data_len;
-    iph_frag->tot_len = htons(t_stream_tmp.len - sizeof(pt_stream->eth_packet));
+    iph_frag->tot_len = htons(t_stream_tmp.len - eth_len);
 
     iph_frag->frag_off = htons(frag_data_unit_num*i);
     memcpy(p_frag_data, p_ip_data+frag_data_len*i, data_len-frag_data_len*i);
@@ -2526,6 +2275,7 @@ int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
 int make_frags_ipv6(const t_stream *pt_stream, int frag_num)
 {
     int i, ret;
+    int eth_len=eth_hdr_len(pt_stream->data);
     t_ipv6_hdr *ip6h=eth_data(pt_stream->data);
     void *p_ip_data=ip6_data(ip6h);
     int data_len = ip6_data_len(ip6h);
@@ -2535,19 +2285,22 @@ int make_frags_ipv6(const t_stream *pt_stream, int frag_num)
 
     int frag_data_len = frag_data_unit_num*8;
     int frag_len = frag_data_len + 8 + IPV6_HDR_LEN;
-    int frag_frame_len = frag_len + sizeof(pt_stream->eth_packet);
+    int frag_frame_len = frag_len + eth_len;
+
+    t_ipv6_frag_hdr t_ipv6_frag_hdr_tmp={ip6h->nexthdr, 0, 0, 2013};
 
     t_stream t_stream_tmp;
-    t_ipv6_hdr *ip6h_frag=eth_data(t_stream_tmp.data);
-    t_ipv6_frag_hdr t_ipv6_frag_hdr_tmp={ip6h->nexthdr, 0, 0, 2013};
-    void *p_frag_data= (void *)ip6h_frag + IPV6_HDR_LEN;
+    t_ipv6_hdr *ip6h_frag;
+    void *p_frag_data;
 
     cpy_stream(&t_stream_tmp, pt_stream);
+    ip6h_frag=eth_data(t_stream_tmp.data);
+    p_frag_data= (void *)ip6h_frag + IPV6_HDR_LEN;
     ret=delete_all_rule(&t_stream_tmp);
 
     t_stream_tmp.len = frag_frame_len;
     ip6h_frag->nexthdr=IPPROTO_FRAGMENT;
-    ip6h_frag->payload_len= htons(frag_frame_len-sizeof(pt_stream->eth_packet)-IPV6_HDR_LEN);
+    ip6h_frag->payload_len= htons(frag_frame_len-eth_len-IPV6_HDR_LEN);
     for (i=0; i<frag_num-1; i++)
     {
         t_ipv6_frag_hdr_tmp.frag_off =  (((frag_data_unit_num*i)<<3) | 1);
@@ -2559,7 +2312,7 @@ int make_frags_ipv6(const t_stream *pt_stream, int frag_num)
     }
 
     t_stream_tmp.len = 8 + pt_stream->len - i*frag_data_len;
-    ip6h_frag->payload_len = htons(t_stream_tmp.len - sizeof(pt_stream->eth_packet) - IPV6_HDR_LEN);
+    ip6h_frag->payload_len = htons(t_stream_tmp.len - eth_len - IPV6_HDR_LEN);
 
     t_ipv6_frag_hdr_tmp.frag_off = htons((frag_data_unit_num*i)<<3);
     memcpy(p_frag_data, &t_ipv6_frag_hdr_tmp, 8);
@@ -2609,6 +2362,26 @@ move_child_a2b_left_top(GetDlgItem(hDlg,IDOK), GetDlgItem(hDlg,IDCANCEL), 10);
         right_include_child(GetDlgItem(hDlg,ID_SED_TCP_UDP_CHECKSUM), 10);
     bottom_include_child(GetDlgItem(hDlg,IDOK), 10);
 
+}
+
+void del_bytes(HWND hDlg, int offset, int len)
+{
+    memmove(gt_edit_stream.data+offset
+        , gt_edit_stream.data+offset+len
+        , gt_edit_stream.len-offset-len);
+
+    gt_edit_stream.len -= len;
+    set_int_text(GetDlgItem(hDlg, ID_SED_LEN), gt_edit_stream.len);
+}
+
+void insert_bytes(HWND hDlg, int offset, int len)
+{
+    memmove(gt_edit_stream.data+offset+len 
+        , gt_edit_stream.data+offset
+        , gt_edit_stream.len-offset);
+
+    gt_edit_stream.len += len;
+    set_int_text(GetDlgItem(hDlg, ID_SED_LEN), gt_edit_stream.len);
 }
 
 BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
@@ -2677,12 +2450,25 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                 else
                 {
                     int type=get_eth_type_comb(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB_ETH));
-                    if (type!=get_eth_type_from_addr(cur_field_addr))
+                    if (type==get_eth_type_from_addr(cur_field_addr))
+                        return TRUE ;
+                    
+                    if (cur_field_offset==12)
                     {
-                        set_eth_type_to_addr(type, cur_field_addr);
-                        goto PROTO_CHNG_PROC;
+                        if (type==ETH_P_VLAN)
+                        {
+                            insert_bytes(hDlg, cur_field_offset, ETHERNET_TAG_LEN);
+
+                        }
+                        else if (get_eth_type_from_addr(cur_field_addr)==ETH_P_VLAN)
+                        {
+                            del_bytes(hDlg, cur_field_offset, ETHERNET_TAG_LEN);
+                        }
                     }
-                    return TRUE ;
+                    
+                    set_eth_type_to_addr(type, cur_field_addr);
+                    goto PROTO_CHNG_PROC;
+
 
                 }
 

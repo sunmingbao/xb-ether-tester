@@ -81,8 +81,8 @@ static inline __u16 eth_type(void *p_eth_hdr)
 
 static inline int eth_hdr_len(void *p_eth_hdr)
 {
-    if (eth_type(p_eth_hdr) != ETH_P_VLAN) return sizeof(t_ether_packet);
-    return sizeof(t_ether_vlan_packet);
+    if (eth_is_vlan(p_eth_hdr))     return sizeof(t_ether_vlan_packet);
+    return sizeof(t_ether_packet);
 }
 
 static inline void * eth_data(void *p_eth_hdr)
@@ -436,6 +436,20 @@ typedef struct
     uint32_t err_flags;
 
 } __attribute__ ((aligned (1))) t_stream;
+
+/* t_stream.flags */
+#define    CHECK_SUM_IP      0x1
+#define    CHECK_SUM_ICMP    0x2
+#define    CHECK_SUM_IGMP    0x4
+#define    CHECK_SUM_UDP     0x8
+#define    CHECK_SUM_TCP     0x10
+#define    CHECK_SUM_ALL  \
+    (CHECK_SUM_IP|CHECK_SUM_ICMP|CHECK_SUM_IGMP|CHECK_SUM_UDP|CHECK_SUM_TCP)
+
+#define    IP_LEN    0x20
+#define    UDP_LEN   0x40
+#define    LEN_ALL  (IP_LEN|UDP_LEN)
+
 
 #define    ERR_IP_CHECKSUM     (0x1<<30)
 #define    ERR_UDP_CHECKSUM    (0x1<<29)
