@@ -326,11 +326,11 @@ typedef struct
 
 t_eth_type gat_eth_type[]=
 {
-    {"VLAN",   ETH_P_VLAN},
     {"IP",   ETH_P_IP},
     {"ARP",  ETH_P_ARP},
     {"RARP", ETH_P_RARP},
     {"IPV6", ETH_P_IPV6},
+    {"VLAN", ETH_P_VLAN},
     {"PPP_DISC", ETH_P_PPP_DISC},
     {"PPP_SESS", ETH_P_PPP_SES},
     {"LOOP", ETH_P_LOOP},
