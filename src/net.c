@@ -326,6 +326,7 @@ typedef struct
 
 t_eth_type gat_eth_type[]=
 {
+    {"VLAN",   ETH_P_VLAN},
     {"IP",   ETH_P_IP},
     {"ARP",  ETH_P_ARP},
     {"RARP", ETH_P_RARP},
@@ -568,15 +569,16 @@ void get_protocol_name(int protocol, char *name)
 
 void get_src_addr(char *info, t_ether_packet *pt_eth_hdr)
 {
-        if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+    __u16 type = eth_type(pt_eth_hdr);
+        if (type==ETH_P_IP)
         {
-            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+            t_ip_hdr *iph=eth_data(pt_eth_hdr);
                 ip_n2str(info, &(iph->saddr));
 
         }
-        else if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+        else if (type==ETH_P_IPV6)
         {
-            t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
+            t_ipv6_hdr *ip6h=eth_data(pt_eth_hdr);
                 ip6_n2str(info, &(ip6h->saddr));
         }
         else
@@ -588,15 +590,16 @@ void get_src_addr(char *info, t_ether_packet *pt_eth_hdr)
 
 void get_dst_addr(char *info, t_ether_packet *pt_eth_hdr)
 {
-        if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+    __u16 type = eth_type(pt_eth_hdr);
+        if (type==ETH_P_IP)
         {
-            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+            t_ip_hdr *iph=eth_data(pt_eth_hdr);
                 ip_n2str(info, &(iph->daddr));
 
         }
-        else if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+        else if (type==ETH_P_IPV6)
         {
-            t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
+            t_ipv6_hdr *ip6h=eth_data(pt_eth_hdr);
                 ip6_n2str(info, &(ip6h->daddr));
         }
         else
@@ -608,20 +611,21 @@ void get_dst_addr(char *info, t_ether_packet *pt_eth_hdr)
 
 void get_proto_name(char *info, t_ether_packet *pt_eth_hdr)
 {
-        if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+    __u16 type = eth_type(pt_eth_hdr);
+        if (type==ETH_P_IP)
         {
-            t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+            t_ip_hdr *iph=eth_data(pt_eth_hdr);
             get_protocol_name(iph->protocol, info);
 
         }
-        else if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+        else if (type==ETH_P_IPV6)
         {
-            t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
+            t_ipv6_hdr *ip6h=eth_data(pt_eth_hdr);
             get_protocol_name(ip6h->nexthdr, info);
         }
         else
         {
-            get_eth_type_name(ntohs(pt_eth_hdr->type), info);
+            get_eth_type_name(type, info);
         }
 
 }

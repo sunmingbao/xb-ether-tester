@@ -20,8 +20,9 @@
 
 
 #define    ETHERNET_HDR_LEN  14
+#define    ETHERNET_TAG_LEN  4
 #define    MAX_IP_PACKET_LEN 65535
-#define    MAX_PACKET_LEN    (ETHERNET_HDR_LEN+MAX_IP_PACKET_LEN)
+#define    MAX_PACKET_LEN    (ETHERNET_HDR_LEN+ETHERNET_TAG_LEN+MAX_IP_PACKET_LEN)
 #define    MIN_PACKET_LEN    48
 
 typedef struct
@@ -29,10 +30,9 @@ typedef struct
     unsigned char dst[6];
     unsigned char src[6];
     unsigned short type;
-    unsigned char payload[0];
-
 } __attribute__ ((aligned (1))) t_ether_packet;
 
+#define ETH_P_VLAN	0x8100		/* Ethernet Loopback packet	*/
 #define ETH_P_LOOP	0x0060		/* Ethernet Loopback packet	*/
 #define ETH_P_ECHO	0x0200		/* Ethernet Echo packet		*/
 #define ETH_P_PPP_DISC	0x8863		/* PPPoE discovery messages     */
@@ -42,6 +42,54 @@ typedef struct
 #define ETH_P_ARP	0x0806		/* Address Resolution packet	*/
 #define ETH_P_RARP  0x8035		/* Reverse Addr Res packet	*/
 #define ETH_P_IPV6	0x86DD		/* IPv6		*/
+
+typedef struct
+{
+    unsigned char dst[6];
+    unsigned char src[6];
+    char     tag_802_1Q[4];
+    unsigned short type;
+} __attribute__ ((aligned (1))) t_ether_vlan_packet;
+
+static inline __u16 get_eth_type_from_addr(void *addr)
+{
+    __u16 *p_type = addr;
+    return ntohs(*p_type);
+}
+
+static inline __u16 set_eth_type_to_addr(__u16 type, void *addr)
+{
+    __u16 *p_type = addr;
+    return *p_type = htons(type);
+}
+
+static inline int eth_is_vlan(void *p_eth_hdr)
+{
+    t_ether_packet *pt_eth  = p_eth_hdr;
+    __u16 type = ntohs(pt_eth->type);
+    return (type == ETH_P_VLAN);
+}
+
+static inline __u16 eth_type(void *p_eth_hdr)
+{
+    t_ether_packet *pt_eth           = p_eth_hdr;
+    t_ether_vlan_packet *pt_eth_vlan = p_eth_hdr;
+    __u16 type = ntohs(pt_eth->type);
+    if (type != ETH_P_VLAN) return type;
+    return ntohs(pt_eth_vlan->type);
+}
+
+static inline int eth_hdr_len(void *p_eth_hdr)
+{
+    if (eth_type(p_eth_hdr) != ETH_P_VLAN) return sizeof(t_ether_packet);
+    return sizeof(t_ether_vlan_packet);
+}
+
+static inline void * eth_data(void *p_eth_hdr)
+{
+    return p_eth_hdr+eth_hdr_len(p_eth_hdr);
+}
+
 
 #define  IPPROTO_IP    0
 #define  IPPROTO_ICMP  1
@@ -298,12 +346,13 @@ typedef struct
 
 static inline int ip_pkt_is_frag(t_ether_packet *pt_eth_hdr)
 {
-    t_ip_hdr *iph = pt_eth_hdr->payload;
-    t_ipv6_hdr *ipv6h = pt_eth_hdr->payload;
-    if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+    int type = eth_type(pt_eth_hdr);
+    t_ip_hdr *iph = eth_data(pt_eth_hdr);
+    t_ipv6_hdr *ipv6h = eth_data(pt_eth_hdr);
+    if (type==ETH_P_IP)
         return ntohs(iph->frag_off)&((1<<14) - 1);
         
-    if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+    if (type==ETH_P_IPV6)
         return (IPPROTO_FRAGMENT==ipv6h->nexthdr);
     
     return 0;
@@ -311,11 +360,11 @@ static inline int ip_pkt_is_frag(t_ether_packet *pt_eth_hdr)
 
 static inline int ip_frag_offset(t_ether_packet *pt_eth_hdr)
 {
-    t_ip_hdr *iph = pt_eth_hdr->payload;
-    t_ipv6_hdr *ipv6h = pt_eth_hdr->payload;
+    t_ip_hdr *iph = eth_data(pt_eth_hdr);
+    t_ipv6_hdr *ipv6h = (void *)iph;
     t_ipv6_frag_hdr *frag_hdr;
     
-    if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+    if (eth_type(pt_eth_hdr)==ETH_P_IP)
         return ntohs(iph->frag_off)&((1<<13) - 1);
     
     frag_hdr=ip6_data(ipv6h);
@@ -324,12 +373,13 @@ static inline int ip_frag_offset(t_ether_packet *pt_eth_hdr)
 
 static inline int ip_pkt_can_frag(t_ether_packet *pt_eth_hdr)
 {
-    t_ip_hdr *iph = pt_eth_hdr->payload;
+    t_ip_hdr *iph = eth_data(pt_eth_hdr);
+    int type = eth_type(pt_eth_hdr);
     if (ip_pkt_is_frag(pt_eth_hdr))
         return 0;
     
-    if (ntohs(pt_eth_hdr->type)!=ETH_P_IP
-        && ntohs(pt_eth_hdr->type)!=ETH_P_IPV6)
+    if (type!=ETH_P_IP
+        && type!=ETH_P_IPV6)
     {
         return 0;
     }

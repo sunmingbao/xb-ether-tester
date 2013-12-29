@@ -268,6 +268,7 @@ typedef struct
 #define    IS_MAC             0x1<<27
 #define    IS_IP              0x1<<26
 #define    IS_IP6             0x1<<25
+#define    ETH_TYPE_FIELD     0x1<<24
 
 void field_n2str(char *info, void *field_addr, int len, int bits_from, int bits_len, uint32_t flags)
 {
@@ -365,7 +366,18 @@ t_tvi_data gat_eth_hdr_tvis[]=
 {
     {"dst mac", 0, 6, IS_MAC},
     {"src mac", 6, 6, IS_MAC},
-    {"eth type", 12, 2, FLAG_REBUILD_TV|DISPLAY_HEX},
+    {"eth type", 12, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
+};
+
+t_tvi_data gat_eth_hdr_vlan_tvis[]=
+{
+    {"dst mac", 0, 6, IS_MAC},
+    {"src mac", 6, 6, IS_MAC},
+    {"TPID", 12, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
+    {"PCP", 14, 2, DISPLAY_HEX, 0, 3},
+    {"CFI", 14, 2, DISPLAY_HEX, 3, 1},
+    {"VID", 14, 2, DISPLAY_HEX, 4, 12},
+    {"eth type", 16, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
 };
 
 t_tvi_data gat_arp_base_tvis[]=
@@ -696,7 +708,7 @@ void tvi_update_arp_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
 
-    t_arp_hdr *pt_arp = (void *)(pt_edit_stream->eth_packet.payload);
+    t_arp_hdr *pt_arp = eth_data(pt_edit_stream->data);
     build_hdr_info(info, TEXT("arp"), 14, arp_pkt_len(pt_arp));
     set_tvi_text(htv, htvi, info);
 }
@@ -705,7 +717,7 @@ void tvi_update_ip_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
   
-    t_ip_hdr *iph=(void *)(pt_edit_stream->eth_packet.payload);
+    t_ip_hdr *iph=eth_data(pt_edit_stream->data);
     
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
@@ -730,7 +742,7 @@ void tvi_update_ip_upper_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
   
-    t_ip_hdr *iph=(void *)(pt_edit_stream->eth_packet.payload);
+    t_ip_hdr *iph=eth_data(pt_edit_stream->data);
     
     if (iph->protocol==IPPROTO_ICMP)
         build_hdr_info(info, TEXT("icmp"), 14+ip_hdr_len(iph), icmp_hdr_len(ip_data(iph)));
@@ -749,7 +761,7 @@ void tvi_update_ip6_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
   
-    t_ipv6_hdr *ip6h=(void *)(pt_edit_stream->eth_packet.payload);
+    t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
     
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
@@ -779,7 +791,7 @@ void tvi_update_ip6_upper_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream
 {
     char info[128];
   
-    t_ipv6_hdr *ip6h=(void *)(pt_edit_stream->eth_packet.payload);
+    t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
     
     if (ip6h->nexthdr==IPPROTO_ICMPV6)
         build_hdr_info(info, TEXT("icmp"),  14+IPV6_HDR_LEN, icmp6_hdr_len(ip6_data(ip6h)));
@@ -798,9 +810,10 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
     int offset, len;
-    if (ntohs(pt_edit_stream->eth_packet.type)==ETH_P_IP)
+    int type = eth_type(pt_edit_stream->data);
+    if (type==ETH_P_IP)
     {
-        t_ip_hdr *iph=(void *)(pt_edit_stream->eth_packet.payload);
+        t_ip_hdr *iph=eth_data(pt_edit_stream->data);
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
             if (ip_frag_offset(&(pt_edit_stream->eth_packet)))
@@ -852,9 +865,9 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 
 
     }
-    else if (ntohs(pt_edit_stream->eth_packet.type)==ETH_P_IPV6)
+    else if (type==ETH_P_IPV6)
     {
-        t_ipv6_hdr *ip6h=(void *)(pt_edit_stream->eth_packet.payload);
+        t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
                 offset = 14+IPV6_HDR_LEN+8;
@@ -901,9 +914,9 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         }
 
     }
-    else if (ntohs(pt_edit_stream->eth_packet.type)==ETH_P_ARP)
+    else if (type==ETH_P_ARP)
     {
-        t_ipv6_hdr *ip6h=(void *)(pt_edit_stream->eth_packet.payload);
+        t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
             offset = 14+FIXED_ARP_HDR_LEN;
@@ -937,7 +950,7 @@ void tvi_update_options_tcp(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     int offset, len;
 
-        t_ip_hdr *iph=(void *)(pt_edit_stream->eth_packet.payload);
+        t_ip_hdr *iph=eth_data(pt_edit_stream->data);
         t_tcp_hdr *pt_tcp_hdr=ip_data(iph);
 
             offset = 14+ip_hdr_len(iph)+sizeof(t_tcp_hdr);
@@ -951,7 +964,7 @@ void tvi_update_options_ip(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     int offset, len;
 
-        t_ip_hdr *iph=(void *)(pt_edit_stream->eth_packet.payload);
+        t_ip_hdr *iph=eth_data(pt_edit_stream->data);
 
         offset = 14+sizeof(t_ip_hdr);
         len = ip_hdr_len(iph)-sizeof(t_ip_hdr);
@@ -994,6 +1007,7 @@ void build_tv(HWND hwnd_tree)
     HTREEITEM treeItem1, treeItem2;
     int adjust=0;
     char info[64];
+    int type = eth_type(gt_edit_stream.data);
 
     need_rebuild_tv=0;
     Selected=NULL;
@@ -1002,13 +1016,19 @@ void build_tv(HWND hwnd_tree)
 
     treeItem1=insertItem(hwnd_tree, "ethernet", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_eth_hdr);
     update_tvi_proto_hdr(hwnd_tree, treeItem1);
-    build_tvis(hwnd_tree, treeItem1
+
+    if (eth_is_vlan(gt_edit_stream.data))
+        build_tvis(hwnd_tree, treeItem1
+        , adjust, gat_eth_hdr_vlan_tvis, ARRAY_SIZE(gat_eth_hdr_vlan_tvis));
+    else
+        build_tvis(hwnd_tree, treeItem1
         , adjust, gat_eth_hdr_tvis, ARRAY_SIZE(gat_eth_hdr_tvis));
 
-    adjust += 14;
-    if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_ARP)
+    adjust += eth_hdr_len(gt_edit_stream.data);
+    
+    if (type==ETH_P_ARP)
     {
-        t_arp_hdr *pt_arp = (void *)(gt_edit_stream.eth_packet.payload);
+        t_arp_hdr *pt_arp = eth_data(gt_edit_stream.data);
         treeItem1=insertItem(hwnd_tree, TEXT("arp"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_arp_hdr);
         update_tvi_proto_hdr(hwnd_tree, treeItem1);
         if (4==pt_arp->ar_pln)
@@ -1030,9 +1050,9 @@ void build_tv(HWND hwnd_tree)
 
         }
     }
-    else if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IP)
+    else if (type==ETH_P_IP)
     {
-        t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+        t_ip_hdr *iph=eth_data(gt_edit_stream.data);
         treeItem1=insertItem(hwnd_tree, TEXT("ip"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip_hdr);
         update_tvi_proto_hdr(hwnd_tree, treeItem1);
 
@@ -1135,9 +1155,9 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
         }
 
     }
-    else if (ntohs(gt_edit_stream.eth_packet.type)==ETH_P_IPV6)
+    else if (type==ETH_P_IPV6)
     {
-        t_ipv6_hdr *ip6h=(void *)(gt_edit_stream.eth_packet.payload);
+        t_ipv6_hdr *ip6h=eth_data(gt_edit_stream.data);
         treeItem1=insertItem(hwnd_tree, TEXT("ipv6"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip6_hdr);
         update_tvi_proto_hdr(hwnd_tree, treeItem1);
 
@@ -1287,8 +1307,7 @@ exit:
 
 void get_pkt_desc_info_v4(char *info, void* p_eth_hdr)
 {
-    t_ether_packet *pt_eth_hdr = p_eth_hdr;
-    t_ip_hdr *iph=(void *)(pt_eth_hdr->payload);
+    t_ip_hdr *iph=eth_data(p_eth_hdr);
     t_icmp_hdr *icmp_hdr = ip_data(iph);
     t_tcp_hdr *tcp_hdr = ip_data(iph);
     char info_2[64];
@@ -1334,8 +1353,7 @@ void get_pkt_desc_info_v4(char *info, void* p_eth_hdr)
 
 void get_pkt_desc_info_v6(char *info, void* p_eth_hdr)
 {
-    t_ether_packet *pt_eth_hdr = p_eth_hdr;
-    t_ipv6_hdr *ip6h=(void *)(pt_eth_hdr->payload);
+    t_ipv6_hdr *ip6h=eth_data(p_eth_hdr);
     t_tcp_hdr *tcp_hdr = ip6_data(ip6h);
     t_icmp_hdr *pt_icmp_hdr=ip6_data(ip6h);
 
@@ -1376,13 +1394,13 @@ void get_pkt_desc_info_v6(char *info, void* p_eth_hdr)
 void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
 {
     t_ether_packet *pt_eth_hdr = p_eth_hdr;
-    t_arp_hdr *arp_hdr = (void *)(pt_eth_hdr->payload);
+    t_arp_hdr *arp_hdr = eth_data(pt_eth_hdr);
     char info_2[64];
-    int eth_type = ntohs(pt_eth_hdr->type);
+    int type = eth_type(pt_eth_hdr);
 
     info[0]=0;
     
-    switch (eth_type)
+    switch (type)
     {
         case ETH_P_ARP:
             if (ntohs(arp_hdr->ar_op)==1)
@@ -1435,9 +1453,9 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
 
     }
 
-    if (eth_type!=ETH_P_IP && eth_type!=ETH_P_IPV6)
+    if (type!=ETH_P_IP && type!=ETH_P_IPV6)
     {
-        sprintf(info, "eth type:0x%04x", ntohs(pt_eth_hdr->type));
+        sprintf(info, "eth type:0x%04x", type);
             goto append_err_info;
     }
 
@@ -1448,7 +1466,7 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
 
     }
 
-    if (eth_type==ETH_P_IP)
+    if (type==ETH_P_IP)
     {
         get_pkt_desc_info_v4(info, p_eth_hdr);
     }
@@ -1469,7 +1487,7 @@ BOOL InitDlgFromStream(HWND hDlg, t_stream* pt_stream)
     TCHAR    info[32], info_2[32];
     HWND hwnd_tree, hwnd_edit, hwnd_button, hwnd_comb;
     HTREEITEM treeItem1, treeItem2;
-    t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
+    t_ip_hdr *iph=eth_data(pt_stream->data);
 
   hwnd_tree = GetDlgItem(hDlg, ID_SED_TREE_VIEW);
   hwnd_edit = GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT);
@@ -1504,7 +1522,7 @@ BOOL InitDlgFromStream(HWND hDlg, t_stream* pt_stream)
 int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int edit_visible)
 {
     char info[64], info_2[64];
-    t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+    t_ip_hdr *iph= eth_data(gt_edit_stream.data);
 
     t_tvi_data *pt_tvi_data;
     int data_changed;
@@ -1553,6 +1571,8 @@ int tvi_char_width(HWND htv)
 
 }
 #endif
+
+int cur_field_addr;
 void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
 {
     TVITEM tvi={0};
@@ -1560,6 +1580,7 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
     char info[128], info_2[128];
     RECT		rect1, rect2, rect3 ;
     HWND hedit=GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT);
+    int type = eth_type(gt_edit_stream.data);
 
     get_client_rect_screen(hDlg, &rect1);
     GetWindowRect(htv, &rect2);
@@ -1587,11 +1608,11 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
 
     hex_win_sel(GetDlgItem(hDlg, ID_SED_HEX_EDIT), pt_tvi_data->data_offset, pt_tvi_data->len);
 
-    if ((ETH_P_IP==ntohs(gt_edit_stream.eth_packet.type))
+    if ((ETH_P_IP==type)
         &&
         (pt_tvi_data->data_offset==23))
     {
-        t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+        t_ip_hdr *iph=eth_data(gt_edit_stream.data);
         SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), CB_SETCURSEL, (WPARAM)iph->protocol, (LPARAM)0);
         MoveWindow(	GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB)
         ,rect1.left
@@ -1603,11 +1624,11 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
         ShowWindow(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), 1);
 
     }
-    else if ((ETH_P_IPV6==ntohs(gt_edit_stream.eth_packet.type))
+    else if ((ETH_P_IPV6==type)
         &&
         (pt_tvi_data->data_offset==20))
     {
-        t_ipv6_hdr *ip6h=(void *)(gt_edit_stream.eth_packet.payload);
+        t_ipv6_hdr *ip6h=eth_data(gt_edit_stream.data);
         SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), CB_SETCURSEL, (WPARAM)ip6h->nexthdr, (LPARAM)0);
         MoveWindow(	GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB)
         ,rect1.left
@@ -1619,19 +1640,20 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
         ShowWindow(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), 1);
 
     }
-    else if (pt_tvi_data->data_offset==12)
+    else if (pt_tvi_data->flags&ETH_TYPE_FIELD)
     {
         HWND comb_eth=GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB_ETH);
         int type_idx;
         init_eth_type_comb(comb_eth);
-        type_idx = get_eth_type_name(ntohs(gt_edit_stream.eth_packet.type), NULL);
+        cur_field_addr = gt_edit_stream.data+pt_tvi_data->data_offset;
+        type_idx = get_eth_type_name(get_eth_type_from_addr(cur_field_addr), NULL);
         if (type_idx>=0)
         {
             SendMessage(comb_eth, CB_SETCURSEL, (WPARAM)type_idx, (LPARAM)0);
         }
         else
         {
-            sprintf(info, "0x%04hx", ntohs(gt_edit_stream.eth_packet.type));
+            sprintf(info, "0x%04hx", get_eth_type_from_addr(cur_field_addr));
             ComboBox_AddString(comb_eth,(LPARAM)info);
             SendMessage(comb_eth, CB_SETCURSEL, (WPARAM)ComboBox_GetCount(comb_eth)-1, (LPARAM)0);
         }
@@ -1893,8 +1915,9 @@ void update_from_rule_data(HWND htv, HTREEITEM htvi)
 
 void check_sum_proc(t_stream *pt_stream)
 {
-    t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
-    if (ntohs(pt_stream->eth_packet.type)!=ETH_P_IP) return;
+    t_ip_hdr *iph=eth_data(pt_stream->data);
+    int type = eth_type(pt_stream->data);
+    if (type!=ETH_P_IP) return;
     if ((pt_stream->flags & CHECK_SUM_IP))
     {
         ip_update_check(iph);
@@ -2098,7 +2121,7 @@ BOOL CALLBACK RuleCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
 {
     TCHAR    info[MAX_FILE_PATH_LEN];
     int ret;
-    t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
 
      	switch (message)
      	{
@@ -2149,7 +2172,7 @@ BOOL CALLBACK RuleCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
 
 void update_check_sum_v4(t_stream *pt_stream)
 {
-    t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
+    t_ip_hdr *iph=eth_data(pt_stream->data);
     if (pt_stream->flags & CHECK_SUM_IP)
         ip_update_check(iph);
 
@@ -2168,7 +2191,7 @@ void update_check_sum_v4(t_stream *pt_stream)
 
 void update_check_sum_v6(t_stream *pt_stream)
 {
-    t_ipv6_hdr *ip6h=(void *)(pt_stream->eth_packet.payload);
+    t_ipv6_hdr *ip6h=eth_data(pt_stream->data);
 
     if (ip_pkt_is_frag(&(pt_stream->eth_packet))) return;
 
@@ -2183,9 +2206,10 @@ void update_check_sum_v6(t_stream *pt_stream)
 
 void update_check_sum(t_stream *pt_stream)
 {
-    if (ntohs(pt_stream->eth_packet.type)==ETH_P_IP)
+    int type = eth_type(pt_stream->data);
+    if (type==ETH_P_IP)
         update_check_sum_v4(pt_stream);
-   else if (ntohs(pt_stream->eth_packet.type)==ETH_P_IPV6)
+   else if (type==ETH_P_IPV6)
        update_check_sum_v6(pt_stream);
 
 }
@@ -2193,21 +2217,21 @@ void update_check_sum(t_stream *pt_stream)
 
 void update_len_v4(t_stream *pt_stream)
 {
-    t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
+    t_ip_hdr *iph=eth_data(pt_stream->data);
     t_udp_hdr *udph=ip_data(iph);
     if (pt_stream->flags & IP_LEN)
-        iph->tot_len = htons(pt_stream->len - sizeof(pt_stream->eth_packet));
+        iph->tot_len = htons(pt_stream->len - eth_hdr_len(pt_stream->data));
     if (iph->protocol==IPPROTO_UDP && (pt_stream->flags & UDP_LEN))
-        udph->len = htons(pt_stream->len - sizeof(pt_stream->eth_packet) - iph->ihl*4);
+        udph->len = htons(pt_stream->len - eth_hdr_len(pt_stream->data) - iph->ihl*4);
 
 }
 
 void update_len_v6(t_stream *pt_stream)
 {
-    t_ipv6_hdr *ip6h =(void *)(pt_stream->eth_packet.payload);
+    t_ipv6_hdr *ip6h =eth_data(pt_stream->data);
     t_udp_hdr *udph=ip6_data(ip6h);
     if (pt_stream->flags & IP_LEN)
-        set_ip6_pkt_len(ip6h, pt_stream->len - sizeof(pt_stream->eth_packet));
+        set_ip6_pkt_len(ip6h, pt_stream->len - eth_hdr_len(pt_stream->data));
     if (ip6h->nexthdr==IPPROTO_UDP && (pt_stream->flags & UDP_LEN))
         udph->len = htons(ip6_data_len(ip6h));
 
@@ -2215,16 +2239,17 @@ void update_len_v6(t_stream *pt_stream)
 
 void update_len(t_stream *pt_stream)
 {
-    if (ntohs(pt_stream->eth_packet.type)==ETH_P_IP)
+int type = eth_type(pt_stream->data);
+    if (type==ETH_P_IP)
         update_len_v4(pt_stream);
-   else if (ntohs(pt_stream->eth_packet.type)==ETH_P_IPV6)
+   else if (type==ETH_P_IPV6)
        update_len_v6(pt_stream);
 }
 
 uint32_t  build_err_flags_v4(t_ether_packet *pt_eth, int len)
 {
     uint32_t err_flags = 0;
-    t_ip_hdr *iph = pt_eth->payload;
+    t_ip_hdr *iph = eth_data(pt_eth);
 
     if (len<MIN_PKT_LEN)
     {
@@ -2296,7 +2321,7 @@ uint32_t  build_err_flags_v4(t_ether_packet *pt_eth, int len)
 uint32_t  build_err_flags_v6(t_ether_packet *pt_eth, int len)
 {
     uint32_t err_flags = 0;
-    t_ipv6_hdr *ip6h = pt_eth->payload;
+    t_ipv6_hdr *ip6h = eth_data(pt_eth);
 
     if (len<40)
     {
@@ -2359,7 +2384,7 @@ uint32_t  build_err_flags_v6(t_ether_packet *pt_eth, int len)
 uint32_t  build_err_flags_arp(t_ether_packet *pt_eth, int len)
 {
     uint32_t err_flags = 0;
-    t_arp_hdr *pt_arp_hdr = pt_eth->payload;
+    t_arp_hdr *pt_arp_hdr = eth_data(pt_eth);
 
     if (len<MIN_PKT_LEN)
     {
@@ -2379,15 +2404,16 @@ uint32_t  build_err_flags_arp(t_ether_packet *pt_eth, int len)
 uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
 {
     uint32_t err_flags = 0;
-    t_ip_hdr *iph = pt_eth->payload;
+    int type = eth_type(pt_eth);
+    t_ip_hdr *iph = eth_data(pt_eth);
 
-    if (ntohs(pt_eth->type)==ETH_P_ARP)
+    if (type==ETH_P_ARP)
         return build_err_flags_arp(pt_eth, len);
 
-    if (ntohs(pt_eth->type)==ETH_P_IP)
+    if (type==ETH_P_IP)
         return build_err_flags_v4(pt_eth, len);
         
-    if (ntohs(pt_eth->type)==ETH_P_IPV6)
+    if (type==ETH_P_IPV6)
         return build_err_flags_v6(pt_eth, len);
         
         return err_flags; 
@@ -2403,7 +2429,8 @@ void update_stream(t_stream* pt_stream)
 
 void update_stream_from_dlg(HWND hDlg)
 {
-    t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
+    int type = eth_type(gt_edit_stream.data);
 
     if (button_checked(GetDlgItem(hDlg, ID_SED_IP_CHECKSUM)))
         gt_edit_stream.flags |= CHECK_SUM_IP;
@@ -2430,9 +2457,9 @@ void update_stream_from_dlg(HWND hDlg)
     else
         gt_edit_stream.flags &= ~(UDP_LEN);
     
-    if (ntohs(gt_edit_stream.eth_packet.type)!=ETH_P_IP
+    if (type!=ETH_P_IP
         &&
-        ntohs(gt_edit_stream.eth_packet.type)!=ETH_P_IPV6)
+        type!=ETH_P_IPV6)
         return; 
 
     update_stream(&gt_edit_stream);
@@ -2458,7 +2485,7 @@ void *alloc_stream()
 int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
 {
     int i, ret;
-    t_ip_hdr *iph=(void *)(pt_stream->eth_packet.payload);
+    t_ip_hdr *iph=eth_data(pt_stream->data);
     void *p_ip_data=ip_data(iph);
     int data_len = ip_data_len(iph);
     int data_unit_num = data_len/8 + !!(data_len%8);
@@ -2470,7 +2497,7 @@ int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
     int frag_frame_len = frag_len + sizeof(pt_stream->eth_packet);
 
     t_stream t_stream_tmp;
-    t_ip_hdr *iph_frag=(void *)(t_stream_tmp.eth_packet.payload);
+    t_ip_hdr *iph_frag=eth_data(t_stream_tmp.data);
     void *p_frag_data=(void *)iph_frag + ip_hdr_len(iph);
 
     cpy_stream(&t_stream_tmp, pt_stream);
@@ -2499,7 +2526,7 @@ int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
 int make_frags_ipv6(const t_stream *pt_stream, int frag_num)
 {
     int i, ret;
-    t_ipv6_hdr *ip6h=(void *)(pt_stream->eth_packet.payload);
+    t_ipv6_hdr *ip6h=eth_data(pt_stream->data);
     void *p_ip_data=ip6_data(ip6h);
     int data_len = ip6_data_len(ip6h);
     int data_unit_num = data_len/8 + !!(data_len%8);
@@ -2511,7 +2538,7 @@ int make_frags_ipv6(const t_stream *pt_stream, int frag_num)
     int frag_frame_len = frag_len + sizeof(pt_stream->eth_packet);
 
     t_stream t_stream_tmp;
-    t_ipv6_hdr *ip6h_frag=(void *)(t_stream_tmp.eth_packet.payload);
+    t_ipv6_hdr *ip6h_frag=eth_data(t_stream_tmp.data);
     t_ipv6_frag_hdr t_ipv6_frag_hdr_tmp={ip6h->nexthdr, 0, 0, 2013};
     void *p_frag_data= (void *)ip6h_frag + IPV6_HDR_LEN;
 
@@ -2544,10 +2571,10 @@ int make_frags_ipv6(const t_stream *pt_stream, int frag_num)
 
 int make_frags(const t_stream *pt_stream, int frag_num)
 {
-    t_ether_packet *pt_eth_hdr = (void *)(pt_stream->data);
-    if (ntohs(pt_eth_hdr->type)==ETH_P_IP)
+    int type = eth_type(pt_stream->data);
+    if (type==ETH_P_IP)
         return make_frags_ipv4(pt_stream, frag_num);
-    else if (ntohs(pt_eth_hdr->type)==ETH_P_IPV6)
+    else if (type==ETH_P_IPV6)
         return make_frags_ipv6(pt_stream, frag_num);
 
     return 0;
@@ -2592,6 +2619,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
     HWND hwnd_hex_edit=GetDlgItem(hDlg,ID_SED_HEX_EDIT);
     TCHAR    info[32];
     int ret;
+    int type;
 
      	switch (message)
      	{
@@ -2622,18 +2650,20 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                     int new_proto=SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB)
                             , (UINT) CB_GETCURSEL, (WPARAM)0, (LPARAM)0);
 
-                    if (ETH_P_IP==ntohs(gt_edit_stream.eth_packet.type))
+                    type = eth_type(gt_edit_stream.data);
+
+                    if (ETH_P_IP==type)
                     {
-                        t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+                        t_ip_hdr *iph=eth_data(gt_edit_stream.data);
                         if (iph->protocol!=new_proto)
                         {
                             iph->protocol=new_proto;
                             goto PROTO_CHNG_PROC;
                         }
                     }
-                    else if (ETH_P_IPV6==ntohs(gt_edit_stream.eth_packet.type))
+                    else if (ETH_P_IPV6==type)
                     {
-                        t_ipv6_hdr *ip6h=(void *)(gt_edit_stream.eth_packet.payload);
+                        t_ipv6_hdr *ip6h=eth_data(gt_edit_stream.data);
                         if (ip6h->nexthdr!=new_proto)
                         {
                             ip6h->nexthdr=new_proto;
@@ -2647,9 +2677,9 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                 else
                 {
                     int type=get_eth_type_comb(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB_ETH));
-                    if (type!=ntohs(gt_edit_stream.eth_packet.type))
+                    if (type!=get_eth_type_from_addr(cur_field_addr))
                     {
-                        gt_edit_stream.eth_packet.type = htons(type);
+                        set_eth_type_to_addr(type, cur_field_addr);
                         goto PROTO_CHNG_PROC;
                     }
                     return TRUE ;
@@ -3149,7 +3179,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
     static HMENU	hMenu ;
     POINT point ;
 
-    t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
     t_dump_pkt    *pt_pkt;
 
      	switch (message)
@@ -3332,7 +3362,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
 HWND hPktCapDlg;
 void update_pkt_cap_stats_ip(t_ether_packet *pt_pkt)
 {
-    t_ip_hdr *iph=(void *)(pt_pkt->payload);
+    t_ip_hdr *iph=eth_data(pt_pkt);
 
     switch (iph->protocol)
     {
@@ -3356,7 +3386,7 @@ void update_pkt_cap_stats_ip(t_ether_packet *pt_pkt)
 
 void update_pkt_cap_stats_ip6(t_ether_packet *pt_pkt)
 {
-    t_ipv6_hdr *ip6h=(void *)(pt_pkt->payload);
+    t_ipv6_hdr *ip6h=eth_data(pt_pkt);
 
     switch (ip6h->nexthdr)
     {
@@ -3383,7 +3413,7 @@ void update_pkt_cap_stats(t_ether_packet *pt_pkt)
 {
     inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_TOTAL), 1);
 
-    switch (ntohs(pt_pkt->type))
+    switch (eth_type(pt_pkt))
     {
         case ETH_P_IP:
             inc_int_text(GetDlgItem(hPktCapDlg, ID_PKT_CAP_IP), 1);
@@ -3423,7 +3453,7 @@ BOOL CALLBACK PktCapDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
 {
     TCHAR    info[MAX_FILE_PATH_LEN];
     int ret;
-    t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
     t_dump_pkt    *pt_pkt;
 
      	switch (message)
@@ -3527,7 +3557,7 @@ BOOL CALLBACK FragDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
     HWND hwnd_tree=GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW);
     TCHAR    info[32];
     int ret;
-    t_ip_hdr *iph=(void *)(gt_edit_stream.eth_packet.payload);
+    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
     t_dump_pkt    *pt_pkt;
 
      	switch (message)
