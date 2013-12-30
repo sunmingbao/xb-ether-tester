@@ -612,22 +612,27 @@ void get_dst_addr(char *info, t_ether_packet *pt_eth_hdr)
 void get_proto_name(char *info, t_ether_packet *pt_eth_hdr)
 {
     __u16 type = eth_type(pt_eth_hdr);
+    char    info2[128];
         if (type==ETH_P_IP)
         {
             t_ip_hdr *iph=eth_data(pt_eth_hdr);
-            get_protocol_name(iph->protocol, info);
+            get_protocol_name(iph->protocol, info2);
 
         }
         else if (type==ETH_P_IPV6)
         {
             t_ipv6_hdr *ip6h=eth_data(pt_eth_hdr);
-            get_protocol_name(ip6h->nexthdr, info);
+            get_protocol_name(ip6h->nexthdr, info2);
         }
         else
         {
-            get_eth_type_name(type, info);
+            get_eth_type_name(type, info2);
         }
 
+    if (eth_is_vlan(pt_eth_hdr))
+        sprintf(info, "[VLAN] %s", info2);
+    else
+        sprintf(info, "%s", info2);
 }
 
 void append_err_text(char *info, uint32_t err_flags)
