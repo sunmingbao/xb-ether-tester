@@ -184,6 +184,7 @@ void rule_fileds_init_all_pkt();
 BOOL CALLBACK PktViewDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK PktCapDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK PktCapCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam);
+void build_filter(char *str_filter_output);
 BOOL CALLBACK FragDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam);
 void *alloc_stream();
 void init_protocol_comb(HWND comb, int add_all);
@@ -220,7 +221,7 @@ extern int snd_gap_us;
 #define PKT_CAP_PKT_TYPE_L2    1
 #define PKT_CAP_PKT_TYPE_IP    2
 #define PKT_CAP_PKT_TYPE_ALL    3
-
+#define PKT_CAP_PKT_TYPE_IPV6    4
 
 #define PKT_CAP_PORT_MIN    0
 #define PKT_CAP_PORT_MAX    65535

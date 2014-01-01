@@ -340,6 +340,9 @@ ui_update_fc_cfg(hDlg);
   	return FALSE ;
 }
 
+char CAP_PKT_TYPE_to_idx[]= {0,1,2,0,3};
+char idx_to_CAP_PKT_TYPE[]= {3,1,2,4};
+
 void append_filter_str(char *filter_str, char *str)
 {
     if (filter_str[0])
@@ -402,7 +405,70 @@ void ui_switch_CAP_CFG_MODE(HWND hDlg, int is_to_normal)
     
 }
 
+void build_filter(char *str_filter_output)
+{
+    char info[32], info_2[32];
+    str_filter_output[0]=0;
 
+        if (gt_pkt_cap_cfg.pkt_cap_cfg_mode==PKT_CAP_CFG_MODE_ADVANCED)
+        {
+            strcpy(str_filter_output, gt_pkt_cap_cfg.filter_str_usr);
+            return;
+        }
+
+        if (gt_pkt_cap_cfg.pkt_cap_pkt_type == PKT_CAP_PKT_TYPE_ALL)
+        {
+            return;
+        }
+
+        if (gt_pkt_cap_cfg.pkt_cap_pkt_type == PKT_CAP_PKT_TYPE_L2)
+        {
+            append_filter_str(str_filter_output, "not ip and not ip6");
+            return;
+        }
+
+        if (gt_pkt_cap_cfg.pkt_cap_pkt_type == PKT_CAP_PKT_TYPE_IPV6)
+        {
+            append_filter_str(str_filter_output, "ip6");
+            return;
+        }
+
+        append_filter_str(str_filter_output, "ip");
+        if (gt_pkt_cap_cfg.pkt_cap_sip)
+        {
+            ip_n2str(info_2, &(gt_pkt_cap_cfg.pkt_cap_sip));
+            sprintf(info, "src %s", info_2);
+            append_filter_str(str_filter_output, info);
+        }
+        if (gt_pkt_cap_cfg.pkt_cap_dip)
+        {
+            ip_n2str(info_2, &(gt_pkt_cap_cfg.pkt_cap_dip));
+            sprintf(info, "dst %s", info_2);
+            append_filter_str(str_filter_output, info);
+        }
+
+        if (gt_pkt_cap_cfg.pkt_cap_protocol>=0)
+        {
+            sprintf(info, "proto %d", gt_pkt_cap_cfg.pkt_cap_protocol);
+            append_filter_str(str_filter_output, info);
+        }
+
+        if (gt_pkt_cap_cfg.pkt_cap_protocol!=IPPROTO_TCP && gt_pkt_cap_cfg.pkt_cap_protocol!=IPPROTO_UDP)
+            return;
+
+        if (gt_pkt_cap_cfg.pkt_cap_sport>=0)
+        {
+            sprintf(info, "src port %d", gt_pkt_cap_cfg.pkt_cap_sport);
+            append_filter_str(str_filter_output, info);
+        }
+
+        if (gt_pkt_cap_cfg.pkt_cap_dport>=0)
+        {
+            sprintf(info, "dst port %d", gt_pkt_cap_cfg.pkt_cap_dport);
+            append_filter_str(str_filter_output, info);
+        }
+
+}
 int get_pkt_cap_cfg(HWND hDlg, char *str_filter_output)
 {
     int ret;
@@ -419,9 +485,7 @@ int get_pkt_cap_cfg(HWND hDlg, char *str_filter_output)
         , ID_PKT_CAP_FILTER_STR
         , gt_pkt_cap_cfg.filter_str_usr, sizeof(gt_pkt_cap_cfg.filter_str_usr));
         
-        strcpy(str_filter_output, gt_pkt_cap_cfg.filter_str_usr);
-        
-        goto CHECK_FILTER;
+        goto BUILD_AND_CHECK_FILTER;
 
     }
     
@@ -430,25 +494,12 @@ int get_pkt_cap_cfg(HWND hDlg, char *str_filter_output)
     ret=SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE)
              , (UINT) CB_GETCURSEL, (WPARAM) 0, (LPARAM) 0);
 
-    if (0==ret)
+    gt_pkt_cap_cfg.pkt_cap_pkt_type = idx_to_CAP_PKT_TYPE[ret];
+    if (gt_pkt_cap_cfg.pkt_cap_pkt_type != PKT_CAP_PKT_TYPE_IP)
     {
-        gt_pkt_cap_cfg.pkt_cap_pkt_type = PKT_CAP_PKT_TYPE_ALL;
-        pkt_cap_filter_str[0]=0;
-        return 0 ;
+        goto BUILD_AND_CHECK_FILTER;
     }
     
-    if (1==ret)
-    {
-        gt_pkt_cap_cfg.pkt_cap_pkt_type = PKT_CAP_PKT_TYPE_L2;
-        append_filter_str(str_filter_output, "not ip and not ip6");
-        goto CHECK_FILTER;
-    }
-    
-    if (2==ret)
-    {
-        gt_pkt_cap_cfg.pkt_cap_pkt_type = PKT_CAP_PKT_TYPE_IP;
-    }
-
     GetDlgItemText(hDlg, ID_PKT_CAP_SIP, info, sizeof(info));
     if (isdigit(info[0]))
     {
@@ -473,7 +524,7 @@ int get_pkt_cap_cfg(HWND hDlg, char *str_filter_output)
              , (UINT) CB_GETCURSEL, (WPARAM) 0, (LPARAM) 0) - 1;
 
     if (gt_pkt_cap_cfg.pkt_cap_protocol!=IPPROTO_TCP && gt_pkt_cap_cfg.pkt_cap_protocol!=IPPROTO_UDP)
-            goto GET_PORT_OVER;
+            goto BUILD_AND_CHECK_FILTER;
 
     GetDlgItemText(hDlg, ID_PKT_CAP_SPORT, info, sizeof(info));
     if (isdigit(info[0]))
@@ -487,52 +538,18 @@ int get_pkt_cap_cfg(HWND hDlg, char *str_filter_output)
     else
         gt_pkt_cap_cfg.pkt_cap_dport=-1;
 
-GET_PORT_OVER:
-    if (gt_pkt_cap_cfg.pkt_cap_pkt_type == PKT_CAP_PKT_TYPE_IP)
-    {
-        append_filter_str(str_filter_output, "ip");
-        if (gt_pkt_cap_cfg.pkt_cap_sip)
-        {
-            GetDlgItemText(hDlg, ID_PKT_CAP_SIP, info_2, sizeof(info_2));
-            sprintf(info, "src %s", info_2);
-            append_filter_str(str_filter_output, info);
-        }
-        if (gt_pkt_cap_cfg.pkt_cap_dip)
-        {
-            GetDlgItemText(hDlg, ID_PKT_CAP_DIP, info_2, sizeof(info_2));
-            sprintf(info, "dst %s", info_2);
-            append_filter_str(str_filter_output, info);
-        }
-
-        if (gt_pkt_cap_cfg.pkt_cap_protocol>=0)
-        {
-            sprintf(info, "proto %d", gt_pkt_cap_cfg.pkt_cap_protocol);
-            append_filter_str(str_filter_output, info);
-        }
-
-        if (gt_pkt_cap_cfg.pkt_cap_protocol!=IPPROTO_TCP && gt_pkt_cap_cfg.pkt_cap_protocol!=IPPROTO_UDP)
-            goto CHECK_FILTER;
-
-        if (gt_pkt_cap_cfg.pkt_cap_sport>=0)
-        {
-            sprintf(info, "src port %d", gt_pkt_cap_cfg.pkt_cap_sport);
-            append_filter_str(str_filter_output, info);
-        }
-
-        if (gt_pkt_cap_cfg.pkt_cap_dport>=0)
-        {
-            sprintf(info, "dst port %d", gt_pkt_cap_cfg.pkt_cap_dport);
-            append_filter_str(str_filter_output, info);
-        }
-
-    }
-    
+BUILD_AND_CHECK_FILTER:
+    build_filter(str_filter_output);
 CHECK_FILTER:
+    if (str_filter_output[0]==0) goto SUCC_EXIT;
+        
     if (!is_filter_valid(str_filter_output))
     {
         WinPrintf(hDlg, "invalid packet capture filter:%s", str_filter_output);
         return 1 ;
     }
+
+SUCC_EXIT:
     strcpy(pkt_cap_filter_str, str_filter_output);
     return 0 ;
 
@@ -583,13 +600,14 @@ BOOL CALLBACK PktCapCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
                 SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"all");
                 SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"¶þ²ã(arp, rarp, ...)");
                 SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"IP");
+                SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"IPv6");
 
                 init_protocol_comb(GetDlgItem(hDlg, ID_PKT_CAP_PROTOCOL), 1);
 
                 SetDlgItemText(hDlg, ID_PKT_CAP_FILTER_STR, gt_pkt_cap_cfg.filter_str_usr);
                     
             //SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_DIRECTION), CB_SETCURSEL, (WPARAM)pkt_cap_dir%PKT_CAP_DIR_ALL, (LPARAM)0);
-            SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE), CB_SETCURSEL, (WPARAM)gt_pkt_cap_cfg.pkt_cap_pkt_type%PKT_CAP_PKT_TYPE_ALL, (LPARAM)0);
+            SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE), CB_SETCURSEL, (WPARAM)CAP_PKT_TYPE_to_idx[gt_pkt_cap_cfg.pkt_cap_pkt_type], (LPARAM)0);
 
             ip_n2str(info, &gt_pkt_cap_cfg.pkt_cap_sip);
             if (0==gt_pkt_cap_cfg.pkt_cap_sip)

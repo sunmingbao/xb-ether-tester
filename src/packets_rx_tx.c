@@ -525,6 +525,7 @@ int load_stream(char *file_path)
     fread(&gt_pkt_cap_cfg, PKT_CAP_CFG_FIX_LEN, 1, file);
     fread(gt_pkt_cap_cfg.filter_str_usr, gt_pkt_cap_cfg.filter_str_len, 1, file);
     gt_pkt_cap_cfg.filter_str_usr[gt_pkt_cap_cfg.filter_str_len]=0;
+    build_filter(pkt_cap_filter_str);
     fread(&nr_cur_stream, sizeof(nr_cur_stream), 1, file);
     nr_cur_stream=(nr_cur_stream>MAX_STREAM_NUM?MAX_STREAM_NUM:nr_cur_stream);
 //sys_log("nr_cur_stream=%d", nr_cur_stream);

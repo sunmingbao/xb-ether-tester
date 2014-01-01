@@ -337,7 +337,7 @@ void update_grid_from_edit(int edit_iItem, int edit_iSubItem)
     TCHAR buf[64];
     t_stream* pt_stream=g_apt_streams[edit_iItem];
     t_ether_packet *pt_eth_hdr = pt_stream->data;
-    t_ip_hdr *iph=eth_type(pt_eth_hdr);
+    t_ip_hdr *iph=eth_data(pt_eth_hdr);
     t_ipv6_hdr *ip6h=(void *)iph;
     int type = eth_type(pt_eth_hdr);
 
