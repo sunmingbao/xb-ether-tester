@@ -12,9 +12,11 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "–°±¯“‘Ã´Õ¯≤‚ ‘“«"
+!define PRODUCT_NAME_EN "xb_ether_tester"
 !define PRODUCT_VERSION "2.5.6"
 !define PRODUCT_PUBLISHER "ÀÔ√˜±£"
-!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\xb_ether_tester.exe"
+!define MAIN_PROG_NAME "xb_ether_tester.exe"
+!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_PROG_NAME}"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
 !define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
@@ -39,7 +41,7 @@ SetCompressor lzma
 ; Start menu page
 var ICONS_GROUP
 !define MUI_STARTMENUPAGE_NODISABLE
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER "–°±¯“‘Ã´Õ¯≤‚ ‘“«"
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER ${PRODUCT_NAME}
 !define MUI_STARTMENUPAGE_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
 !define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "${PRODUCT_STARTMENU_REGVAL}"
@@ -47,7 +49,7 @@ var ICONS_GROUP
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-!define MUI_FINISHPAGE_RUN "$INSTDIR\xb_ether_tester.exe"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\${MAIN_PROG_NAME}"
 !define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\release_notes.txt"
 !define MUI_FINISHPAGE_SHOWREADME_TEXT "∞Ê±æ∑¢≤ºÀµ√˜"
 !insertmacro MUI_PAGE_FINISH
@@ -64,7 +66,7 @@ var ICONS_GROUP
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "obj\xb_ether_tester_v${PRODUCT_VERSION}.exe"
+OutFile "obj\${PRODUCT_NAME_EN}_v${PRODUCT_VERSION}.exe"
 InstallDir "$PROGRAMFILES\–°±¯“‘Ã´Õ¯≤‚ ‘“«"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -75,7 +77,7 @@ Var WINPCAP_NAME ; DisplayName from WinPcap installation
 Section "÷˜≥Ã–Ú" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite try
-  File "obj\xb_ether_tester.exe"
+  File "obj\${MAIN_PROG_NAME}"
   File "release_notes.txt"
   File "other_files\WinPcap_4_1_3.exe"
   
@@ -100,23 +102,23 @@ done:
 ; Shortcuts
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\–°±¯“‘Ã´Õ¯≤‚ ‘“«.lnk" "$INSTDIR\xb_ether_tester.exe"
-  CreateShortCut "$DESKTOP\–°±¯“‘Ã´Õ¯≤‚ ‘“«.lnk" "$INSTDIR\xb_ether_tester.exe"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk" "$INSTDIR\${MAIN_PROG_NAME}"
+  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\${MAIN_PROG_NAME}"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
 Section -AdditionalIcons
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk" "$INSTDIR\uninst.exe"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\–∂‘ÿ ${PRODUCT_NAME}.lnk" "$INSTDIR\uninst.exe"
   !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
 Section -Post
   WriteUninstaller "$INSTDIR\uninst.exe"
-  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\xb_ether_tester.exe"
+  WriteRegStr HKLM "${PRODUCT_DIR_REGKEY}" "" "$INSTDIR\${MAIN_PROG_NAME}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
-  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\xb_ether_tester.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\${MAIN_PROG_NAME}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
 SectionEnd
@@ -135,12 +137,12 @@ Section Uninstall
   !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\WinPcap_4_1_3.exe"
-  Delete "$INSTDIR\xb_ether_tester.exe"
-  Delete "$INSTDIR\v${PRODUCT_VERSION}_release_notes.txt"
+  Delete "$INSTDIR\${MAIN_PROG_NAME}"
+  Delete "$INSTDIR\release_notes.txt"
 
-  Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"
-  Delete "$DESKTOP\–°±¯“‘Ã´Õ¯≤‚ ‘“«.lnk"
-  Delete "$SMPROGRAMS\$ICONS_GROUP\–°±¯“‘Ã´Õ¯≤‚ ‘“«.lnk"
+  Delete "$SMPROGRAMS\$ICONS_GROUP\–∂‘ÿ ${PRODUCT_NAME}.lnk"
+  Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
+  Delete "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk"
 
   RMDir "$SMPROGRAMS\$ICONS_GROUP"
   RMDir "$INSTDIR"

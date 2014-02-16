@@ -18,7 +18,13 @@ LDFLAG := -mwindows  -s  -lkernel32 -luser32 -lgdi32 -lcomctl32 -lws2_32 -lwpcap
 
 
 PRJ_DIR:=.
+RES_DIR := $(PRJ_DIR)\res
+INC_RES_DIRS := --include-dir $(RES_DIR)
+INC_DIRS := -I$(PRJ_DIR)\inc -I$(RES_DIR)
 OBJ_DIR:=$(PRJ_DIR)\obj
+
+CFLAG := $(CFLAG) $(INC_DIRS)
+WINDRES_FLAG := --use-temp-file $(INC_RES_DIRS)
 
 # -------------------------------------------------------------------------
 # Do not modify the rest of this file!
@@ -53,37 +59,49 @@ $(target): $(OBJECTS)
 	$(CC) -o $@ $(OBJECTS)  $(LDFLAG)
 
 $(OBJ_DIR)\res.orc: $(PRJ_DIR)\res\sample.rc
-	windres --use-temp-file -i $< -o $@     --include-dir $(PRJ_DIR)\res
+	windres $(WINDRES_FLAG) -i $< -o $@  
 
 $(OBJ_DIR)\main.o: $(PRJ_DIR)\src\main.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG)  -o $@  $<
+
 $(OBJ_DIR)\frame_window.o: $(PRJ_DIR)\src\frame_window.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\left_window.o: $(PRJ_DIR)\src\left_window.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\right_window.o: $(PRJ_DIR)\src\right_window.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\bottom_window.o: $(PRJ_DIR)\src\bottom_window.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\splitters.o: $(PRJ_DIR)\src\splitters.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\toolbar_statusbar.o: $(PRJ_DIR)\src\toolbar_statusbar.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\tip_window.o: $(PRJ_DIR)\src\tip_window.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\hex_edit_window.o: $(PRJ_DIR)\src\hex_edit_window.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\packets_rx_tx.o: $(PRJ_DIR)\src\packets_rx_tx.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\stats_window.o: $(PRJ_DIR)\src\stats_window.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\stream_edit_dlg.o: $(PRJ_DIR)\src\stream_edit_dlg.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\net.o: $(PRJ_DIR)\src\net.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
 
 $(OBJ_DIR)\common.o: $(PRJ_DIR)\src\common.c
-	$(CC) -c $(CFLAG) -I$(PRJ_DIR)\inc -I$(PRJ_DIR)\res -o $@  $<
+	$(CC) -c $(CFLAG) -o $@  $<
 
 installer:
 	makensis $(PRJ_DIR)\xb_ether_tester.nsi
