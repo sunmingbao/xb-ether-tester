@@ -116,18 +116,9 @@ CLR_STAT:
     return 0;
 }
 
-void open_file()
-{
-    if (doc_save_proc()) return 0;
-
-    load_stream(file_to_open);
-    re_populate_items();
-    strcpy(cfg_file_path, file_to_open);
-    set_frame_title(strrchr(cfg_file_path, '\\')+1);
-    update_statusbar();
-}
 
 #define    HISTORY_FILE_NAME    "c:\\history"
+#define    HISTORY_FILE_NAME_TMP    "c:\\history.tmp"
 int read_next_filed(FILE *the_file, char *field_name, char *field_value)
 {
     char line[MAX_FILE_PATH_LEN + 32];
@@ -144,7 +135,7 @@ int read_next_filed(FILE *the_file, char *field_name, char *field_value)
     *sep = 0;
 
     tail = sep + strlen(sep+1);
-    while ((*tail == '\r') || (*tail == '\n'))
+    while ((*tail == '\r') || (*tail == '\n')|| (*tail == ' '))
     {
         *tail=0;
         tail--;
@@ -167,7 +158,7 @@ int get_field_value_by_idx(char *file_path
     int i;
     int ret;
     
-    //WinPrintf(NULL, "idx=%d",idx);
+    if (history_file==NULL) return 1;
     
     for(i=0; i<=idx; i++)
     {
@@ -211,6 +202,50 @@ void populate_recent_files(HMENU	 hMenu)
 
     fclose(history_file);
 }
+
+void update_file_open_history(char *file_path)
+{
+    FILE *history_file_tmp = NULL;
+    FILE *history_file = NULL;
+    char field_value[MAX_FILE_PATH_LEN];
+    int len;
+
+    delete_file_f(HISTORY_FILE_NAME_TMP);
+    history_file_tmp = fopen(HISTORY_FILE_NAME_TMP, "w");
+    
+    if (!file_exists(HISTORY_FILE_NAME))
+    {
+        len=sprintf(field_value
+            , "file_num=1\n"
+              "file_0=%s"
+              , file_path);
+        fwrite(field_value, 1, len, history_file_tmp);
+        goto EXIT;
+    }
+
+    history_file = fopen(HISTORY_FILE_NAME, "r");
+
+EXIT:
+    if (history_file_tmp != NULL) fclose(history_file_tmp);
+    if (history_file != NULL) fclose(history_file);
+    delete_file_f(HISTORY_FILE_NAME);
+    MoveFile(HISTORY_FILE_NAME_TMP, HISTORY_FILE_NAME);
+
+    
+}
+
+void open_file()
+{
+    if (doc_save_proc()) return 0;
+
+    load_stream(file_to_open);
+    re_populate_items();
+    strcpy(cfg_file_path, file_to_open);
+    set_frame_title(strrchr(cfg_file_path, '\\')+1);
+    update_statusbar();
+    update_file_open_history(file_to_open);
+}
+
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
