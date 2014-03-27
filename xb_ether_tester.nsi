@@ -139,6 +139,7 @@ Section Uninstall
   Delete "$INSTDIR\WinPcap_4_1_3.exe"
   Delete "$INSTDIR\${MAIN_PROG_NAME}"
   Delete "$INSTDIR\release_notes.txt"
+  Delete "$INSTDIR\history"
 
   Delete "$SMPROGRAMS\$ICONS_GROUP\п╤ть ${PRODUCT_NAME}.lnk"
   Delete "$DESKTOP\${PRODUCT_NAME}.lnk"

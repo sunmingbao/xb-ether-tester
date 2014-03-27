@@ -37,6 +37,7 @@ int auto_clr_stats=0;
 int auto_clr_captured_pkts=0;
 
 char cfg_file_path[MAX_FILE_PATH_LEN];
+char file_to_open[MAX_FILE_PATH_LEN];
 
 BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam);
 
@@ -81,7 +82,6 @@ PKT_SAVE_PROC:
     if (IDCANCEL == ret) return 1;
     if (IDYES == ret)
     {
-        char file_name[MAX_FILE_PATH_LEN];
         file_name[0]=0;
         if (0==get_save_file_name(file_name, hwnd_frame, "pcap file(*.pcap)\0*.pcap\0\0", "pcap"))
             CopyFile(PKT_CAP_FILE_WHILE_SND,  file_name,  FALSE);
@@ -114,6 +114,45 @@ CLR_STAT:
     clear_stats();
 
     return 0;
+}
+
+void open_file()
+{
+    if (doc_save_proc()) return 0;
+
+    load_stream(file_to_open);
+    re_populate_items();
+    strcpy(cfg_file_path, file_to_open);
+    set_frame_title(strrchr(cfg_file_path, '\\')+1);
+    update_statusbar();
+}
+
+#define    HISTORY_FILE_NAME    "history"
+void populate_recent_files(HMENU	 hMenu)
+{
+    int i;
+    int file_num;
+    char    menu_name[64];
+    
+
+    for (i=0; i<MAX_RECENT_FILE_NUM; i++)
+        DeleteMenu(hMenu, 0, MF_BYPOSITION);
+
+
+    if (!file_exists(HISTORY_FILE_NAME))
+    {
+        fclose(fopen(HISTORY_FILE_NAME, "w"));
+    }
+
+    file_num=GetPrivateProfileInt("recent files", "FileNum", 0, HISTORY_FILE_NAME);
+
+    for (i=0; i<file_num; i++)
+    {
+        sprintf(menu_name, "&%d haha", i);
+        AppendMenu(hMenu, MF_STRING, ID_FILE_RECENT_FILE_BEGIN+i,  menu_name) ;
+    }
+
+    
 }
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -220,6 +259,8 @@ CreateStatusBar();
 
             ShowWindow (hwnd_tip, 0) ;
 
+            DragAcceptFiles(hwnd, TRUE);
+
             return 0 ;
 
 
@@ -306,12 +347,27 @@ CreateStatusBar();
 #endif
           	return 0 ;
 
+        case WM_INITMENU:
 
-        case WM_PAINT :
-            hdc = BeginPaint (hwnd, &ps) ;
-            //draw some thing here
-            EndPaint (hwnd, &ps) ;
-            return 0 ;
+            if (lParam == 0)
+            {
+                hMenu = GetMenu(hwnd);
+                hMenu = GetSubMenu(hMenu, 0);
+                hMenu = GetSubMenu(hMenu, 7);
+                populate_recent_files(hMenu);
+            }
+
+
+            return 0;
+
+        case WM_DROPFILES :
+            DragQueryFile((HDROP)wParam,
+                          0,
+                          file_to_open,
+                          sizeof(file_to_open));
+            DragFinish((HDROP)wParam);
+            open_file();
+            return 0;
 
         case 	WM_COMMAND:
             hMenu = GetMenu (hwnd) ;
@@ -553,10 +609,9 @@ PREPARE_LAUNCH:
 
                 case    IDM_FILE_SAVE_AS:
                 {
-                        char file_name[MAX_FILE_PATH_LEN];
-                        ret=get_save_file_name(file_name, hwnd, CFG_FILE_FILTER, CFG_FILE_SUFFIX);
+                        ret=get_save_file_name(file_to_open, hwnd, CFG_FILE_FILTER, CFG_FILE_SUFFIX);
                         if (ret) return 0 ;
-                        strcpy(cfg_file_path, file_name);
+                        strcpy(cfg_file_path, file_to_open);
                         set_frame_title(strrchr(cfg_file_path, '\\')+1);
                         save_stream(cfg_file_path);
                        	return 0 ;
@@ -575,26 +630,17 @@ PREPARE_LAUNCH:
                 
                 case    IDM_FILE_OPEN:
                 {
-                    char file_name[MAX_FILE_PATH_LEN];
-                    if (doc_save_proc()) return 0;
-                    if (0==get_open_file_name(file_name, hwnd, CFG_FILE_FILTER))
-                    {
-                        load_stream(file_name);
-                        re_populate_items();
-                        strcpy(cfg_file_path, file_name);
-                        set_frame_title(strrchr(cfg_file_path, '\\')+1);
-                        update_statusbar();
-
-                    }
+                    if (get_open_file_name(file_to_open, hwnd, CFG_FILE_FILTER))
+                        return 0;
+                    open_file();
                    	return 0 ;
                 }
 
                 case    IDM_VIEW_PCAP_FILE:
                 {
-                    char file_name[MAX_FILE_PATH_LEN];
-                    if (0==get_open_file_name(file_name, hwnd, "etherreal dump(*.pcap)\0*.pcap\0\0"))
+                    if (0==get_open_file_name(file_to_open, hwnd, "etherreal dump(*.pcap)\0*.pcap\0\0"))
                     {
-                        strcpy(pcap_file_to_view, file_name);
+                        strcpy(pcap_file_to_view, file_to_open);
                         DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hwnd, PktViewDlgProc);
                     }
                    	return 0 ;

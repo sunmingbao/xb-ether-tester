@@ -53,6 +53,11 @@ BEGIN
         		MENUITEM SEPARATOR
     	        MENUITEM "查看ethereal/wireshark存档", 	    IDM_VIEW_PCAP_FILE
         		MENUITEM SEPARATOR
+        		POPUP "最近打开的文件"
+			BEGIN
+				MENUITEM "&1 abc", 	ID_FILE_RECENT_FILE_BEGIN
+			END
+        		MENUITEM SEPARATOR
         		MENUITEM "退出(&X)", 				IDM_APP_EXIT
     	END
 
