@@ -127,12 +127,65 @@ void open_file()
     update_statusbar();
 }
 
-#define    HISTORY_FILE_NAME    "history"
+#define    HISTORY_FILE_NAME    "c:\\history"
+int read_next_filed(FILE *the_file, char *field_name, char *field_value)
+{
+    char line[MAX_FILE_PATH_LEN + 32];
+    char *sep, *tail;
+
+    if (NULL==fgets(line, sizeof(line), the_file)) 
+        return 1;
+
+    if (strlen(line)<3) return 1;
+
+    sep = strchr(line,'=');
+    if (sep==NULL) return 1;
+
+    *sep = 0;
+
+    tail = sep + strlen(sep+1);
+    while ((*tail == '\r') || (*tail == '\n'))
+    {
+        *tail=0;
+        tail--;
+    }
+    
+    if (field_name!=NULL)
+        strcpy(field_name, line);
+
+    if (field_value!=NULL)
+    strcpy(field_value, sep+1);
+
+    return 0;
+}
+
+int get_field_value_by_idx(char *file_path
+                        ,int idx
+                        ,char *field_value)
+{
+    FILE *history_file = fopen(file_path, "r");
+    int i;
+    int ret;
+    
+    //WinPrintf(NULL, "idx=%d",idx);
+    
+    for(i=0; i<=idx; i++)
+    {
+        ret=read_next_filed(history_file, NULL, field_value);
+        //WinPrintf(NULL, field_value);
+    }
+
+    fclose(history_file);
+    return ret;
+}
+
 void populate_recent_files(HMENU	 hMenu)
 {
     int i;
     int file_num;
-    char    menu_name[64];
+    char field_value[MAX_FILE_PATH_LEN];
+    char    menu_name[MAX_FILE_PATH_LEN + 8];
+    FILE *history_file;
     
 
     for (i=0; i<MAX_RECENT_FILE_NUM; i++)
@@ -141,18 +194,22 @@ void populate_recent_files(HMENU	 hMenu)
 
     if (!file_exists(HISTORY_FILE_NAME))
     {
-        fclose(fopen(HISTORY_FILE_NAME, "w"));
+        //fclose(fopen(HISTORY_FILE_NAME, "w"));
+        return;
     }
 
-    file_num=GetPrivateProfileInt("recent files", "FileNum", 0, HISTORY_FILE_NAME);
+    history_file = fopen(HISTORY_FILE_NAME, "r");
+    read_next_filed(history_file, NULL, field_value);
+    file_num = atoi(field_value);
 
     for (i=0; i<file_num; i++)
     {
-        sprintf(menu_name, "&%d haha", i);
+        read_next_filed(history_file, NULL, field_value);
+        sprintf(menu_name, "&%d %s", i, field_value);
         AppendMenu(hMenu, MF_STRING, ID_FILE_RECENT_FILE_BEGIN+i,  menu_name) ;
     }
 
-    
+    fclose(history_file);
 }
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -260,6 +317,13 @@ CreateStatusBar();
             ShowWindow (hwnd_tip, 0) ;
 
             DragAcceptFiles(hwnd, TRUE);
+            
+            set_frame_title(TEXT("无标题"));
+            ret=get_field_value_by_idx(HISTORY_FILE_NAME
+                        ,1
+                        ,file_to_open);
+
+            if (0==ret) open_file();
 
             return 0 ;
 
@@ -636,6 +700,26 @@ PREPARE_LAUNCH:
                    	return 0 ;
                 }
 
+                case    ID_FILE_RECENT_FILE_BEGIN+0:
+                case    ID_FILE_RECENT_FILE_BEGIN+1:
+                case    ID_FILE_RECENT_FILE_BEGIN+2:
+                case    ID_FILE_RECENT_FILE_BEGIN+3:
+                case    ID_FILE_RECENT_FILE_BEGIN+4:
+                case    ID_FILE_RECENT_FILE_BEGIN+5:
+                case    ID_FILE_RECENT_FILE_BEGIN+6:
+                case    ID_FILE_RECENT_FILE_BEGIN+7:
+                case    ID_FILE_RECENT_FILE_BEGIN+8:
+                case    ID_FILE_RECENT_FILE_BEGIN+9:
+                {
+                    get_field_value_by_idx(HISTORY_FILE_NAME
+                        ,item_id - ID_FILE_RECENT_FILE_BEGIN+1
+                        ,file_to_open);
+
+                    open_file();
+                    return 0 ;
+
+                }
+                    
                 case    IDM_VIEW_PCAP_FILE:
                 {
                     if (0==get_open_file_name(file_to_open, hwnd, "etherreal dump(*.pcap)\0*.pcap\0\0"))
@@ -748,7 +832,6 @@ void set_frame_title(TCHAR *file_name)
     TCHAR info[128];
     sprintf(info, TEXT("%s - %s"), szAppName, file_name);
     SetWindowText(hwnd_frame, info);
-
 }
 
 int create_windows(int iCmdShow)
@@ -761,8 +844,6 @@ int create_windows(int iCmdShow)
 
     ShowWindow (hwnd_frame, SW_MAXIMIZE) ;
     UpdateWindow (hwnd_frame) ;
-    set_frame_title(TEXT("无标题"));
-
 
     return 0;
 
