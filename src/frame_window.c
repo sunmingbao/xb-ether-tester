@@ -33,7 +33,7 @@ int display_toolbar=1;
 int display_statusbar=1;
 
 int query_clr_stats=1;
-int auto_clr_stats=0;
+int auto_clr_stats=2;
 int auto_clr_captured_pkts=0;
 
 char cfg_file_path[MAX_FILE_PATH_LEN];
@@ -97,7 +97,7 @@ STATS_PROC:
     if (!gt_pkt_stat.send_total && !gt_pkt_stat.rcv_total)
         return 0;
 
-    if (query_clr_stats)
+    if (auto_clr_stats==2)
     {
         ret= AskConfirmation_3state(hwnd_frame, TEXT("清空已有的统计?"), szAppName);
         if (IDCANCEL == ret) return 1;
@@ -117,8 +117,8 @@ CLR_STAT:
 }
 
 
-#define    HISTORY_FILE_NAME    "c:\\history"
-#define    HISTORY_FILE_NAME_TMP    "c:\\history.tmp"
+#define    HISTORY_FILE_NAME    ".\\history"
+#define    HISTORY_FILE_NAME_TMP    ".\\history.tmp"
 int read_next_filed(FILE *the_file, char *field_name, char *field_value)
 {
     char line[MAX_FILE_PATH_LEN + 32];
@@ -145,7 +145,7 @@ int read_next_filed(FILE *the_file, char *field_name, char *field_value)
         strcpy(field_name, line);
 
     if (field_value!=NULL)
-    strcpy(field_value, sep+1);
+        strcpy(field_value, sep+1);
 
     return 0;
 }
@@ -163,7 +163,6 @@ int get_field_value_by_idx(char *file_path
     for(i=0; i<=idx; i++)
     {
         ret=read_next_filed(history_file, NULL, field_value);
-        //WinPrintf(NULL, field_value);
     }
 
     fclose(history_file);
@@ -196,7 +195,7 @@ void populate_recent_files(HMENU	 hMenu)
     for (i=0; i<file_num; i++)
     {
         read_next_filed(history_file, NULL, field_value);
-        sprintf(menu_name, "&%d %s", i, field_value);
+        sprintf(menu_name, "&%d  %s", i, field_value);
         AppendMenu(hMenu, MF_STRING, ID_FILE_RECENT_FILE_BEGIN+i,  menu_name) ;
     }
 
@@ -208,27 +207,49 @@ void update_file_open_history(char *file_path)
     FILE *history_file_tmp = NULL;
     FILE *history_file = NULL;
     char field_value[MAX_FILE_PATH_LEN];
-    int len;
+    char line[MAX_FILE_PATH_LEN+64];
+    int len, i;
+    int old_file_num, new_file_num = 1;
 
-    delete_file_f(HISTORY_FILE_NAME_TMP);
     history_file_tmp = fopen(HISTORY_FILE_NAME_TMP, "w");
-    
+    len=sprintf(field_value
+        , "file_num=1  \n"
+          "file_0=%s\n"
+          , file_path);
+    fwrite(field_value, 1, len, history_file_tmp);
+
     if (!file_exists(HISTORY_FILE_NAME))
     {
-        len=sprintf(field_value
-            , "file_num=1\n"
-              "file_0=%s"
-              , file_path);
-        fwrite(field_value, 1, len, history_file_tmp);
         goto EXIT;
     }
 
     history_file = fopen(HISTORY_FILE_NAME, "r");
+    read_next_filed(history_file, NULL, field_value);
+    old_file_num = atoi(field_value);
+
+    for (i=0; i<old_file_num; i++)
+    {
+
+        read_next_filed(history_file, NULL, field_value);
+        if (0==strcmp(field_value, file_path)) continue;
+        len=sprintf(line, "file_%d=%s\n", new_file_num, field_value);
+        fwrite(line, 1, len, history_file_tmp);
+        new_file_num++;
+        if (new_file_num>=MAX_RECENT_FILE_NUM) break;
+
+    }
+
+    fseek(history_file_tmp, 0, SEEK_SET);
+    len=sprintf(line, "file_num=%d", new_file_num);
+    fwrite(line, 1, len, history_file_tmp);
 
 EXIT:
-    if (history_file_tmp != NULL) fclose(history_file_tmp);
-    if (history_file != NULL) fclose(history_file);
-    delete_file_f(HISTORY_FILE_NAME);
+    fclose(history_file_tmp);
+    if (history_file != NULL)
+    {
+        fclose(history_file);
+        delete_file_f(HISTORY_FILE_NAME);
+    }
     MoveFile(HISTORY_FILE_NAME_TMP, HISTORY_FILE_NAME);
 
     
@@ -589,28 +610,24 @@ CreateStatusBar();
        				return 0 ;
 
                 case    IDM_APP_QUERY_CLR_STATS:
-                    if (query_clr_stats)
-                    {
-                        query_clr_stats = 0;
-                        CheckMenuItem (hMenu, item_id, MF_UNCHECKED) ;
-                    }
-                    else
-                    {
-                        query_clr_stats = 1;
-                        CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
-                    }
+                    auto_clr_stats = 2;
+                    CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
+                    CheckMenuItem (hMenu, IDM_APP_CLR_STATS, MF_UNCHECKED) ;
+                    CheckMenuItem (hMenu, IDM_APP_NOT_CLR_STATS, MF_UNCHECKED) ;
 
        		        return 0 ;
 
                 case    IDM_APP_CLR_STATS:
                     auto_clr_stats = 1;
                     CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
+                    CheckMenuItem (hMenu, IDM_APP_QUERY_CLR_STATS, MF_UNCHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_NOT_CLR_STATS, MF_UNCHECKED) ;
        		        return 0 ;
 
                 case    IDM_APP_NOT_CLR_STATS:
                     auto_clr_stats = 0;
                     CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
+                    CheckMenuItem (hMenu, IDM_APP_QUERY_CLR_STATS, MF_UNCHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_CLR_STATS, MF_UNCHECKED) ;
        		        return 0 ;
 
@@ -710,9 +727,8 @@ PREPARE_LAUNCH:
                 {
                         ret=get_save_file_name(file_to_open, hwnd, CFG_FILE_FILTER, CFG_FILE_SUFFIX);
                         if (ret) return 0 ;
-                        strcpy(cfg_file_path, file_to_open);
-                        set_frame_title(strrchr(cfg_file_path, '\\')+1);
-                        save_stream(cfg_file_path);
+                        save_stream(file_to_open);
+                        open_file();
                        	return 0 ;
                 }
 
@@ -775,8 +791,9 @@ PREPARE_LAUNCH:
 
             if (lParam == 0)
             {
-                EnableMenuItem ((HMENU) wParam, IDM_APP_CLR_STATS, !query_clr_stats ? MF_ENABLED : MF_GRAYED);
-                EnableMenuItem ((HMENU) wParam, IDM_APP_NOT_CLR_STATS, !query_clr_stats ? MF_ENABLED : MF_GRAYED);
+                //EnableMenuItem ((HMENU) wParam, IDM_APP_QUERY_CLR_STATS, !query_clr_stats ? MF_ENABLED : MF_GRAYED);
+                //EnableMenuItem ((HMENU) wParam, IDM_APP_CLR_STATS, !query_clr_stats ? MF_ENABLED : MF_GRAYED);
+                //EnableMenuItem ((HMENU) wParam, IDM_APP_NOT_CLR_STATS, !query_clr_stats ? MF_ENABLED : MF_GRAYED);
 
                 return 0;
 

@@ -77,7 +77,7 @@ BEGIN
     	    BEGIN
     	    MENUITEM "询问是否清除统计", IDM_APP_QUERY_CLR_STATS, CHECKED
     	    MENUITEM "自动清空统计", 	 IDM_APP_CLR_STATS
-    	    MENUITEM "不清空统计", 	 IDM_APP_NOT_CLR_STATS, CHECKED
+    	    MENUITEM "不清空统计", 	     IDM_APP_NOT_CLR_STATS
 
     	    MENUITEM SEPARATOR
         	MENUITEM "询问是否保存抓到的报文", 	IDM_APP_QUERY_SAVE_CAPTURED_PKS, CHECKED

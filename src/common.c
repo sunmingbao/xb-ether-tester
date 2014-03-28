@@ -181,7 +181,7 @@ ofn.nFilterIndex = 2;
 ofn.lpstrFileTitle = NULL;
 ofn.nMaxFileTitle = 0;
 ofn.lpstrInitialDir = NULL;
-ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
 // Display the Open dialog box. 
 
@@ -210,7 +210,7 @@ int get_save_file_name(char *file_name, HWND hwnd, char *filter, char *ext)
 
     Ofn.lpstrFile= szFile; 
     Ofn.nMaxFile = MAX_FILE_PATH_LEN; 
-    Ofn.Flags = OFN_SHOWHELP | OFN_OVERWRITEPROMPT; 
+    Ofn.Flags = OFN_SHOWHELP | OFN_OVERWRITEPROMPT  | OFN_NOCHANGEDIR; 
     Ofn.lpstrTitle = "save to"; 
  
 
