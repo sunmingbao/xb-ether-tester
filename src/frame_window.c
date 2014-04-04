@@ -766,7 +766,10 @@ PREPARE_LAUNCH:
                         ,item_id - ID_FILE_RECENT_FILE_BEGIN+1
                         ,file_to_open);
 
-                    open_file();
+                    if (file_exists(file_to_open)) 
+                        open_file();
+                    else
+                        WinPrintf(hwnd, TEXT("文件 %s 不存在"), file_to_open);
                     return 0 ;
 
                 }
