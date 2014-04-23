@@ -209,5 +209,12 @@ int a_include_b_right(HWND a, HWND b);
 
 void clear_comb(HWND hwndCtl);
 int str2int(char *info);
+
+static inline void refresh_window(HWND hwnd)
+{
+    InvalidateRect(hwnd, NULL, TRUE);
+    UpdateWindow(hwnd);
+}
+
 #endif
 

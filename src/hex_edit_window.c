@@ -146,6 +146,9 @@ LRESULT CALLBACK hex_edit_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
     RECT		rect ;
     int cxClient, cyClient, line_num_cur_page, i;
     static SCROLLINFO  si ;
+    static 		int		iDeltaPerLine, iAccumDelta ;
+    ULONG  				ulScrollLines ;
+
     char buf[LINE_CHAR_NUM+16];
     static int row=0, col=LINE_NUMBER_CHAR_NUM;
 
@@ -167,7 +170,18 @@ static HMENU	hMenu ;
             si.nPos = 0 ;
 	        SetScrollInfo (hwnd, SB_VERT, &si, TRUE) ;
 
-            return 0 ;
+            //为了让下面的初始化代码能走到，这里不返回了。
+            //return 0 ;
+
+        case 	WM_SETTINGCHANGE:
+          		SystemParametersInfo (SPI_GETWHEELSCROLLLINES, 0, &ulScrollLines, 0) ;
+          		if (ulScrollLines)
+                            //这里一次滚动一行，与常见的实现不一样。
+               				iDeltaPerLine = WHEEL_DELTA; //WHEEL_DELTA / ulScrollLines ;
+          		else
+               				iDeltaPerLine = 0 ;
+
+        		return 0 ;
 
         case WM_SIZE:
       		cxClient = LOWORD (lParam) ;
@@ -318,6 +332,28 @@ case WM_VSCROLL:
 	}
 	return 0 ;
 
+        case 	WM_MOUSEWHEEL:
+      		if (iDeltaPerLine == 0)
+           				break ;
+
+      		iAccumDelta += (short) HIWORD (wParam) ;     // 120 or -120
+
+      		while (iAccumDelta >= iDeltaPerLine)
+      		{               
+           				SendMessage (hwnd, WM_VSCROLL, SB_LINEUP, 0) ;
+           				iAccumDelta -= iDeltaPerLine ;
+      		}
+
+      		while (iAccumDelta <= -iDeltaPerLine)
+      		{
+           				SendMessage (hwnd, WM_VSCROLL, SB_LINEDOWN, 0) ;
+           				iAccumDelta += iDeltaPerLine ;
+      		}
+
+      		return 0 ;
+
+
+
 case WM_GETDLGCODE:
    if(lParam)
    {
@@ -423,10 +459,27 @@ case WM_LBUTTONDOWN:
             line_data_len = (cur_data_len%16)?(cur_data_len%16):16;
         }
 
-        if (col<LINE_NUMBER_CHAR_NUM) col=LINE_NUMBER_CHAR_NUM;
-        if (col>=(LINE_NUMBER_CHAR_NUM+line_data_len*3)) 
-            col=(LINE_NUMBER_CHAR_NUM+line_data_len*3)-1;
-        if (2==(col-LINE_NUMBER_CHAR_NUM)%3) col--;
+        if (col<(LINE_NUMBER_CHAR_NUM+16*3 + 2)) 
+        {
+            if (col<LINE_NUMBER_CHAR_NUM) 
+                col=LINE_NUMBER_CHAR_NUM;
+            else if (col>=(LINE_NUMBER_CHAR_NUM+line_data_len*3))
+                col=(LINE_NUMBER_CHAR_NUM+line_data_len*3)-1;
+
+            if (2==(col-LINE_NUMBER_CHAR_NUM)%3) 
+                col--;
+
+        }
+        else if (col < (LINE_NUMBER_CHAR_NUM+16*3 + 3))
+        {
+            col = (LINE_NUMBER_CHAR_NUM+16*3 + 3);
+
+        }
+        else if (col >= (LINE_NUMBER_CHAR_NUM+16*3 + 3+line_data_len))
+        {
+            col = LINE_NUMBER_CHAR_NUM+16*3 + 3+line_data_len-1;
+
+        }
 
         
         if (GetFocus()!=hwnd)

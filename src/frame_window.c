@@ -381,6 +381,8 @@ CreateStatusBar();
 
             if (0==ret) open_file();
 
+            refresh_window(hwnd_frame) ;
+
             return 0 ;
 
 
@@ -486,7 +488,13 @@ CreateStatusBar();
                           file_to_open,
                           sizeof(file_to_open));
             DragFinish((HDROP)wParam);
-            open_file();
+            if (strstr(file_to_open, ".pcap")!=NULL)
+            {
+                strcpy(pcap_file_to_view, file_to_open);
+                DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hwnd, PktViewDlgProc);
+            }
+            else
+                open_file();
             return 0;
 
         case 	WM_COMMAND:
@@ -918,7 +926,7 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
     sprintf(info
         , "%s    V%c.%c.%c\r\n"
         "(编译时间: %s) \r\n\r\n"
-        "作者：孙明保 \r\n\r\n"
+        "作者：孙明保 (来自 ZTE中兴) \r\n\r\n"
         "======================\r\n\r\n"
         "本软件为免费、开源软件。\r\n"
         "本软件的版权(包括源码及二进制发布版本)归一切公众所有。\r\n"
