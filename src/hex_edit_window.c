@@ -15,7 +15,7 @@
 extern t_stream gt_edit_stream;
 
 TCHAR szHexEditWinClassName[] = TEXT ("hex_edit") ;
-
+HWND hwnd_hex_edit;
 TEXTMETRIC textmetric;
 int cxChar, cyChar;
 int is_read_only;
@@ -138,28 +138,150 @@ void get_a_b(int offset,int len, int cur_line, int *a, int *b)
 
 }
 
+static int row=0, col=LINE_NUMBER_CHAR_NUM;
+static SCROLLINFO  si ;
+
+void move_caret_right()
+{
+
+int cur_edit_line = cur_hdr_line+row;
+int line_data_idx = (col-LINE_NUMBER_CHAR_NUM - 48 - 3);
+int data_idx = cur_edit_line*16+line_data_idx;
+                if (data_idx<cur_data_len-1)
+                {
+                    if (col<LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3+16-1)
+                    {
+                        col++;
+                    }
+                    else
+                    {
+                        col = LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3;
+                        row++;
+                    }
+                }
+
+                
+
+                SetCaretPos(col*cxChar, row*cyChar);
+
+                if (row >= si.nPage)
+                    SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
+
+
+                InvalidateRect (hwnd_hex_edit, NULL, TRUE) ;
+
+}
+
+void char_input(char wParam)
+{
+                int line_data_idx;
+                int cur_edit_line;
+                int data_idx;
+                char old_value;
+
+                cur_edit_line = cur_hdr_line+row;
+        
+                line_data_idx = (col-LINE_NUMBER_CHAR_NUM - 48 - 3);
+                data_idx = cur_edit_line*16+line_data_idx;
+                old_value = test_buf[data_idx];
+
+                    
+
+                test_buf[data_idx]= wParam;
+                move_caret_right();
+                //SetCaretPos(cur_caret_x, cur_caret_y);
+                if (old_value != test_buf[data_idx])
+                stream_edit_data_change(GetParent(hwnd_hex_edit), data_idx);
+
+}
+
+void half_char_input(char wParam)
+{
+                int line_data_idx;
+                int write_high_bit = 1;
+                int cur_edit_line;
+                int data_idx;
+                char old_value;
+
+                cur_edit_line = cur_hdr_line+row;
+        
+                if (1==(col-LINE_NUMBER_CHAR_NUM)%3) write_high_bit = 0;
+                line_data_idx = (col-LINE_NUMBER_CHAR_NUM)/3;
+                data_idx = cur_edit_line*16+line_data_idx;
+                old_value = test_buf[data_idx];
+
+                if (wParam>='a' && wParam<='f')
+                    {
+                        wParam= wParam - 'a'+10;
+
+                    }
+                else if (wParam>='A' && wParam<='F')
+                    {
+                        wParam= wParam - 'A'+10;
+
+                    } 
+                else if (wParam>='0' && wParam<='9')
+                    {
+                        wParam= wParam - '0';
+
+                    }
+                    
+
+                if (write_high_bit)
+                {
+              		test_buf[data_idx]&=0xf;
+                    test_buf[data_idx]|= wParam<<4;
+                    col+=1;
+                }
+                else
+                {
+          		test_buf[data_idx]&=0xf0;
+                test_buf[data_idx]|= wParam;
+                if (data_idx<cur_data_len-1)
+                {
+                    if (col<LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM-2)
+                    {
+                        col+=2;
+                    }
+                }
+
+                
+
+                }
+                SetCaretPos(col*cxChar, row*cyChar);
+                InvalidateRect (hwnd_hex_edit, NULL, TRUE) ;
+                //SetCaretPos(cur_caret_x, cur_caret_y);
+                if (old_value != test_buf[data_idx])
+                stream_edit_data_change(GetParent(hwnd_hex_edit), data_idx);
+
+}
+
+void input_proc(char wParam)
+{
+    if (col<(LINE_NUMBER_CHAR_NUM+16*3)) 
+        half_char_input(wParam);
+    else
+        char_input(wParam);
+}
+
 LRESULT CALLBACK hex_edit_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc ;
     PAINTSTRUCT ps ;
-    HWND    hwnd_sub ;
     RECT		rect ;
     int cxClient, cyClient, line_num_cur_page, i;
-    static SCROLLINFO  si ;
     static 		int		iDeltaPerLine, iAccumDelta ;
     ULONG  				ulScrollLines ;
 
     char buf[LINE_CHAR_NUM+16];
-    static int row=0, col=LINE_NUMBER_CHAR_NUM;
 
 
-static HMENU	hMenu ;
     POINT point ;
     
     switch (message)
     {
         case WM_CREATE:
-
+            hwnd_hex_edit = hwnd;
             line_width = LINE_CHAR_NUM*cxChar;
             cur_data_len=gt_edit_stream.len;
             line_num = cur_data_len/16 + !!(cur_data_len%16);
@@ -362,70 +484,51 @@ case WM_GETDLGCODE:
         {
              return DLGC_WANTCHARS;
         }
+        
+        if( lpmsg->message == WM_KEYDOWN)
+        {
+             return DLGC_WANTARROWS;
+        }
+
    }
    return 0;
 
+case WM_KEYDOWN:
+{
+
+            switch (wParam)
+            {
+                case VK_LEFT:
+                {
+                    //move_caret_left();
+                    return 0;
+                }
+                case VK_RIGHT:
+                {
+                    move_caret_right();
+                    return 0;
+                }
+                case VK_UP:
+                {
+                    return 0;
+                }
+                case VK_DOWN:
+                {
+                    return 0;
+                }
+
+            }
+
+            
+            break;
+}
 
      	case 	 WM_CHAR:
         {
-                int line_data_idx;
-                int write_high_bit = 1;
-                int cur_edit_line;
-                int data_idx;
-                char old_value;
 
                 if (is_read_only) return 0;
+                input_proc(wParam);
 
-                cur_edit_line = cur_hdr_line+row;
-        
-                if (1==(col-LINE_NUMBER_CHAR_NUM)%3) write_high_bit = 0;
-                line_data_idx = (col-LINE_NUMBER_CHAR_NUM)/3;
-                data_idx = cur_edit_line*16+line_data_idx;
-                old_value = test_buf[data_idx];
-
-                if (wParam>='a' && wParam<='f')
-                    {
-                        wParam= wParam - 'a'+10;
-
-                    }
-                else if (wParam>='A' && wParam<='F')
-                    {
-                        wParam= wParam - 'A'+10;
-
-                    } 
-                else if (wParam>='0' && wParam<='9')
-                    {
-                        wParam= wParam - '0';
-
-                    }
-                    
-
-                if (write_high_bit)
-                {
-              		test_buf[data_idx]&=0xf;
-                    test_buf[data_idx]|= wParam<<4;
-                    col+=1;
-                }
-                else
-                {
-          		test_buf[data_idx]&=0xf0;
-                test_buf[data_idx]|= wParam;
-                if (data_idx<cur_data_len-1)
-                {
-                    if (col<LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM-2)
-                    {
-                        col+=2;
-                    }
-                }
-
-                
-
-                }
-                SetCaretPos(col*cxChar, row*cyChar);
-                InvalidateRect (hwnd, NULL, TRUE) ;
-                //SetCaretPos(cur_caret_x, cur_caret_y);
-                if (old_value != test_buf[data_idx])
-                stream_edit_data_change(GetParent(hwnd), data_idx);
           		return 0 ;
           }
 

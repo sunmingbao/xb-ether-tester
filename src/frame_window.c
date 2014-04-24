@@ -488,13 +488,15 @@ CreateStatusBar();
                           file_to_open,
                           sizeof(file_to_open));
             DragFinish((HDROP)wParam);
-            if (strstr(file_to_open, ".pcap")!=NULL)
+            if (strstr(file_to_open, "."PCAP_FILE_SUFFIX)!=NULL)
             {
                 strcpy(pcap_file_to_view, file_to_open);
                 DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hwnd, PktViewDlgProc);
             }
-            else
+            else if (strstr(file_to_open, "."CFG_FILE_SUFFIX)!=NULL)
                 open_file();
+            else
+                WinPrintf(hwnd, TEXT("不支持的文件类型"));
             return 0;
 
         case 	WM_COMMAND:
