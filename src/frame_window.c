@@ -656,6 +656,7 @@ PREPARE_LAUNCH:
                     if (0==get_open_file_name(file_to_open, hwnd, "etherreal dump(*.pcap)\0*.pcap\0\0"))
                     {
                         strcpy(pcap_file_to_view, file_to_open);
+                        update_pcap_file_history(pcap_file_to_view);
                         DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hwnd, PktViewDlgProc);
                     }
                    	return 0 ;
@@ -680,6 +681,7 @@ PREPARE_LAUNCH:
                     if (file_exists(file_to_open)) 
                     {
                         strcpy(pcap_file_to_view, file_to_open);
+                        update_pcap_file_history(pcap_file_to_view);
                         DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hwnd, PktViewDlgProc);
                     }
                     else
