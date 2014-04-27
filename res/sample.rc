@@ -53,7 +53,7 @@ BEGIN
         		MENUITEM SEPARATOR
     	        MENUITEM "查看ethereal/wireshark存档", 	    IDM_VIEW_PCAP_FILE
         		MENUITEM SEPARATOR
-        		POPUP "最近打开的文件"
+        		POPUP "最近访问的文件"
 			BEGIN
 				MENUITEM "&1 abc", 	ID_FILE_RECENT_FILE_BEGIN
 			END
@@ -167,8 +167,8 @@ BEGIN
 
     	CTEXT       "名称",IDC_STATIC,10,5,20,14
     	EDITTEXT    ID_SED_NAME,35, 5, 40, 11
-    	CTEXT       "包长(不含CRC)",IDC_STATIC,110,5,50,14
-    	EDITTEXT    ID_SED_LEN,180, 5, 30, 11, ES_NUMBER
+    	CTEXT       "包长(不含CRC)",IDC_STATIC,100,5,60,14
+    	EDITTEXT    ID_SED_LEN,160, 5, 30, 11, ES_NUMBER
 
         GROUPBOX    "自动更新",  IDC_STATIC, 10,20, 230, 45
 

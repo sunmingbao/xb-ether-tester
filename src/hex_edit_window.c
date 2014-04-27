@@ -141,124 +141,249 @@ void get_a_b(int offset,int len, int cur_line, int *a, int *b)
 static int row=0, col=LINE_NUMBER_CHAR_NUM;
 static SCROLLINFO  si ;
 
+int get_line_data_idx()
+{
+    if (col<=LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM-2)
+        return (col-LINE_NUMBER_CHAR_NUM)/3;
+
+    return (col-LINE_NUMBER_CHAR_NUM - LINE_DATA_CHAR_NUM - 3);
+
+}
+
+int get_line_data_len()
+{
+    if(row+cur_hdr_line==line_num-1)
+    {
+        return (cur_data_len%16)?(cur_data_len%16):16;
+    }
+
+    return 16;
+}
+
+int caret_at_right()
+{
+    return (col>=LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3);
+}
+
 void move_caret_right()
 {
 
-int cur_edit_line = cur_hdr_line+row;
-int line_data_idx = (col-LINE_NUMBER_CHAR_NUM - 48 - 3);
-int data_idx = cur_edit_line*16+line_data_idx;
-                if (data_idx<cur_data_len-1)
-                {
-                    if (col<LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3+16-1)
-                    {
-                        col++;
-                    }
-                    else
-                    {
-                        col = LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3;
-                        row++;
-                    }
-                }
+    int cur_edit_line = cur_hdr_line+row;
+    int line_data_idx = get_line_data_idx();
+    int data_idx = cur_edit_line*16+line_data_idx;
 
-                
+    if (data_idx>=cur_data_len-1) 
+    {
+        if (caret_at_right()) return;
+        if (col>=LINE_NUMBER_CHAR_NUM+get_line_data_len()*3-2) return;
 
-                SetCaretPos(col*cxChar, row*cyChar);
+    }
+        
+    if (caret_at_right())
+    {
+        if (col>=LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3+16-1)
+        {
+            col = LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3;
+            row++;
 
-                if (row >= si.nPage)
-                    SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
+        }
+        else
+        {
+            col++;
+        }
+
+    }
+    else if (data_idx<cur_data_len-1 || col>LINE_NUMBER_CHAR_NUM)
+    {
+        if (col>=LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM-2)
+        {
+            col = LINE_NUMBER_CHAR_NUM;
+            row++;
+
+        }
+        else
+        {
+           if (1==(col-LINE_NUMBER_CHAR_NUM)%3)
+               col+=2;
+           else
+               col++;
+        }
+
+    }
+
+    if (row >= si.nPage)
+        SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
+
+    SetCaretPos(col*cxChar, row*cyChar);
+    refresh_window(hwnd_hex_edit);
+}
+
+void move_caret_left()
+{
+
+    int cur_edit_line = cur_hdr_line+row;
+    int line_data_idx = get_line_data_idx();
+    int data_idx = cur_edit_line*16+line_data_idx;
+
+    if (data_idx<=0) 
+    {
+        if (caret_at_right()) return;
+        if (col<=LINE_NUMBER_CHAR_NUM) return;
+
+    }
+
+    
+    if (caret_at_right())
+    {
+        if (col>LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3)
+        {
+            col--;
+        }
+        else
+        {
+            col = LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3+16-1;
+            row--;
 
 
-                InvalidateRect (hwnd_hex_edit, NULL, TRUE) ;
+        }
+
+
+    }
+    else
+    {
+        if (col>LINE_NUMBER_CHAR_NUM)
+        {
+           if (1==(col-LINE_NUMBER_CHAR_NUM)%3)
+               col--;
+           else
+               col-=2;
+        }
+        
+        else
+        {
+            col = LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM - 2;
+            row--;
+        }
+
+    }
+
+    if (row < cur_hdr_line)
+        SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEUP, 0), 0);
+
+    SetCaretPos(col*cxChar, row*cyChar);
+    refresh_window(hwnd_hex_edit);
+}
+
+void move_caret_up()
+{
+
+    int cur_edit_line = cur_hdr_line+row;
+
+    if (cur_edit_line==0) return;
+        
+    row--;
+
+    if (row < cur_hdr_line)
+        SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEUP, 0), 0);
+
+    SetCaretPos(col*cxChar, row*cyChar);
+    refresh_window(hwnd_hex_edit);
+}
+
+void move_caret_down()
+{
+
+    int cur_edit_line = cur_hdr_line+row;
+
+    if (cur_edit_line==line_num - 1) return;
+        
+    row++;
+
+    if (row >= si.nPage)
+        SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
+
+    SetCaretPos(col*cxChar, row*cyChar);
+    refresh_window(hwnd_hex_edit);
 
 }
 
 void char_input(char wParam)
 {
-                int line_data_idx;
-                int cur_edit_line;
-                int data_idx;
-                char old_value;
+    int line_data_idx;
+    int cur_edit_line;
+    int data_idx;
+    char old_value;
 
-                cur_edit_line = cur_hdr_line+row;
+    cur_edit_line = cur_hdr_line+row;
+
+    line_data_idx = (col-LINE_NUMBER_CHAR_NUM - 48 - 3);
+    data_idx = cur_edit_line*16+line_data_idx;
+    old_value = test_buf[data_idx];
+
         
-                line_data_idx = (col-LINE_NUMBER_CHAR_NUM - 48 - 3);
-                data_idx = cur_edit_line*16+line_data_idx;
-                old_value = test_buf[data_idx];
 
-                    
-
-                test_buf[data_idx]= wParam;
-                move_caret_right();
-                //SetCaretPos(cur_caret_x, cur_caret_y);
-                if (old_value != test_buf[data_idx])
-                stream_edit_data_change(GetParent(hwnd_hex_edit), data_idx);
+    test_buf[data_idx]= wParam;
+    move_caret_right();
+    //SetCaretPos(cur_caret_x, cur_caret_y);
+    if (old_value != test_buf[data_idx])
+        stream_edit_data_change(GetParent(hwnd_hex_edit), data_idx);
 
 }
 
 void half_char_input(char wParam)
 {
-                int line_data_idx;
-                int write_high_bit = 1;
-                int cur_edit_line;
-                int data_idx;
-                char old_value;
+    int line_data_idx;
+    int write_high_bit = 1;
+    int cur_edit_line;
+    int data_idx;
+    char old_value;
 
-                cur_edit_line = cur_hdr_line+row;
+    cur_edit_line = cur_hdr_line+row;
+
+    if (1==(col-LINE_NUMBER_CHAR_NUM)%3) write_high_bit = 0;
+    line_data_idx = get_line_data_idx();
+    data_idx = cur_edit_line*16+line_data_idx;
+    old_value = test_buf[data_idx];
+
+    if (wParam>='a' && wParam<='f')
+        {
+            wParam= wParam - 'a'+10;
+
+        }
+    else if (wParam>='A' && wParam<='F')
+        {
+            wParam= wParam - 'A'+10;
+
+        } 
+    else if (wParam>='0' && wParam<='9')
+        {
+            wParam= wParam - '0';
+
+        }
         
-                if (1==(col-LINE_NUMBER_CHAR_NUM)%3) write_high_bit = 0;
-                line_data_idx = (col-LINE_NUMBER_CHAR_NUM)/3;
-                data_idx = cur_edit_line*16+line_data_idx;
-                old_value = test_buf[data_idx];
 
-                if (wParam>='a' && wParam<='f')
-                    {
-                        wParam= wParam - 'a'+10;
+    if (write_high_bit)
+    {
+  		test_buf[data_idx]&=0xf;
+        test_buf[data_idx]|= wParam<<4;
+    }
+    else
+    {
+  		test_buf[data_idx]&=0xf0;
+        test_buf[data_idx]|= wParam;
 
-                    }
-                else if (wParam>='A' && wParam<='F')
-                    {
-                        wParam= wParam - 'A'+10;
+    }
 
-                    } 
-                else if (wParam>='0' && wParam<='9')
-                    {
-                        wParam= wParam - '0';
+    move_caret_right();
 
-                    }
-                    
-
-                if (write_high_bit)
-                {
-              		test_buf[data_idx]&=0xf;
-                    test_buf[data_idx]|= wParam<<4;
-                    col+=1;
-                }
-                else
-                {
-          		test_buf[data_idx]&=0xf0;
-                test_buf[data_idx]|= wParam;
-                if (data_idx<cur_data_len-1)
-                {
-                    if (col<LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM-2)
-                    {
-                        col+=2;
-                    }
-                }
-
-                
-
-                }
-                SetCaretPos(col*cxChar, row*cyChar);
-                InvalidateRect (hwnd_hex_edit, NULL, TRUE) ;
-                //SetCaretPos(cur_caret_x, cur_caret_y);
-                if (old_value != test_buf[data_idx])
-                stream_edit_data_change(GetParent(hwnd_hex_edit), data_idx);
+    if (old_value != test_buf[data_idx])
+        stream_edit_data_change(GetParent(hwnd_hex_edit), data_idx);
 
 }
 
 void input_proc(char wParam)
 {
-    if (col<(LINE_NUMBER_CHAR_NUM+16*3)) 
+    if (!caret_at_right()) 
         half_char_input(wParam);
     else
         char_input(wParam);
@@ -321,7 +446,7 @@ LRESULT CALLBACK hex_edit_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
         case WM_PAINT :
         {
             int cur_edit_line = cur_hdr_line+row;
-            int line_data_idx = (col-LINE_NUMBER_CHAR_NUM)/3;
+            int line_data_idx = get_line_data_idx();
             hdc = BeginPaint (hwnd, &ps) ;
             SelectObject(hdc, GetStockObject(SYSTEM_FIXED_FONT)) ;
 
@@ -383,8 +508,16 @@ LRESULT CALLBACK hex_edit_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
                     SetBkColor(hdc, RGB(0x00,0x00,0x00));
                     SetTextColor(hdc, RGB(0xff,0xff,0xff)) ;
 
-        		    TextOutA(hdc, cxChar*(LINE_DATA_READABLE_OFFSET+line_data_idx), i*cyChar
-                    , buf+LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+line_data_idx, 1) ; 
+                    if (!caret_at_right())
+                    {
+            		    TextOutA(hdc, cxChar*(LINE_DATA_READABLE_OFFSET+line_data_idx), i*cyChar
+                        , buf+LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+line_data_idx, 1) ; 
+                    }
+                    else
+                    {
+            		    TextOutA(hdc, cxChar*(LINE_NUMBER_CHAR_NUM+line_data_idx*3), i*cyChar
+                        , buf+LINE_NUMBER_CHAR_NUM+line_data_idx*3, 2) ; 
+                    }
 
                 }
 
@@ -500,7 +633,7 @@ case WM_KEYDOWN:
             {
                 case VK_LEFT:
                 {
-                    //move_caret_left();
+                    move_caret_left();
                     return 0;
                 }
                 case VK_RIGHT:
@@ -510,10 +643,12 @@ case WM_KEYDOWN:
                 }
                 case VK_UP:
                 {
+                    move_caret_up();
                     return 0;
                 }
                 case VK_DOWN:
                 {
+                    move_caret_down();
                     return 0;
                 }
 
@@ -556,11 +691,9 @@ case WM_LBUTTONDOWN:
         pt_tmp.y = (short)HIWORD(lParam);
         col = pt_tmp.x/cxChar;
         row = pt_tmp.y/cyChar;
+        
         if (row+cur_hdr_line>=line_num) row=line_num-cur_hdr_line-1;
-        if(row+cur_hdr_line==line_num-1)
-        {
-            line_data_len = (cur_data_len%16)?(cur_data_len%16):16;
-        }
+        line_data_len = get_line_data_len();
 
         if (col<(LINE_NUMBER_CHAR_NUM+16*3 + 2)) 
         {

@@ -3049,6 +3049,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
                         if (ret) return TRUE;
 
                         sel_pkt_to_pcap_dump(hlv, file_name);
+                        update_file_open_history(file_name);
                         return TRUE ;
                     }
 

@@ -799,6 +799,7 @@ case WM_NOTIFY:
                     if (ret) return 0 ;
 
        				stream2dump(file_name);
+                    update_file_open_history(file_name);
        				return 0 ;
                 }
 
