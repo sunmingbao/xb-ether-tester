@@ -338,9 +338,19 @@ void move_caret_down()
     {
     
         line_data_len = get_line_data_len();
-        if (col>LINE_NUMBER_CHAR_NUM+line_data_len*3-2)
+        if (!caret_at_right())
         {
-            col = LINE_NUMBER_CHAR_NUM+line_data_len*3-2;
+            if (col>LINE_NUMBER_CHAR_NUM+line_data_len*3-2)
+            {
+                col = LINE_NUMBER_CHAR_NUM+line_data_len*3-2;
+            }
+        }
+        else
+        {
+            if (col>=LINE_DATA_READABLE_OFFSET+line_data_len)
+            {
+                col = LINE_DATA_READABLE_OFFSET+line_data_len-1;
+            }
         }
 
     }
