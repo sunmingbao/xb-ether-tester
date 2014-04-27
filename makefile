@@ -47,6 +47,7 @@ OBJECTS :=  \
 	$(OBJ_DIR)\stats_window.o \
 	$(OBJ_DIR)\stream_edit_dlg.o \
 	$(OBJ_DIR)\net.o \
+	$(OBJ_DIR)\history.o \
 	$(OBJ_DIR)\common.o \
 	$(OBJ_DIR)\res.orc
 
@@ -98,6 +99,9 @@ $(OBJ_DIR)\stream_edit_dlg.o: $(PRJ_DIR)\src\stream_edit_dlg.c
 	$(CC) -c $(CFLAG) -o $@  $<
 
 $(OBJ_DIR)\net.o: $(PRJ_DIR)\src\net.c
+	$(CC) -c $(CFLAG) -o $@  $<
+
+$(OBJ_DIR)\history.o: $(PRJ_DIR)\src\history.c
 	$(CC) -c $(CFLAG) -o $@  $<
 
 $(OBJ_DIR)\common.o: $(PRJ_DIR)\src\common.c

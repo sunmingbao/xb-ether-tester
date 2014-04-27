@@ -13,7 +13,7 @@
 #include "res.h"
 #include "net.h"
 
-const char version[4]={'2','5','7','0'};
+const char version[4]={'2','6','0','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -799,7 +799,7 @@ case WM_NOTIFY:
                     if (ret) return 0 ;
 
        				stream2dump(file_name);
-                    update_file_open_history(file_name);
+                    update_pcap_file_history(file_name);
        				return 0 ;
                 }
 

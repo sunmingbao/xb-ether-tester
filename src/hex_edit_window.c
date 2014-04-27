@@ -165,12 +165,22 @@ int caret_at_right()
     return (col>=LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3);
 }
 
+void refresh_row(int row_to_refresh)
+{
+    RECT rect;
+    GetClientRect(hwnd_hex_edit, &rect);
+    rect.top = (row_to_refresh)*cyChar;
+    rect.bottom = (row_to_refresh+1)*cyChar;
+    InvalidateRect(hwnd_hex_edit, &rect, FALSE);
+}
+
 void move_caret_right()
 {
 
     int cur_edit_line = cur_hdr_line+row;
     int line_data_idx = get_line_data_idx();
     int data_idx = cur_edit_line*16+line_data_idx;
+    int row_changed=0;
 
     if (data_idx>=cur_data_len-1) 
     {
@@ -185,6 +195,7 @@ void move_caret_right()
         {
             col = LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3;
             row++;
+            row_changed = 1;
 
         }
         else
@@ -199,6 +210,7 @@ void move_caret_right()
         {
             col = LINE_NUMBER_CHAR_NUM;
             row++;
+            row_changed = 1;
 
         }
         else
@@ -207,15 +219,24 @@ void move_caret_right()
                col+=2;
            else
                col++;
+
         }
 
     }
 
     if (row >= si.nPage)
         SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
-
-    SetCaretPos(col*cxChar, row*cyChar);
-    refresh_window(hwnd_hex_edit);
+    else if (!row_changed)
+    {
+        SetCaretPos(col*cxChar, row*cyChar);
+        refresh_row(row);
+    }
+    else
+    {
+        SetCaretPos(col*cxChar, row*cyChar);
+        refresh_row(row-1);
+        refresh_row(row);
+    }
 }
 
 void move_caret_left()
@@ -224,7 +245,7 @@ void move_caret_left()
     int cur_edit_line = cur_hdr_line+row;
     int line_data_idx = get_line_data_idx();
     int data_idx = cur_edit_line*16+line_data_idx;
-
+    int row_changed = 0;
     if (data_idx<=0) 
     {
         if (caret_at_right()) return;
@@ -243,7 +264,7 @@ void move_caret_left()
         {
             col = LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM+3+16-1;
             row--;
-
+            row_changed = 1;
 
         }
 
@@ -257,21 +278,31 @@ void move_caret_left()
                col--;
            else
                col-=2;
+
         }
         
         else
         {
             col = LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM - 2;
             row--;
+            row_changed = 1;
         }
 
     }
 
-    if (row < cur_hdr_line)
+    if (row < 0)
         SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEUP, 0), 0);
-
-    SetCaretPos(col*cxChar, row*cyChar);
-    refresh_window(hwnd_hex_edit);
+    else if (!row_changed)
+    {
+        SetCaretPos(col*cxChar, row*cyChar);
+        refresh_row(row);
+    }
+    else
+    {
+        SetCaretPos(col*cxChar, row*cyChar);
+        refresh_row(row+1);
+        refresh_row(row);
+    }
 }
 
 void move_caret_up()
@@ -285,26 +316,43 @@ void move_caret_up()
 
     if (row < cur_hdr_line)
         SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEUP, 0), 0);
-
-    SetCaretPos(col*cxChar, row*cyChar);
-    refresh_window(hwnd_hex_edit);
+    else 
+    {
+        SetCaretPos(col*cxChar, row*cyChar);
+        refresh_row(row+1);
+        refresh_row(row);
+    }
 }
 
 void move_caret_down()
 {
 
     int cur_edit_line = cur_hdr_line+row;
+    int line_data_len;
 
     if (cur_edit_line==line_num - 1) return;
         
     row++;
 
+    if (cur_hdr_line+row==line_num - 1)
+    {
+    
+        line_data_len = get_line_data_len();
+        if (col>LINE_NUMBER_CHAR_NUM+line_data_len*3-2)
+        {
+            col = LINE_NUMBER_CHAR_NUM+line_data_len*3-2;
+        }
+
+    }
+
     if (row >= si.nPage)
         SendMessage(hwnd_hex_edit, WM_VSCROLL, MAKEWPARAM(SB_LINEDOWN, 0), 0);
-
-    SetCaretPos(col*cxChar, row*cyChar);
-    refresh_window(hwnd_hex_edit);
-
+    else
+    {
+        SetCaretPos(col*cxChar, row*cyChar);
+        refresh_row(row-1);
+        refresh_row(row);
+    }
 }
 
 void char_input(char wParam)
@@ -316,14 +364,14 @@ void char_input(char wParam)
 
     cur_edit_line = cur_hdr_line+row;
 
-    line_data_idx = (col-LINE_NUMBER_CHAR_NUM - 48 - 3);
-    data_idx = cur_edit_line*16+line_data_idx;
+    line_data_idx = (col-LINE_DATA_READABLE_OFFSET);
+    data_idx = cur_edit_line*LINE_DATA_LEN+line_data_idx;
     old_value = test_buf[data_idx];
 
         
 
     test_buf[data_idx]= wParam;
-    move_caret_right();
+
     //SetCaretPos(cur_caret_x, cur_caret_y);
     if (old_value != test_buf[data_idx])
         stream_edit_data_change(GetParent(hwnd_hex_edit), data_idx);
@@ -374,8 +422,6 @@ void half_char_input(char wParam)
 
     }
 
-    move_caret_right();
-
     if (old_value != test_buf[data_idx])
         stream_edit_data_change(GetParent(hwnd_hex_edit), data_idx);
 
@@ -387,6 +433,10 @@ void input_proc(char wParam)
         half_char_input(wParam);
     else
         char_input(wParam);
+
+    refresh_window(hwnd_hex_edit);
+
+    move_caret_right();
 }
 
 LRESULT CALLBACK hex_edit_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -578,12 +628,10 @@ case WM_VSCROLL:
 		// If the position has changed, scroll the window and update it
 	if (si.nPos != cur_hdr_line)
    	{
-		InvalidateRect (hwnd, NULL, TRUE) ;
-        //SetFocus(GetParent(hwnd));
         row-=(si.nPos-cur_hdr_line);
-        SetCaretPos(col*cxChar, row*cyChar);
-        //ShowCaret(hwnd);
         cur_hdr_line = si.nPos;
+        refresh_window(hwnd) ;
+        SetCaretPos(col*cxChar, row*cyChar);
 	}
 	return 0 ;
 
@@ -695,7 +743,7 @@ case WM_LBUTTONDOWN:
         if (row+cur_hdr_line>=line_num) row=line_num-cur_hdr_line-1;
         line_data_len = get_line_data_len();
 
-        if (col<(LINE_NUMBER_CHAR_NUM+16*3 + 2)) 
+        if (col<(LINE_NUMBER_CHAR_NUM+LINE_DATA_CHAR_NUM + 2)) 
         {
             if (col<LINE_NUMBER_CHAR_NUM) 
                 col=LINE_NUMBER_CHAR_NUM;
@@ -706,14 +754,14 @@ case WM_LBUTTONDOWN:
                 col--;
 
         }
-        else if (col < (LINE_NUMBER_CHAR_NUM+16*3 + 3))
+        else if (col < (LINE_DATA_READABLE_OFFSET))
         {
-            col = (LINE_NUMBER_CHAR_NUM+16*3 + 3);
+            col = LINE_DATA_READABLE_OFFSET;
 
         }
-        else if (col >= (LINE_NUMBER_CHAR_NUM+16*3 + 3+line_data_len))
+        else if (col >= (LINE_DATA_READABLE_OFFSET+line_data_len))
         {
-            col = LINE_NUMBER_CHAR_NUM+16*3 + 3+line_data_len-1;
+            col = LINE_DATA_READABLE_OFFSET+line_data_len-1;
 
         }
 

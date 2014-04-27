@@ -51,12 +51,19 @@ BEGIN
     	        MENUITEM "保存(&S)\tCtrl+S", 				IDM_FILE_SAVE
     	        MENUITEM "另存为(&A)...", 			IDM_FILE_SAVE_AS
         		MENUITEM SEPARATOR
-    	        MENUITEM "查看ethereal/wireshark存档", 	    IDM_VIEW_PCAP_FILE
+    	        MENUITEM "查看pcap文件(wireshark存档)", 	    IDM_VIEW_PCAP_FILE
         		MENUITEM SEPARATOR
-        		POPUP "最近访问的文件"
-			BEGIN
-				MENUITEM "&1 abc", 	ID_FILE_RECENT_FILE_BEGIN
-			END
+        		
+        		POPUP "最近访问的配置文件"
+			    BEGIN
+				    MENUITEM "&1 abc", 	ID_FILE_RECENT_CFG_FILE_BEGIN
+			    END
+			    
+			    POPUP "最近访问的pcap文件"
+			    BEGIN
+				    MENUITEM "&1 abc", 	ID_FILE_RECENT_PCAP_FILE_BEGIN
+			    END
+
         		MENUITEM SEPARATOR
         		MENUITEM "退出(&X)", 				IDM_APP_EXIT
     	END
@@ -136,7 +143,7 @@ END
 
 
 // Dialog
-ABOUTBOX DIALOG DISCARDABLE  32, 32, 250, 200
+ABOUTBOX DIALOG DISCARDABLE  0, 0, 250, 200
 STYLE DS_MODALFRAME | WS_POPUP
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -146,11 +153,11 @@ BEGIN
     	PUSHBUTTON  "升级", ID_AB_UPDATE,5, 90, 35, 14
     	CONTROL "", ID_ABOUT_INFO, "edit"
     	, WS_BORDER|WS_VSCROLL | ES_MULTILINE|ES_AUTOVSCROLL|ES_WANTRETURN|ES_READONLY
-    	, 45, 10, 190, 160
+    	, 45, 10, 190, 166
 
     	//CTEXT       "About Box Demo Program",IDC_STATIC,7,40,166,8
     	//CTEXT       "(c) Charles Petzold, 1998",IDC_STATIC,7,52,166,8
-    	DEFPUSHBUTTON   "确定",IDOK,100,180,50,14
+    	DEFPUSHBUTTON   "确定",IDOK,100,181,50,14
 END
 
 // Dialog

@@ -2971,6 +2971,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
      	switch (message)
      	{
      	case 	WM_INITDIALOG :
+                update_pcap_file_history(pcap_file_to_view);
                 init_ui_pkt_view(hDlg);
                 center_child_win(hwnd_frame, hDlg);
                 SetFocus(GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW));
@@ -3049,7 +3050,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
                         if (ret) return TRUE;
 
                         sel_pkt_to_pcap_dump(hlv, file_name);
-                        update_file_open_history(file_name);
+                        update_pcap_file_history(file_name);
                         return TRUE ;
                     }
 

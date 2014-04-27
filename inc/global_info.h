@@ -191,6 +191,12 @@ void init_protocol_comb(HWND comb, int add_all);
 extern HWND hPktCapDlg;
 void update_pkt_cap_stats(t_ether_packet *pt_pkt);
 
+void populate_recent_cfg_files(HMENU hMenu);
+void update_cfg_file_history(char *file_name);
+int get_history_cfg_file_by_idx(int idx, char *field_value);
+int get_history_pcap_file_by_idx(int idx, char *field_value);
+void update_pcap_file_history(char *file_name);
+void populate_recent_pcap_files(HMENU hMenu);
 
 #define SAMPLE_PKT_LEN 74
 extern unsigned char sample_pkt[SAMPLE_PKT_LEN];
