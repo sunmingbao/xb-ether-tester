@@ -60,20 +60,29 @@ void get_all_devs()
     }
 }
 
-void rx_tx_init()
+void fc_and_pkt_cap_init()
 {
     gt_pkt_cap_cfg.need_save_capture=1;
     gt_pkt_cap_cfg.pkt_cap_cfg_mode= PKT_CAP_CFG_MODE_NORMAL;
+    gt_pkt_cap_cfg.filter_str_usr[0]=0;
     gt_pkt_cap_cfg.pkt_cap_pkt_type=PKT_CAP_PKT_TYPE_ALL;
+    
+    gt_pkt_cap_cfg.pkt_cap_sip=0;
+    gt_pkt_cap_cfg.pkt_cap_dip=0;
+
     gt_pkt_cap_cfg.pkt_cap_protocol=-1;
     gt_pkt_cap_cfg.pkt_cap_sport=-1;
     gt_pkt_cap_cfg.pkt_cap_dport=-1;
 
     gt_fc_cfg.speed_type = SPEED_TYPE_HIGH;
     gt_fc_cfg.speed_value= 1000;
+    gt_fc_cfg.snd_mode= SND_MODE_CONTINUE;
     gt_fc_cfg.snd_times_cnt = -1;
-    update_fc_gap();
-    
+
+}
+
+void rx_tx_init()
+{
     get_all_devs();
 }
 
@@ -400,6 +409,7 @@ int select_if(int idx)
 DWORD WINAPI  wpcap_snd_test(LPVOID lpParameter)
 {
     rule_fileds_init_all_pkt();
+    update_fc_gap();
     snd_started=1;
     send_times_cnt=0;
     while (!rcv_started) Sleep(1);
@@ -521,7 +531,7 @@ int load_stream(char *file_path)
 
     fread(version_tmp, sizeof(version), 1, file);
     fread(&gt_fc_cfg, sizeof(gt_fc_cfg), 1, file);
-    update_fc_gap();
+
     fread(&gt_pkt_cap_cfg, PKT_CAP_CFG_FIX_LEN, 1, file);
     fread(gt_pkt_cap_cfg.filter_str_usr, gt_pkt_cap_cfg.filter_str_len, 1, file);
     gt_pkt_cap_cfg.filter_str_usr[gt_pkt_cap_cfg.filter_str_len]=0;

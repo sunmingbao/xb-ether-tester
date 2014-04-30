@@ -13,7 +13,7 @@
 #include "res.h"
 #include "net.h"
 
-const char version[4]={'2','6','2','0'};
+const char version[4]={'2','6','3','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -628,10 +628,8 @@ LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             old_lv_proc = (WNDPROC) SetWindowLong (hwnd_lv, 
                                  	GWL_WNDPROC, (LONG)my_lv_proc) ;
 
-
-
-            ShowWindow (hwnd_lv, 1) ;
-            UpdateWindow (hwnd_lv) ;
+            ShowWindow(hwnd_lv, 1) ;
+            refresh_window(hwnd_lv) ;
 
            add_tip(hwndTip, hwnd_lv, TEXT("点击鼠标右键进行操作"));
 

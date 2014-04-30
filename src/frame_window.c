@@ -129,6 +129,20 @@ void open_file()
     update_cfg_file_history(file_to_open);
 }
 
+void new_cfg()
+{
+    cap_save_cnt= 0;
+    cap_save_bytes_cnt = 0;
+    clear_stats();
+
+    del_all_streams();
+    fc_and_pkt_cap_init();
+    update_statusbar();
+    cfg_file_path[0]=0;
+    set_frame_title(TEXT("无标题"));
+    doc_modified=0;
+
+}
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -236,12 +250,12 @@ CreateStatusBar();
 
             DragAcceptFiles(hwnd, TRUE);
             
-            set_frame_title(TEXT("无标题"));
             ret=get_history_cfg_file_by_idx(1, file_to_open);
 
-            if (0==ret) open_file();
-
-            refresh_window(hwnd_frame) ;
+            if (0==ret) 
+                open_file();
+            else
+                new_cfg();
 
             return 0 ;
 
@@ -335,12 +349,12 @@ CreateStatusBar();
             {
                 hMenu = GetMenu(hwnd);
                 hMenu = GetSubMenu(hMenu, 0);
-                hMenu = GetSubMenu(hMenu, 7);
+                hMenu = GetSubMenu(hMenu, 8);
                 populate_recent_cfg_files(hMenu);
 
                 hMenu = GetMenu(hwnd);
                 hMenu = GetSubMenu(hMenu, 0);
-                hMenu = GetSubMenu(hMenu, 8);
+                hMenu = GetSubMenu(hMenu, 9);
                 populate_recent_pcap_files(hMenu);
 
             }
@@ -611,11 +625,7 @@ PREPARE_LAUNCH:
                 case    IDM_FILE_NEW:
                 {
                     if (doc_save_proc()) return 0;
-                    del_all_streams();
-                    update_statusbar();
-                    cfg_file_path[0]=0;
-                    set_frame_title(TEXT("无标题"));
-                    doc_modified=0;
+                    new_cfg();
                     return 0 ;
                 }
                 

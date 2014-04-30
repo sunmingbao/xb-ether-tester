@@ -163,6 +163,7 @@ extern HWND    hwnd_capture_checkbox;
 extern int need_capture;
 
 void rx_tx_init();
+void fc_and_pkt_cap_init();
 void init_net_card_combbox(HWND hwnd_comb);
 int select_if(int idx);
 int is_filter_valid(char *packet_filter);
