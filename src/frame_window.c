@@ -252,10 +252,19 @@ CreateStatusBar();
             
             ret=get_history_cfg_file_by_idx(1, file_to_open);
 
-            if (0==ret) 
-                open_file();
-            else
+            if (ret) 
+            {
                 new_cfg();
+                return 0 ;
+            }
+            
+            if (!file_exists(file_to_open)) 
+            {
+                new_cfg();
+                return 0 ;
+            }
+
+            open_file();
 
             return 0 ;
 
@@ -650,8 +659,10 @@ PREPARE_LAUNCH:
                 {
                     if (get_history_cfg_file_by_idx(item_id - ID_FILE_RECENT_CFG_FILE_BEGIN+1
                         ,file_to_open))
-
-                    return 0;
+                    {
+                        WinPrintf(hwnd, TEXT("读取历史文件条目失败"));
+                        return 0;
+                    }
 
                     if (file_exists(file_to_open)) 
                         open_file();
