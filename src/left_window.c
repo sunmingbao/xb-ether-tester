@@ -228,7 +228,7 @@ void ui_update_fc_cfg(HWND hDlg)
     }
     else
     {
-        enable_speed_value(hDlg, 1);
+        enable_speed_value(hDlg, 1000);
 
         if (SPEED_TYPE_HIGH==ret)
         {
@@ -238,7 +238,7 @@ void ui_update_fc_cfg(HWND hDlg)
         else 
         {
             SetDlgItemText(hDlg, ID_FC_SPEED_INFO_PREFFIX, "每");
-            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_SUFFIX, "秒一次");
+            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_SUFFIX, "微秒一次");
         }
     }
     ret=SendMessage(GetDlgItem(hDlg, ID_FC_SND_MODE)

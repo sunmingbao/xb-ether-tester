@@ -515,8 +515,8 @@ void update_fc_gap()
     }
     else
     {
-        snd_gap_s = gt_fc_cfg.speed_value;
-        snd_gap_us = 0;
+        snd_gap_s = gt_fc_cfg.speed_value/1000000;
+        snd_gap_us = gt_fc_cfg.speed_value%1000000;
     
     }
 

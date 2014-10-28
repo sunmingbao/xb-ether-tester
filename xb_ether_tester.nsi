@@ -13,7 +13,7 @@
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "小兵以太网测试仪"
 !define PRODUCT_NAME_EN "xb_ether_tester"
-!define PRODUCT_VERSION "2.6.4"
+!define PRODUCT_VERSION "2.6.5"
 !define PRODUCT_PUBLISHER "孙明保"
 !define MAIN_PROG_NAME "xb_ether_tester.exe"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_PROG_NAME}"
@@ -30,6 +30,8 @@ SetCompressor lzma
 !define MUI_ABORTWARNING
 !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+;!define MUI_ICON "res\sample.ico"
+;!define MUI_UNICON "res\sample.ico"
 
 ; Welcome page
 !insertmacro MUI_PAGE_WELCOME
