@@ -544,7 +544,7 @@ CHECK_FILTER:
         
     if (!is_filter_valid(str_filter_output))
     {
-        WinPrintf(hDlg, "invalid packet capture filter:%s", str_filter_output);
+        err_msg_box("非法的过滤字符串:%s", str_filter_output);
         return 1 ;
     }
 
@@ -651,46 +651,45 @@ BOOL CALLBACK PktCapCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
    				return TRUE ;
 
      	case 	WM_COMMAND :
-          		switch (LOWORD(wParam))
-          		{
-              		case 	IDOK :
-                    {
-                        if (get_pkt_cap_cfg(hDlg, info))
-                        {
+		switch (LOWORD(wParam))
+		{
+			case    IDOK :
+			{
+    			if (get_pkt_cap_cfg(hDlg, info))
+    			{
+    			    return TRUE;
+    			}
+    			doc_modified=1;
+			}
 
-                            return TRUE;
-                        }
-                        doc_modified=1;
-                    }
-
-              		case 	IDCANCEL :
-               				EndDialog (hDlg, LOWORD(wParam)) ;
-                            update_statusbar();
-               				return TRUE ;
-                            
-
-                    case 	ID_PKT_CAP_CFG_MODE_NORMAL:
-                    {
-                        ui_switch_CAP_CFG_MODE(hDlg, 1);
-                        return TRUE ;
-                    }
-
-                    case 	ID_PKT_CAP_CFG_MODE_ADVANCED:
-                    {
-                        ui_switch_CAP_CFG_MODE(hDlg, 0);
-                        return TRUE ;
-                    }
-                    
-                    case 	ID_PKT_CAP_PKT_TYPE:
-                    case    ID_PKT_CAP_PROTOCOL:
-                    {
-                        if (HIWORD(wParam)==CBN_SELCHANGE)
-                        ui_switch_CAP_CFG_MODE(hDlg, 1);
-                        return TRUE ;
-                    }
+		case 	IDCANCEL :
+            EndDialog (hDlg, LOWORD(wParam)) ;
+            update_statusbar();
+            return TRUE ;
 
 
-              }
+		case 	ID_PKT_CAP_CFG_MODE_NORMAL:
+		{
+    		ui_switch_CAP_CFG_MODE(hDlg, 1);
+    		return TRUE ;
+		}
+
+		case 	ID_PKT_CAP_CFG_MODE_ADVANCED:
+		{
+    		ui_switch_CAP_CFG_MODE(hDlg, 0);
+    		return TRUE ;
+		}
+
+		case 	ID_PKT_CAP_PKT_TYPE:
+		case    ID_PKT_CAP_PROTOCOL:
+		{
+		if (HIWORD(wParam)==CBN_SELCHANGE)
+		ui_switch_CAP_CFG_MODE(hDlg, 1);
+		return TRUE ;
+		}
+
+
+		}
       		break ;
 
      }
@@ -758,7 +757,7 @@ SendMessage(hwnd_tv, TVM_SETIMAGELIST,
     parentItem = insertItem(hwnd_tv, TEXT("配置"), TVI_ROOT, TVI_LAST, 0, 0, NULL);
 
     // add some children
-    childItem1 = insertItem(hwnd_tv, TEXT("流"), parentItem, TVI_LAST, 1, 1, NULL);
+    childItem1 = insertItem(hwnd_tv, TEXT("新建流"), parentItem, TVI_LAST, 1, 1, NULL);
     childItem2 = insertItem(hwnd_tv, TEXT("流控"), parentItem, TVI_LAST, 2, 2, NULL);
     childItem3 = insertItem(hwnd_tv, TEXT("抓包"), parentItem, TVI_LAST, 3, 3, NULL);
 
@@ -767,7 +766,7 @@ SendMessage(hwnd_tv, TVM_SETIMAGELIST,
 
             ShowWindow (hwnd_tv, 1) ;
             UpdateWindow (hwnd_tv) ;
-    TreeView_Select(hwnd_tv, childItem1, TVGN_CARET);
+    //TreeView_Select(hwnd_tv, childItem1, TVGN_CARET);
 
             return 0 ;
         }
@@ -805,31 +804,21 @@ case WM_NOTIFY:
         Selected=(HTREEITEM)SendDlgItemMessage(hwnd_tab1,
            ID_TV,TVM_GETNEXTITEM,TVGN_CARET,(LPARAM)Selected);
 
-       if (!init_over) break;
+        if (!init_over) break;
        
-       if (childItem1==Selected)
+        if (childItem1==Selected)
         {
-            ShowWindow (hwnd_stream, 1) ;
-            ShowWindow (hwnd_fc, 0) ;
+            SendMessage(hwnd_stream, WM_COMMAND, MAKEWPARAM(IDM_STREAM_NEW, 0),0);
         }
-
-       else if (childItem2==Selected)
+        else if (childItem2==Selected)
         {
-            //ShowWindow (hwnd_stream, 0) ;
-            //ShowWindow (hwnd_fc, 1) ;
             ret=DialogBox(g_hInstance, TEXT("FC_CFG_DLG"), hwnd, FcCfgDlgProc);
-
-            TreeView_SelectItem(hwnd_tv, childItem1);
         }
-      else if (childItem3==Selected)
+        else if (childItem3==Selected)
         {
-            //ShowWindow (hwnd_stream, 0) ;
-            //ShowWindow (hwnd_fc, 1) ;
             ret=DialogBox(g_hInstance, TEXT("PKT_CAP_CFG_DLG"), hwnd, PktCapCfgDlgProc);
-
-            TreeView_SelectItem(hwnd_tv, childItem1);
         }
-
+        TreeView_SelectItem(hwnd_tv, NULL);
 
      }
    }

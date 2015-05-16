@@ -157,7 +157,8 @@ HMENU	 hMenu;
         right_win_x=we_pos, 
         right_win_width=cxClient-we_pos, 
         upper_win_height,
-        bottom_win_height;
+        bottom_win_height,
+        left_win_height;
     
     int ret;
 
@@ -167,7 +168,7 @@ HMENU	 hMenu;
             hwnd_frame = hwnd;
             CreateToolbar();
 
-            GetClientRect (hwnd, &rect) ;
+            GetClientRect(hwnd, &rect) ;
             cxClient = rect.right;
             cyClient = rect.bottom;
 
@@ -201,7 +202,7 @@ HMENU	 hMenu;
                 WS_CHILD,
                 we_pos-SPLT_WIDTH,
                             point.y,
-                  			SPLT_WIDTH, ns_pos-SPLT_WIDTH,
+                  			SPLT_WIDTH, cyClient,
                 hwnd, NULL, g_hInstance, NULL) ;
             ShowWindow (hwnd_splt_we, 1) ;
             UpdateWindow (hwnd_splt_we) ;
@@ -219,8 +220,8 @@ HMENU	 hMenu;
 
             hwnd_splt_ns= CreateWindow (szSpltNsClassName, TEXT ("sub win"),
                 WS_CHILD,
-                point.x, ns_pos-SPLT_WIDTH,
-                cxClient, SPLT_WIDTH,
+                cxClient-we_pos, ns_pos-SPLT_WIDTH,
+                cxClient-we_pos, SPLT_WIDTH,
                 hwnd, NULL, g_hInstance, NULL) ;
             
             ShowWindow (hwnd_splt_ns, 1) ;
@@ -228,8 +229,8 @@ HMENU	 hMenu;
 
             hwnd_bottom = CreateWindow (szBottomWinClassName, TEXT ("sub win"),
                 WS_CHILD,
-                point.x,    ns_pos,
-                  			cxClient, cyClient-ns_pos,
+                we_pos,    ns_pos,
+                  			cxClient-we_pos, cyClient-ns_pos,
                 hwnd, NULL, g_hInstance, NULL) ;
 
             ShowWindow (hwnd_bottom, 1) ;
@@ -294,31 +295,32 @@ CreateStatusBar();
                 ns_pos = cyClient-300;
 
             }
-            //GetClientRect (hwnd, &rect) ;
-            //cxClient = rect.right;
-            //cyClient = rect.bottom;
 
-            //point.x=cxClient / 4;
-            //point.y=cyClient / 4;
-            //point.x=0;
-            //point.y=toolbar_height;
+        left_win_height = cyClient;
+        if (display_toolbar)
+        {
+            left_win_height -= toolbar_height;
+        }
 
-        upper_win_y=display_toolbar?toolbar_height:0;
-
+        if (display_statusbar)
+        {
+            left_win_height -= statusbar_height;
+        }
         right_win_x=display_left?we_pos:0;
         right_win_width=display_left?cxClient-we_pos:cxClient;
+
+        upper_win_y=display_toolbar?toolbar_height:0;
         if (display_bottom)
         {
             upper_win_height=ns_pos-SPLT_WIDTH;
-            upper_win_height -= upper_win_y;
         }
         else
         {
             upper_win_height=cyClient;
-            upper_win_height -= upper_win_y;
             upper_win_height -= (display_statusbar?statusbar_height:0);
 
         }
+        upper_win_height -= upper_win_y;
 
         bottom_win_height = cyClient-ns_pos;
         bottom_win_height -= (display_statusbar?statusbar_height:0);
@@ -330,21 +332,21 @@ CreateStatusBar();
                 cxClient, toolbar_height, TRUE) ;
 
       	    MoveWindow	(	hwnd_left, 	0, upper_win_y,
-                we_pos-SPLT_WIDTH, upper_win_height, TRUE) ;
+                we_pos-SPLT_WIDTH, left_win_height, TRUE) ;
 
       	    MoveWindow	(	hwnd_splt_we, 	we_pos-SPLT_WIDTH,
                             upper_win_y,
-                  			SPLT_WIDTH, upper_win_height, TRUE) ;
+                  			SPLT_WIDTH, left_win_height, TRUE) ;
 
       	    MoveWindow	(	hwnd_right, 	right_win_x,
                             upper_win_y,
                   			right_win_width, upper_win_height, TRUE) ;
 
-      	    MoveWindow	(	hwnd_splt_ns, 	0, ns_pos-SPLT_WIDTH,
-                cxClient, SPLT_WIDTH, TRUE) ;
+      	    MoveWindow	(	hwnd_splt_ns, 	right_win_x, ns_pos-SPLT_WIDTH,
+                right_win_width, SPLT_WIDTH, TRUE) ;
 
-      	    MoveWindow	(	hwnd_bottom, 0,    ns_pos,
-                  			cxClient, bottom_win_height, TRUE) ;
+      	    MoveWindow	(	hwnd_bottom, right_win_x,    ns_pos,
+                  			right_win_width, bottom_win_height, TRUE) ;
 
       	    MoveWindow	(	hwnd_statusbar, 	0, cyClient-statusbar_height,
                 cxClient, statusbar_height, TRUE) ;

@@ -55,17 +55,24 @@ LRESULT CALLBACK my_tb_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
     SendMessage(hwnd_toolbar,TB_GETITEMRECT,(WPARAM)ARRAY_SIZE(at_button)-1,(LPARAM)&rc);
     button_width = rc.right-rc.left;
     button_height = rc.bottom-rc.top;
+#if 0
+    MoveWindow	(hwnd_net_card_text
+        ,cxClient - button_width*11, rc.top, 3*button_width, button_height, TRUE) ;
 
-    rc.left += 5*button_width;
+    MoveWindow	(hwnd_net_card_comb, cxClient - button_width*8, rc.top,
+                button_width*8, 250, TRUE) ;
+#else
+    rc.left += 8*button_width;
 
     MoveWindow	(hwnd_net_card_text
         ,rc.left, rc.top, 3*button_width, button_height, TRUE) ;
 
     rc.left+=3*button_width;
 
-            MoveWindow	(hwnd_net_card_comb, rc.left, rc.top,
+    MoveWindow	(hwnd_net_card_comb, rc.left, rc.top,
                 cxClient - rc.left, 250, TRUE) ;
 
+#endif
 
         case 	WM_COMMAND:
             if (HIWORD(wParam)==CBN_SELCHANGE)
@@ -206,13 +213,13 @@ hwnd_capture_checkbox=CreateWindowEx(0, TEXT("button"), TEXT("灌包时同步抓包")
 #endif
     SendMessage(hwnd_toolbar,TB_GETITEMRECT,(WPARAM)8,(LPARAM)&rc); 
 hwnd_net_card_text=CreateWindowEx(0, TEXT("static"), TEXT("网卡选择")
-        , WS_CHILD | WS_VISIBLE | SS_CENTER
+        , WS_CHILD | WS_VISIBLE | SS_CENTER | SS_CENTERIMAGE
         , rc.left, rc.top, 2*(rc.right-rc.left), rc.bottom-rc.top,
             hwnd_toolbar, (HMENU)NULL, g_hInstance, NULL);
 
     hwnd_net_card_comb = CreateWindowEx(WS_EX_LEFT, TEXT("COMBOBOX"), NULL
         , WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST|CBS_DISABLENOSCROLL|WS_VSCROLL
-        , rc.left+2*(rc.right-rc.left)+8, rc.top, (rc.right-rc.left)*18, 250,
+        , rc.left+2*(rc.right-rc.left)+8, rc.top, (rc.right-rc.left)*6, 250,
             hwnd_toolbar, (HMENU)NULL, g_hInstance, NULL);
 
 

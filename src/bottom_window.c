@@ -59,11 +59,12 @@ static HMENU	hMenu ;
     hwnd, (HMENU)ID_BUTTON_BOTTOM_CLOSE,
                g_hInstance, NULL) ;
 
+#if 0
            hwnd_b_we_splitter = CreateWindow (szSpltWeClassName, TEXT ("sub win"),
                 WS_CHILD|WS_VISIBLE,
                 SPLT_WIDTH,   point.y,  SPLT_WIDTH, SPLT_WIDTH,
                 hwnd, NULL, g_hInstance, NULL) ;
-;
+#endif
 #if 1
             hwnd_b_tab=DoCreateTabControl(g_hInstance, hwnd_bottom
                 ,WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | TCS_BOTTOM
@@ -74,13 +75,14 @@ static HMENU	hMenu ;
                 , ARRAY_SIZE(tab_b_labels), tab_b_labels);
 #endif
             hwnd_b_tab1=create_tab_win(g_hInstance, hwnd_bottom, szStatsWinClassName, WS_CHILD | WS_VISIBLE | WS_BORDER);
-
+#if 0
             hwnd_b2_tab=DoCreateTabControl(g_hInstance, hwnd_bottom
                 ,WS_CHILD | WS_CLIPSIBLINGS | WS_VISIBLE | TCS_BOTTOM
                 , ARRAY_SIZE(tab_b2_icons), tab_b2_icons, tab_b2_labels);
 
             hwnd_b2_tab1=create_tab_win(g_hInstance, hwnd_bottom, TEXT("edit")
                 , WS_CHILD | WS_BORDER | WS_VISIBLE | WS_VSCROLL | ES_MULTILINE|ES_AUTOVSCROLL|ES_WANTRETURN);
+#endif
             return 0 ;
 
         case WM_SPLITTER_X:
@@ -94,22 +96,24 @@ static HMENU	hMenu ;
 
       		cxClient = LOWORD (lParam) ;
       		cyClient = HIWORD (lParam) ;
-
-            if (b_we_pos==0) b_we_pos = cxClient-100;
-
-
+            
             MoveWindow	(hwnd_button_bottom_close, 	cxClient-25, 0,
                 25, 25, TRUE) ;
+
+
+
 #if 1
 
             MoveWindow	(hwnd_b_tab, 	0, 0,
-                b_we_pos-SPLT_WIDTH, cyClient, TRUE) ;
+                cxClient-25, cyClient, TRUE) ;
             GetClientRect(hwnd_b_tab,&rect);
             TabCtrl_AdjustRect(hwnd_b_tab, FALSE, &rect); 
 
             MoveWindow(hwnd_b_tab1, 	0, 0,
-                b_we_pos-SPLT_WIDTH, rect.bottom-rect.top, TRUE) ;
+                rect.right-rect.left, rect.bottom-rect.top, TRUE) ;
 #else
+            if (b_we_pos==0) b_we_pos = cxClient-100;
+
             //tab_height=win_height(hwnd_b_tab);
             MoveWindow	(hwnd_b_tab, 	0, cyClient-flat_tab_height,
                 cxClient-25, flat_tab_height, TRUE) ;
@@ -118,8 +122,6 @@ static HMENU	hMenu ;
                 cxClient-25, cyClient-flat_tab_height, TRUE) ;
             MoveWindow(hwnd_b_tab2, 	0, 0,
                 cxClient-25, cyClient-flat_tab_height, TRUE) ;
-
-#endif
 
       	    MoveWindow	(hwnd_b_we_splitter, 	b_we_pos-SPLT_WIDTH,
                             0,
@@ -132,6 +134,9 @@ static HMENU	hMenu ;
 
             MoveWindow(hwnd_b2_tab1, 	b_we_pos, 0,
                 cxClient-b_we_pos-25, rect.bottom-rect.top, TRUE) ;
+
+#endif
+
 
             return 0 ;
 
@@ -162,14 +167,14 @@ static HMENU	hMenu ;
 
                     if (0==iPage)
                     {
-                    ShowWindow (hwnd_b_tab1, 1) ;
-                    ShowWindow (hwnd_b2_tab1, 0) ;
+                        ShowWindow (hwnd_b_tab1, 1) ;
+                        ShowWindow (hwnd_b2_tab1, 0) ;
 
                     }
                     else
                     {
-                    ShowWindow (hwnd_b_tab1, 0) ;
-                    ShowWindow (hwnd_b2_tab1, 1) ;
+                        ShowWindow (hwnd_b_tab1, 0) ;
+                        ShowWindow (hwnd_b2_tab1, 1) ;
 
                     }
                     return 0;
@@ -244,6 +249,22 @@ void WriteInfo(TCHAR * szFormat, ...)
 
 }
 
+void err_msg_box(TCHAR * szFormat, ...)
+{
+    TCHAR   szBuffer[1024] ;
+    va_list pArgList ;
+    int len;
+
+    va_start(pArgList, szFormat) ;
+    len=_vsntprintf(szBuffer, sizeof (szBuffer) / sizeof (TCHAR), 
+			szFormat, pArgList) ;
+
+    va_end (pArgList) ;
+
+   MessageBox (hwnd_frame, szBuffer, szAppName, MB_ICONERROR) ;
+}
+
+#if 0
 void PrintText(TCHAR * szFormat, ...)
 {
 	TCHAR   szBuffer [1024] ;
@@ -266,51 +287,4 @@ void PrintText(TCHAR * szFormat, ...)
     edit_append_text(hwnd_b2_tab1, szBuffer);
 
 }
-
-void print_mem(void *start_addr, uint32_t length)
-{
-    char str_addr[32];
-    char str_data[64];
-    char str_readable[32];
-    unsigned char *cur_pos = start_addr;
-    int i;
-
-    while (length >= 16)
-    {
-        sprintf(str_addr, "%-16lx", (unsigned long)(void *)cur_pos);
-        for (i = 0; i < 16; i++)
-        {
-            sprintf(str_data + i*3, "%02hhx ", cur_pos[i]);
-            if (cur_pos[i] > 31 &&  cur_pos[i] < 127)
-            sprintf(str_readable + i, "%c", (char)(cur_pos[i]));
-            else
-            sprintf(str_readable + i, "%c", '*');
-        }
-        length -= 16;
-        cur_pos += 16;
-        PrintText("%s: %s: %s\r\n", str_addr, str_data, str_readable);
-    }
-
-    if (length > 0)
-    {
-        sprintf(str_addr, "%-16lx", (unsigned long)(void *)cur_pos);
-        for (i = 0; i < length; i++)
-        {
-            sprintf(str_data + i*3, "%02hhx ", cur_pos[i]);
-            if (cur_pos[i] > 31 &&  cur_pos[i] < 127)
-            sprintf(str_readable + i, "%c", (char)(cur_pos[i]));
-            else
-            sprintf(str_readable + i, "%c", '*');
-        }
-        for (i = length; i < 16; i++)
-        {
-            sprintf(str_data + i*3, "%s", "   ");
-            sprintf(str_readable + i, "%c", ' ');
-        }
-        PrintText("%s: %s: %s\r\n", str_addr, str_data, str_readable);
-    }
-
-
-}
-
-
+#endif

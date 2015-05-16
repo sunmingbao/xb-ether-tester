@@ -256,23 +256,8 @@ extern int  cur_view_pkt_idx;
 
 extern HWND    hwnd_b_tab;
 extern int err_cnt, info_cnt;
-void print_mem(void *start_addr, uint32_t length);
 void PrintText(TCHAR * szFormat, ...);
 
-void WriteInfo(TCHAR * szFormat, ...);
-#define sys_log(format, args...) \
-    do \
-    { \
-        WriteInfo("%s(%d), %s:\r\n"format"\r\n", __FILE__, __LINE__, __FUNCTION__, ##args); \
-        info_cnt++; \
-    } while (0)
     
-#define sys_err_log(format, args...) \
-    do \
-    { \
-        WriteInfo("%s(%d), %s:\r\n"format":GetLastError():%d\r\n", __FILE__, __LINE__, __FUNCTION__, ##args, GetLastError()); \
-        err_cnt++; \
-    } while (0)
-
 #endif
 

@@ -107,7 +107,7 @@ my_popup_menu MENU DISCARDABLE
 BEGIN
     	POPUP "&Streams"
     	BEGIN
-        		MENUITEM "新建(&N)", 				IDM_STREAM_NEW
+        		MENUITEM "新建流(&N)", 				IDM_STREAM_NEW
         		MENUITEM "编辑当前流(&E)", 			IDM_STREAM_EDIT
         		MENUITEM SEPARATOR
         		MENUITEM "用当前流构造分片(&F)", 	 IDM_STREAM_MAKE_FRAGS

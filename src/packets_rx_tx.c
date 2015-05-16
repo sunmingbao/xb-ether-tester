@@ -102,9 +102,7 @@ char *iptos(u_long in)
 void init_net_card_combbox(HWND hwnd_comb)
 {
     pcap_if_t *d;
-    int i=0;
     TCHAR info[256];
-    TCHAR ip[32];
     pcap_addr_t *a;
     for(d= alldevs; d != NULL; d= d->next)
     {
@@ -113,14 +111,12 @@ void init_net_card_combbox(HWND hwnd_comb)
        {
             if (a->addr->sa_family==AF_INET)
             {
-              sprintf(info, "%s - ",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
+              sprintf(info, "%s",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
               break;
             }
         }
-        strcat(info, d->name);
+        //strcat(info, d->name);
         SendMessage(hwnd_comb,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)info);
-        if (d->description);
-        i++;
     }
 
     SendMessage(hwnd_comb, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
@@ -162,7 +158,7 @@ if (0==packet_filter[0]) return 0;
     //compile the filter
     if (pcap_compile(adhandle, &fcode, packet_filter, 1, netmask) <0 )
     {
-        sys_log("Unable to compile the packet filter: %s. Check the syntax.", packet_filter);
+        //err_msg_box("Unable to compile the packet filter: %s. Check the syntax.", packet_filter);
         /* Free the device list */
         //pcap_freealldevs(alldevs);
         return -1;
@@ -171,7 +167,7 @@ if (0==packet_filter[0]) return 0;
     //set the filter
     if (pcap_setfilter(adhandle, &fcode)<0)
     {
-        sys_log("Error setting the filter: %s", packet_filter);
+        err_msg_box("Error setting the filter: %s", packet_filter);
         /* Free the device list */
         //pcap_freealldevs(alldevs);
         return -1;
@@ -193,7 +189,7 @@ int is_filter_valid(char *packet_filter)
 							 errbuf			// error buffer
 							 )) == NULL)
 	{
-		sys_log(TEXT("Unable to open the adapter. %s is not supported by WinPcap"), cur_dev_name);
+		err_msg_box(TEXT("Unable to open the adapter. %s is not supported by WinPcap"), cur_dev_name);
 		return 2;
 	}
 
@@ -301,14 +297,14 @@ SND_PKT:
     	for(i=0;i<nr_cur_stream;i++)
         {   
             if (g_apt_streams[i]->selected==0) continue;
-        	gt_pkt_stat.send_total++;
+            gt_pkt_stat.send_total++;
             gt_pkt_stat.send_total_bytes+=g_apt_streams[i]->len;
-        	if (pcap_sendpacket(fp,	g_apt_streams[i]->data,	g_apt_streams[i]->len) != 0)
-        	{
+	    if (pcap_sendpacket(fp,	g_apt_streams[i]->data,	g_apt_streams[i]->len) != 0)
+	    {
             	gt_pkt_stat.send_fail++;
                 gt_pkt_stat.send_fail_bytes+=g_apt_streams[i]->len;
-        		sys_log(TEXT("Error sending the packet: %s"), pcap_geterr(fp));
-        	}
+        	//sys_log(TEXT("Error sending the packet: %s"), pcap_geterr(fp));
+            }
             
             if (g_apt_streams[i]->rule_num) rule_fileds_update(g_apt_streams[i]);
        }
@@ -538,7 +534,7 @@ int load_stream(char *file_path)
     build_filter(pkt_cap_filter_str);
     fread(&nr_cur_stream, sizeof(nr_cur_stream), 1, file);
     nr_cur_stream=(nr_cur_stream>MAX_STREAM_NUM?MAX_STREAM_NUM:nr_cur_stream);
-//sys_log("nr_cur_stream=%d", nr_cur_stream);
+
     for(i=0;i<nr_cur_stream;i++)
     {
         g_apt_streams[i] = alloc_stream();
