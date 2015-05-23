@@ -214,6 +214,51 @@ int register_bottom_win()
 
 }
 
+#ifdef _DEBUG
+void dbg_print(TCHAR * szFormat, ...)
+{
+    TCHAR   szBuffer[1024] ;
+    va_list pArgList ;
+    int len;
+    static FILE *fp = NULL;
+
+    if (NULL==fp) fp=fopen("dbg_info.txt", "w");
+
+    va_start(pArgList, szFormat) ;
+    len=_vsntprintf(szBuffer, sizeof (szBuffer) / sizeof (TCHAR), 
+			szFormat, pArgList) ;
+
+    va_end (pArgList) ;
+    
+    szBuffer[len] = '\r';
+    szBuffer[len+1] = '\n';
+    len+=2;
+    
+    fwrite(szBuffer, 1, len, fp);
+    fflush(fp);
+}
+#else
+void dbg_print(TCHAR * szFormat, ...)
+{
+    ;
+}
+#endif
+
+void err_msg_box(TCHAR * szFormat, ...)
+{
+    TCHAR   szBuffer[1024] ;
+    va_list pArgList ;
+    int len;
+
+    va_start(pArgList, szFormat) ;
+    len=_vsntprintf(szBuffer, sizeof (szBuffer) / sizeof (TCHAR), 
+			szFormat, pArgList) ;
+
+    va_end (pArgList) ;
+    MessageBox (hwnd_frame, szBuffer, szAppName, MB_ICONERROR) ;
+}
+
+#if 0
 
 void edit_append_text(HWND hwnd, TCHAR   *szBuffer)
 {
@@ -249,22 +294,6 @@ void WriteInfo(TCHAR * szFormat, ...)
 
 }
 
-void err_msg_box(TCHAR * szFormat, ...)
-{
-    TCHAR   szBuffer[1024] ;
-    va_list pArgList ;
-    int len;
-
-    va_start(pArgList, szFormat) ;
-    len=_vsntprintf(szBuffer, sizeof (szBuffer) / sizeof (TCHAR), 
-			szFormat, pArgList) ;
-
-    va_end (pArgList) ;
-
-   MessageBox (hwnd_frame, szBuffer, szAppName, MB_ICONERROR) ;
-}
-
-#if 0
 void PrintText(TCHAR * szFormat, ...)
 {
 	TCHAR   szBuffer [1024] ;

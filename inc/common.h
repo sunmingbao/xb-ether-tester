@@ -167,6 +167,18 @@ static inline unsigned long time_a_between_b(struct timeval *a, struct timeval *
     return 1000000 + b->tv_usec - a->tv_usec;
 }
 
+static inline struct timeval time_a_between_b2(struct timeval a, struct timeval b)
+{
+    struct timeval ret;
+    if (b.tv_usec<a.tv_usec)
+    {
+        b.tv_usec+=1000000;
+        b.tv_sec-=1;
+    }
+    ret.tv_sec = b.tv_sec-a.tv_sec;
+    ret.tv_usec = b.tv_usec-a.tv_usec;
+    return ret;
+}
 
 void set_int_text(HWND hwnd, int value);
 int get_int_text(HWND hwnd);

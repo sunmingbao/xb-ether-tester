@@ -15,7 +15,7 @@ CC := gcc
 CFLAG := -Wall -O2  -DBUILD_TIME='"$(BUILD_TIME)"' -D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0502 -DWINVER=0x0501 -DHAVE_REMOTE -DWPCAP 
 LDFLAG := -mwindows  -s  -lkernel32 -luser32 -lgdi32 -lcomctl32 -lws2_32 -lwpcap 
 
-
+#CFLAG := $(CFLAG) -D_DEBUG
 
 PRJ_DIR:=.
 RES_DIR := $(PRJ_DIR)\res
@@ -112,6 +112,7 @@ installer:
 	
 clean:
 	-cmd.exe /c del /F /Q  $(OBJ_DIR)\\*
+	-cmd.exe /c copy /y profile.ini .\$(OBJ_DIR)\
 
 prepare:
 	-cmd.exe /c mkdir  $(OBJ_DIR)

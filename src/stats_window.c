@@ -23,38 +23,71 @@ HWND hwnd_snd_fail_bps, hwnd_snd_fail_pps, hwnd_snd_fail_bps_avg, hwnd_snd_fail_
 HWND hwnd_rcv_bps, hwnd_rcv_pps, hwnd_rcv_bps_avg, hwnd_rcv_pps_avg, hwnd_rcv_pkt, hwnd_rcv_bits;
 
 HWND hwnd_stats_handles[4][7];
-void update_stats(t_pkt_stat *pt_pkt_stat, unsigned long time_gap)
+void update_stats()
 {
     TCHAR info[32];
+    struct timeval cur_tv, tmp_tv;
+    t_pkt_stat gt_pkt_stat_tmp;
+    t_pkt_stat *pt_pkt_stat = &gt_pkt_stat_tmp;
 
-unsigned long    total_ms = (time_elapsed.tv_sec*1000 + time_elapsed.tv_usec/1000)/10;
-unsigned long    gap_ms = (time_gap/1000)/10;
+    unsigned long    total_ms;
+    unsigned long    gap_ms, time_gap;
 
+    gettimeofday(&cur_tv, NULL);
+    gt_pkt_stat_tmp=gt_pkt_stat;
+    
+    time_gap=time_a_between_b(&last_timer_tv, &cur_tv);
+    //if ((time_gap/1000)<50) return;
+
+    time_elapsed.tv_usec+=time_gap;
+    if (time_elapsed.tv_usec>=1000000)
+    {
+        time_elapsed.tv_usec-=1000000;
+        time_elapsed.tv_sec+=1;
+
+    }
+    last_timer_tv=cur_tv;
+    
     _stprintf (	info, TEXT("时间(秒): %lu.%lu"), time_elapsed.tv_sec, (time_elapsed.tv_usec/100000)) ;
     SetWindowText(hwnd_hdr_time, info); 
 
-    set_I64u_text(hwnd_snd_bps, (100*8*(pt_pkt_stat->send_total_bytes-gt_pkt_stat_pre.send_total_bytes)/gap_ms)); 
-    set_I64u_text(hwnd_snd_pps, (100*(pt_pkt_stat->send_total-gt_pkt_stat_pre.send_total)/gap_ms)); 
-    set_I64u_text(hwnd_snd_bps_avg, (100*8*(pt_pkt_stat->send_total_bytes)/total_ms)); 
-    set_I64u_text(hwnd_snd_pps_avg, (100*(pt_pkt_stat->send_total)/total_ms)); 
+    if ((gt_pkt_stat_tmp.send_total==gt_pkt_stat_pre.send_total)  &&
+        (gt_pkt_stat_tmp.send_fail==gt_pkt_stat_pre.send_fail)  &&
+        (gt_pkt_stat_tmp.rcv_total==gt_pkt_stat_pre.rcv_total)) 
+        return;
+    
+    tmp_tv = time_a_between_b2(last_stat_tv, cur_tv);
+    gap_ms = tmp_tv.tv_sec*1000 + tmp_tv.tv_usec/1000;
+    total_ms = (time_elapsed.tv_sec*1000 + time_elapsed.tv_usec/1000);
+
+    if ((1000*8*(pt_pkt_stat->send_total_bytes-gt_pkt_stat_pre.send_total_bytes)/gap_ms)>4000)
+    {
+         dbg_print("%I64u  %I64u  %lu", pt_pkt_stat->send_total_bytes,gt_pkt_stat_pre.send_total_bytes,  gap_ms);
+    }
+    
+    set_I64u_text(hwnd_snd_bps, (1000*8*(pt_pkt_stat->send_total_bytes-gt_pkt_stat_pre.send_total_bytes)/gap_ms)); 
+    set_I64u_text(hwnd_snd_pps, (1000*(pt_pkt_stat->send_total-gt_pkt_stat_pre.send_total)/gap_ms)); 
+    set_I64u_text(hwnd_snd_bps_avg, (1000*8*(pt_pkt_stat->send_total_bytes)/total_ms)); 
+    set_I64u_text(hwnd_snd_pps_avg, (1000*(pt_pkt_stat->send_total)/total_ms)); 
     set_I64u_text(hwnd_snd_bits, pt_pkt_stat->send_total_bytes*8); 
     set_I64u_text(hwnd_snd_pkt, pt_pkt_stat->send_total); 
 
-    set_I64u_text(hwnd_snd_fail_bps, (100*8*(pt_pkt_stat->send_fail_bytes-gt_pkt_stat_pre.send_fail_bytes)/gap_ms)); 
-    set_I64u_text(hwnd_snd_fail_pps, (100*(pt_pkt_stat->send_fail-gt_pkt_stat_pre.send_fail)/gap_ms)); 
-    set_I64u_text(hwnd_snd_fail_bps_avg, (100*8*(pt_pkt_stat->send_fail_bytes)/total_ms)); 
-    set_I64u_text(hwnd_snd_fail_pps_avg, (100*(pt_pkt_stat->send_fail)/total_ms)); 
+    set_I64u_text(hwnd_snd_fail_bps, (1000*8*(pt_pkt_stat->send_fail_bytes-gt_pkt_stat_pre.send_fail_bytes)/gap_ms)); 
+    set_I64u_text(hwnd_snd_fail_pps, (1000*(pt_pkt_stat->send_fail-gt_pkt_stat_pre.send_fail)/gap_ms)); 
+    set_I64u_text(hwnd_snd_fail_bps_avg, (1000*8*(pt_pkt_stat->send_fail_bytes)/total_ms)); 
+    set_I64u_text(hwnd_snd_fail_pps_avg, (1000*(pt_pkt_stat->send_fail)/total_ms)); 
     set_I64u_text(hwnd_snd_fail_bits, pt_pkt_stat->send_fail_bytes*8); 
     set_I64u_text(hwnd_snd_fail_pkt, pt_pkt_stat->send_fail); 
     
-    set_I64u_text(hwnd_rcv_bps, (100*8*(pt_pkt_stat->rcv_total_bytes-gt_pkt_stat_pre.rcv_total_bytes)/gap_ms)); 
-    set_I64u_text(hwnd_rcv_pps, (100*(pt_pkt_stat->rcv_total-gt_pkt_stat_pre.rcv_total)/gap_ms)); 
-    set_I64u_text(hwnd_rcv_bps_avg, (100*8*(pt_pkt_stat->rcv_total_bytes)/total_ms)); 
-    set_I64u_text(hwnd_rcv_pps_avg, (100*(pt_pkt_stat->rcv_total)/total_ms)); 
+    set_I64u_text(hwnd_rcv_bps, (1000*8*(pt_pkt_stat->rcv_total_bytes-gt_pkt_stat_pre.rcv_total_bytes)/gap_ms)); 
+    set_I64u_text(hwnd_rcv_pps, (1000*(pt_pkt_stat->rcv_total-gt_pkt_stat_pre.rcv_total)/gap_ms)); 
+    set_I64u_text(hwnd_rcv_bps_avg, (1000*8*(pt_pkt_stat->rcv_total_bytes)/total_ms)); 
+    set_I64u_text(hwnd_rcv_pps_avg, (1000*(pt_pkt_stat->rcv_total)/total_ms)); 
     set_I64u_text(hwnd_rcv_bits, pt_pkt_stat->rcv_total_bytes*8); 
     set_I64u_text(hwnd_rcv_pkt, pt_pkt_stat->rcv_total); 
     
     gt_pkt_stat_pre= *pt_pkt_stat;
+    last_stat_tv = cur_tv;
 }
 
 void copy_stats_2_clip_board()
@@ -146,13 +179,13 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
                 300, 25,
                 hwnd_stats, NULL, g_hInstance, NULL);;
 
-            hwnd_stats_handles[0][1]=hwnd_hdr_bps= CreateWindow (TEXT ("button"), TEXT ("bps"),
+            hwnd_stats_handles[0][1]=hwnd_hdr_bps= CreateWindow (TEXT ("button"), TEXT ("实时bps"),
                 WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
                 10, 10,
                 300, 25,
                 hwnd_stats, NULL, g_hInstance, NULL);;
 
-            hwnd_stats_handles[0][2]=hwnd_hdr_pps = CreateWindow (TEXT ("button"), TEXT ("pps"),
+            hwnd_stats_handles[0][2]=hwnd_hdr_pps = CreateWindow (TEXT ("button"), TEXT ("实时pps"),
                 WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
                 10, 10,
                 300, 25,

@@ -32,9 +32,10 @@ int display_bottom=1;
 int display_toolbar=1;
 int display_statusbar=1;
 
-int query_clr_stats=1;
-int auto_clr_stats=2;
-int auto_clr_captured_pkts=0;
+//int query_clr_stats=1;
+char auto_clr_stats[8];
+char last_nic_name[128];
+char query_save_captured_pkts[8];
 
 char cfg_file_path[MAX_FILE_PATH_LEN];
 char file_to_open[MAX_FILE_PATH_LEN];
@@ -76,9 +77,9 @@ int stats_captured_pkts_proc()
 
 PKT_SAVE_PROC:
     if (!cap_save_cnt) goto STATS_PROC;
-    if (auto_clr_captured_pkts) goto CLR_CAP_PKTS;
+    if (strcmp(query_save_captured_pkts, "no")==0) goto CLR_CAP_PKTS;
 
-    ret=AskConfirmation_3state(hwnd_frame, TEXT("即将清除已有的抓包。\r\n是否保存?"), szAppName);
+    ret=AskConfirmation_3state(hwnd_frame, TEXT("即将清除抓到的包。\r\n\r\n是否保存?\r\n\r\n(可通过 选项 菜单取消此提示)"), szAppName);
     if (IDCANCEL == ret) return 1;
     if (IDYES == ret)
     {
@@ -97,14 +98,14 @@ STATS_PROC:
     if (!gt_pkt_stat.send_total && !gt_pkt_stat.rcv_total)
         return 0;
 
-    if (auto_clr_stats==2)
+    if (strcmp(auto_clr_stats,"query")==0)
     {
-        ret= AskConfirmation_3state(hwnd_frame, TEXT("清空已有的统计?"), szAppName);
+        ret= AskConfirmation_3state(hwnd_frame, TEXT("是否清空已有的统计?\r\n\r\n(可通过 选项 菜单取消此提示)"), szAppName);
         if (IDCANCEL == ret) return 1;
         if (IDNO == ret) return 0;
 
     }
-    else if (!auto_clr_stats)
+    else if (strcmp(auto_clr_stats,"no")==0)
     {
         return 0;
     }
@@ -144,12 +145,43 @@ void new_cfg()
 
 }
 
+void load_app_profile()
+{
+    HMENU hMenu = GetMenu(hwnd_frame);
+    GetPrivateProfileString("before_send_pkt", "clear_stat", "query"
+        , auto_clr_stats, ARRAY_SIZE(auto_clr_stats), APP_PROFILE_FILE);
+    dbg_print(auto_clr_stats);
+    CheckMenuItem (hMenu, IDM_APP_QUERY_CLR_STATS, MF_UNCHECKED);
+    CheckMenuItem (hMenu, IDM_APP_CLR_STATS, MF_UNCHECKED);
+    CheckMenuItem (hMenu, IDM_APP_NOT_CLR_STATS, MF_UNCHECKED);
+
+    if (strcmp(auto_clr_stats,"query")==0)
+        CheckMenuItem (hMenu, IDM_APP_QUERY_CLR_STATS, MF_CHECKED) ;
+    if (strcmp(auto_clr_stats,"yes")==0)
+        CheckMenuItem (hMenu, IDM_APP_CLR_STATS, MF_CHECKED) ;
+    if (strcmp(auto_clr_stats,"no")==0)
+        CheckMenuItem (hMenu, IDM_APP_NOT_CLR_STATS, MF_CHECKED) ;
+    
+    GetPrivateProfileString("before_send_pkt", "query_save_captured_pkts", "yes"
+        , query_save_captured_pkts, ARRAY_SIZE(query_save_captured_pkts), APP_PROFILE_FILE);
+    CheckMenuItem (hMenu, IDM_APP_CLR_CAPTURED_PKS, MF_UNCHECKED);
+    CheckMenuItem (hMenu, IDM_APP_QUERY_SAVE_CAPTURED_PKS, MF_UNCHECKED);
+
+    if (strcmp(query_save_captured_pkts,"yes")==0)
+        CheckMenuItem (hMenu, IDM_APP_QUERY_SAVE_CAPTURED_PKS, MF_CHECKED) ;
+    else
+        CheckMenuItem (hMenu, IDM_APP_CLR_CAPTURED_PKS, MF_CHECKED) ;
+    
+    GetPrivateProfileString("last_nic", "name", ""
+        , last_nic_name, ARRAY_SIZE(last_nic_name), APP_PROFILE_FILE);
+}
+
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc ;
     PAINTSTRUCT ps ;
-    static int   				cxClient, cyClient;
-HMENU	 hMenu;
+    static int  cxClient, cyClient;
+    HMENU hMenu;
     POINT point;
     RECT		rect ;
     int  item_id;
@@ -166,6 +198,7 @@ HMENU	 hMenu;
     {
         case WM_CREATE:
             hwnd_frame = hwnd;
+            load_app_profile();
             CreateToolbar();
 
             GetClientRect(hwnd, &rect) ;
@@ -511,7 +544,8 @@ CreateStatusBar();
        				return 0 ;
 
                 case    IDM_APP_QUERY_CLR_STATS:
-                    auto_clr_stats = 2;
+                    strcpy(auto_clr_stats, "query");
+                    WritePrivateProfileString("before_send_pkt", "clear_stat", auto_clr_stats, APP_PROFILE_FILE);
                     CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_CLR_STATS, MF_UNCHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_NOT_CLR_STATS, MF_UNCHECKED) ;
@@ -519,27 +553,31 @@ CreateStatusBar();
        		        return 0 ;
 
                 case    IDM_APP_CLR_STATS:
-                    auto_clr_stats = 1;
+                    strcpy(auto_clr_stats, "yes");
+                    WritePrivateProfileString("before_send_pkt", "clear_stat", auto_clr_stats, APP_PROFILE_FILE);
                     CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_QUERY_CLR_STATS, MF_UNCHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_NOT_CLR_STATS, MF_UNCHECKED) ;
        		        return 0 ;
 
                 case    IDM_APP_NOT_CLR_STATS:
-                    auto_clr_stats = 0;
+                    strcpy(auto_clr_stats, "no");
+                    WritePrivateProfileString("before_send_pkt", "clear_stat", auto_clr_stats, APP_PROFILE_FILE);
                     CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_QUERY_CLR_STATS, MF_UNCHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_CLR_STATS, MF_UNCHECKED) ;
        		        return 0 ;
 
                 case    IDM_APP_QUERY_SAVE_CAPTURED_PKS:
-                    auto_clr_captured_pkts = 0;
+                    strcpy(query_save_captured_pkts, "yes");
+                    WritePrivateProfileString("before_send_pkt", "query_save_captured_pkts", query_save_captured_pkts, APP_PROFILE_FILE);
                     CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_CLR_CAPTURED_PKS, MF_UNCHECKED) ;
        		        return 0 ;
 
                 case    IDM_APP_CLR_CAPTURED_PKS:
-                    auto_clr_captured_pkts = 1;
+                    strcpy(query_save_captured_pkts, "no");
+                    WritePrivateProfileString("before_send_pkt", "query_save_captured_pkts", query_save_captured_pkts, APP_PROFILE_FILE);
                     CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_QUERY_SAVE_CAPTURED_PKS, MF_UNCHECKED) ;
        		        return 0 ;
@@ -572,11 +610,12 @@ PREPARE_LAUNCH:
 
                     ui_switch(1);
                     
-                    launch_thread(wpcap_snd_test, NULL);
-                    launch_thread(wpcap_rcv_test, NULL);
-                    while (!rcv_started) Sleep(1);
+                    gettimeofday(&last_timer_tv, NULL);
+                    last_stat_tv=last_timer_tv;
                     SetTimer(hwnd_frame, TIMER_STATUS_BAR, TIMER_STATUS_GAP, NULL);
-                    gettimeofday(&last_stat_tv, NULL);
+                    launch_thread(wpcap_rcv_test, NULL);
+                    //while (!rcv_started) Sleep(1);
+                    launch_thread(wpcap_snd_test, NULL);
 
                	return 0 ;
 
@@ -736,27 +775,13 @@ PREPARE_LAUNCH:
 
         case	WM_TIMER:
         {
-            struct timeval cur_tv;
-            unsigned long  time_gap;
-            gettimeofday(&cur_tv, NULL);
-            gt_pkt_stat_tmp=gt_pkt_stat;
-
             if (snd_stopped && rcv_stopped)
             {
                 KillTimer (hwnd, TIMER_STATUS_BAR) ;
             }
             
+            update_stats();
 
-            time_gap=time_a_between_b(&last_stat_tv, &cur_tv);
-            time_elapsed.tv_usec+=time_gap;
-            if (time_elapsed.tv_usec>=1000000)
-            {
-                time_elapsed.tv_usec-=1000000;
-                time_elapsed.tv_sec+=1;
-
-            }
-            last_stat_tv = cur_tv;
-            update_stats(&gt_pkt_stat_tmp, time_gap);
             return 0;
 
         }

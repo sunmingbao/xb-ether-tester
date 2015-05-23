@@ -20,9 +20,10 @@ int snd_started, rcv_started;
 uint64_t send_times_cnt;
 
 t_pkt_stat gt_pkt_stat, gt_pkt_stat_pre, gt_pkt_stat_tmp;
+struct timeval last_timer_tv;
 struct timeval time_elapsed;
 struct timeval last_stat_tv;
-
+    
 int need_capture;
 
 
@@ -102,8 +103,9 @@ char *iptos(u_long in)
 void init_net_card_combbox(HWND hwnd_comb)
 {
     pcap_if_t *d;
-    TCHAR info[256];
+    char info[256];
     pcap_addr_t *a;
+    int nic_cnt=0, last_nic_idx = 0;
     for(d= alldevs; d != NULL; d= d->next)
     {
        info[0]=0;
@@ -115,11 +117,13 @@ void init_net_card_combbox(HWND hwnd_comb)
               break;
             }
         }
-        //strcat(info, d->name);
+        dbg_print(d->name);
         SendMessage(hwnd_comb,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)info);
+        if (strcmp(d->name, last_nic_name)==0) last_nic_idx = nic_cnt;
+        nic_cnt++;
     }
 
-    SendMessage(hwnd_comb, CB_SETCURSEL, (WPARAM)0, (LPARAM)0);
+    SendMessage(hwnd_comb, CB_SETCURSEL, (WPARAM)last_nic_idx, (LPARAM)0);
     select_if(SendMessage(hwnd_net_card_comb, (UINT) CB_GETCURSEL, 
                 (WPARAM) 0, (LPARAM) 0));
 
@@ -393,6 +397,8 @@ int select_if(int idx)
         {
             cur_dev = d;
             cur_dev_name = d->name;
+            strcpy(last_nic_name, d->name);
+            WritePrivateProfileString("last_nic", "name", last_nic_name, APP_PROFILE_FILE);
             return 0;
         }
         

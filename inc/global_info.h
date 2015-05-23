@@ -89,6 +89,7 @@ extern TCHAR szStatsWinClassName[];
 extern HWND hwnd_stats;
 
 extern int need_stop;
+extern struct timeval last_timer_tv;
 extern struct timeval time_elapsed;
 extern struct timeval last_stat_tv;
 extern int snd_stopped, rcv_stopped;
@@ -101,7 +102,7 @@ DWORD WINAPI  wpcap_rcv_test(LPVOID lpParameter);
 
 extern int cap_stopped;
 extern int need_cap_stop;
-
+extern char last_nic_name[128];
 DWORD WINAPI  rcv_pkt_2(LPVOID lpParameter);
 
 int reg_sys_win_classes();
@@ -144,7 +145,7 @@ typedef struct
 } t_pkt_stat;
 extern t_pkt_stat gt_pkt_stat, gt_pkt_stat_pre, gt_pkt_stat_tmp;
 
-void update_stats(t_pkt_stat *pt_pkt_stat, unsigned long time_gap);
+void update_stats();
 void clear_stats();
 void init_stats_ui();
 void stream_edit_data_change(HWND  hwnd, int offset);
@@ -156,7 +157,7 @@ void stream_edit_data_change(HWND  hwnd, int offset);
 #define    PCAP_FILE_FILTER    "tcpdump/pcap file(*.pcap)\0*.pcap\0\0"
 #define    PCAP_FILE_SUFFIX    "pcap"
 
-
+#define    APP_PROFILE_FILE    ".\\profile.ini"
 
 extern HWND    hwnd_net_card_comb;
 extern HWND    hwnd_capture_checkbox;

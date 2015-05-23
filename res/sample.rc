@@ -49,7 +49,7 @@ BEGIN
     	        MENUITEM "新建(&N)\tCtrl+N", 				IDM_FILE_NEW
     	        MENUITEM SEPARATOR
     	        MENUITEM "打开(&O)...\tCtrl+O", 			IDM_FILE_OPEN
-    	        MENUITEM "打开pcap文件(wireshark存档)", 	    IDM_VIEW_PCAP_FILE
+    	        MENUITEM "打开 *.pcap (wireshark存档)", 	IDM_VIEW_PCAP_FILE
     	        MENUITEM SEPARATOR
     	        MENUITEM "保存(&S)\tCtrl+S", 				IDM_FILE_SAVE
     	        MENUITEM "另存为(&A)...", 			IDM_FILE_SAVE_AS
