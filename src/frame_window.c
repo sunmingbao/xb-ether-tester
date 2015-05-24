@@ -8,6 +8,7 @@
  * ” œ‰: sunmingbao@126.com
  */
 #include <windows.h>
+#include <sys/time.h>
 #include "common.h"
 #include "global_info.h"
 
@@ -26,7 +27,6 @@ int we_pos;
 int ns_pos;
 
 
-static HCURSOR 	hcSizeEW;
 int display_left=1;
 int display_bottom=1;
 int display_toolbar=1;
@@ -41,6 +41,12 @@ char cfg_file_path[MAX_FILE_PATH_LEN];
 char file_to_open[MAX_FILE_PATH_LEN];
 
 BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam);
+void set_frame_title(TCHAR *file_name)
+{
+    TCHAR info[128];
+    sprintf(info, TEXT("%s - %s"), szAppName, file_name);
+    SetWindowText(hwnd_frame, info);
+}
 
 void ui_switch(int is_sending)
 {
@@ -75,7 +81,7 @@ int stats_captured_pkts_proc()
     char file_name[MAX_FILE_PATH_LEN];
     int ret;
 
-PKT_SAVE_PROC:
+//PKT_SAVE_PROC:
     if (!cap_save_cnt) goto STATS_PROC;
     if (strcmp(query_save_captured_pkts, "no")==0) goto CLR_CAP_PKTS;
 
@@ -111,7 +117,7 @@ STATS_PROC:
     }
 
     
-CLR_STAT:
+//CLR_STAT:
     clear_stats();
 
     return 0;
@@ -120,7 +126,7 @@ CLR_STAT:
 
 void open_file()
 {
-    if (doc_save_proc()) return 0;
+    if (doc_save_proc()) return;
 
     load_stream(file_to_open);
     re_populate_items();
@@ -178,8 +184,6 @@ void load_app_profile()
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    HDC hdc ;
-    PAINTSTRUCT ps ;
     static int  cxClient, cyClient;
     HMENU hMenu;
     POINT point;
@@ -212,7 +216,7 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             //ClientToScreen(hwnd, &point);
            			// Move the buttons to the new center
-      hwndTip =CreateWindowEx(NULL, TOOLTIPS_CLASS, NULL,
+      hwndTip =CreateWindowEx(0, TOOLTIPS_CLASS, NULL,
                         WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP |TTS_BALLOON,
                       CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,
                          hwnd, 	//Handle of the Parent window.
@@ -283,20 +287,20 @@ CreateStatusBar();
             ShowWindow (hwnd_tip, 0) ;
 
             DragAcceptFiles(hwnd, TRUE);
-            
-            ret=get_history_cfg_file_by_idx(1, file_to_open);
 
+            if (!file_exists(file_to_open)) 
+            {
+                new_cfg();
+                return 0 ;
+            }
+
+            ret=get_history_cfg_file_by_idx(1, file_to_open);
             if (ret) 
             {
                 new_cfg();
                 return 0 ;
             }
             
-            if (!file_exists(file_to_open)) 
-            {
-                new_cfg();
-                return 0 ;
-            }
 
             open_file();
 
@@ -583,7 +587,7 @@ CreateStatusBar();
        		        return 0 ;
 
                 case    IDT_TOOLBAR_START:
-                    if (0==need_stop) return;
+                    if (0==need_stop) return 0;
 
                     if (nr_cur_stream<=0)
                     {
@@ -604,7 +608,7 @@ CreateStatusBar();
                         return 0;
                     }
 
-PREPARE_LAUNCH:
+//PREPARE_LAUNCH:
                     need_stop=snd_stopped=rcv_stopped=0;
                     snd_started=rcv_started=0;
 
@@ -628,7 +632,7 @@ PREPARE_LAUNCH:
                 //SendMessage(hwnd_toolbar, TB_CHECKBUTTON, IDT_TOOLBAR_STOP, 1);
 
                 while (!snd_stopped || !rcv_stopped) Sleep(1);
-                SendMessage(hwnd, WM_TIMER, TIMER_STATUS_BAR, NULL);
+                SendMessage(hwnd, WM_TIMER, TIMER_STATUS_BAR, 0);
                	return 0 ;
 
                 case    IDT_TOOLBAR_CAPTURE:
@@ -833,15 +837,9 @@ int reg_sys_win_classes()
 
     InitCommonControlsEx(&icex);
     InitCommonControls();
-
+    return 0;
 }
 
-void set_frame_title(TCHAR *file_name)
-{
-    TCHAR info[128];
-    sprintf(info, TEXT("%s - %s"), szAppName, file_name);
-    SetWindowText(hwnd_frame, info);
-}
 
 int create_windows(int iCmdShow)
 {

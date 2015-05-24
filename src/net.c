@@ -70,11 +70,11 @@ void ip6_addr_uniform(char *input)
     ipv4_begin = strrchr(input, ':');
     ipv4_begin++;
     ip_str2n(v4_addr, ipv4_begin);
-    sprintf(ipv4_begin, "%02hhx", v4_addr[0]);
-    sprintf(ipv4_begin+2, "%02hhx", v4_addr[1]);
+    sprintf(ipv4_begin, "%02x", (unsigned)v4_addr[0]);
+    sprintf(ipv4_begin+2, "%02x", (unsigned)v4_addr[1]);
     *(ipv4_begin+4)=':';
-    sprintf(ipv4_begin+5, "%02hhx", v4_addr[2]);
-    sprintf(ipv4_begin+7, "%02hhx", v4_addr[3]);
+    sprintf(ipv4_begin+5, "%02x", (unsigned)v4_addr[2]);
+    sprintf(ipv4_begin+7, "%02x", (unsigned)v4_addr[3]);
 }
 
 void ip6_addr_no_mh(char *dst, char *src)
@@ -102,7 +102,6 @@ void ip6_str2n(void *field_addr, char *info)
 {
     char str_addr[64];
     char *db_mh;
-    char *p_digit;
     char pure_digits[33];
     char pure_digits_hdr[64]={0};
     char pure_digits_tail[64]={0};
@@ -147,10 +146,10 @@ void ip6_n2str(char *info, void * field_addr)
     unsigned char *src=field_addr;
     int i;
     char tmp[32] = {0};
-    sprintf(info, "%02hhx%02hhx", src[0], src[1]);
+    sprintf(info, "%02x%02x", (unsigned)src[0], (unsigned)src[1]);
     for (i=2;i<16;i+=2)
     {
-        sprintf(tmp, ":%02hhx%02hhx", src[i], src[i+1]);
+        sprintf(tmp, ":%02x%02x", (unsigned)src[i], (unsigned)src[i+1]);
         strcat(info, tmp);
 
     }
@@ -375,8 +374,6 @@ int get_eth_type_value(char *name)
 void init_eth_type_comb(HWND comb)
 {
     int i;
-    char info[64], info_2[32];
-
     clear_comb(comb);
 
     for (i=0;i<ARRAY_SIZE(gat_eth_type);i++)
@@ -387,8 +384,7 @@ void init_eth_type_comb(HWND comb)
 
 int get_eth_type_comb(HWND comb)
 {
-    int i;
-    char info[64], info_2[32];
+    char info[64];
 
     ComboBox_GetText(comb, info, sizeof(info));
 
@@ -685,7 +681,6 @@ void get_pkt_desc_info_v4(char *info, void* p_eth_hdr)
     t_ip_hdr *iph=eth_data(p_eth_hdr);
     t_icmp_hdr *icmp_hdr = ip_data(iph);
     t_tcp_hdr *tcp_hdr = ip_data(iph);
-    char info_2[64];
 
     switch (iph->protocol)
     {
@@ -696,7 +691,7 @@ void get_pkt_desc_info_v4(char *info, void* p_eth_hdr)
             else if (icmp_hdr->type==0 && icmp_hdr->code==0)
                 strcpy(info, "ping reply");
             else
-                sprintf(info, "type %hhu code %hhu", icmp_hdr->type, icmp_hdr->code);
+                sprintf(info, "type %u code %u", (unsigned)icmp_hdr->type, (unsigned)icmp_hdr->code);
 
             return;
             
@@ -758,7 +753,7 @@ void get_pkt_desc_info_v6(char *info, void* p_eth_hdr)
             else if ((pt_icmp_hdr->type==129)  && (pt_icmp_hdr->code==0) )
                 strcpy(info, "ping reply");
             else
-                sprintf(info, "type %hhu code %hhu", pt_icmp_hdr->type, pt_icmp_hdr->code);
+                sprintf(info, "type %u code %u", (unsigned)pt_icmp_hdr->type, (unsigned)pt_icmp_hdr->code);
 
             return;
 

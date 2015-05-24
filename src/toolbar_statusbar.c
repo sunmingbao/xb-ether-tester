@@ -101,7 +101,6 @@ LRESULT CALLBACK my_tb_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 int CreateToolbar()
 {
 #if 1
-BITMAP BMPInfo;
 HIMAGELIST h0, h1;
 HICON hiconItem; 
 
@@ -265,7 +264,7 @@ int CreateStatusBar()
     statusbar_height = win_height(hwnd_statusbar);
     SendMessage(hwnd_statusbar, SB_SETPARTS, (WPARAM)ARRAY_SIZE(d), (LPARAM)d);
     update_statusbar();
-
+    return 0;
 }
 
 

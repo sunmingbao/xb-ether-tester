@@ -144,7 +144,7 @@ HWND create_tab_win(HINSTANCE hInstance, HWND hwin_parent, TCHAR *WinClassName, 
             return hTabWindow;
 }
 
-HTREEITEM insertItem(HWND  hwnd_treeview, const wchar_t* str, HTREEITEM parent, HTREEITEM insertAfter,
+HTREEITEM insertItem(HWND  hwnd_treeview, const TCHAR* str, HTREEITEM parent, HTREEITEM insertAfter,
                      int imageIndex, int selectedImageIndex, LPARAM lParam)
 {
     // build TVINSERTSTRUCT
@@ -152,7 +152,7 @@ HTREEITEM insertItem(HWND  hwnd_treeview, const wchar_t* str, HTREEITEM parent, 
     insertStruct.hParent = parent;
     insertStruct.hInsertAfter = insertAfter;
     insertStruct.item.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE|TVIF_PARAM;
-    insertStruct.item.pszText = (LPWSTR)str;
+    insertStruct.item.pszText = str;
     insertStruct.item.cchTextMax = sizeof(str)/sizeof(str[0]);
     insertStruct.item.iImage = imageIndex;
     insertStruct.item.iSelectedImage = selectedImageIndex;
@@ -366,7 +366,6 @@ void inc_int_text(HWND hwnd, int value)
 
 void rect_client2scrn(HWND h, RECT *rect_s, RECT *rect_d)
 {
-    RECT rect1;
     POINT point;
 
     point.x=rect_s->left;
@@ -393,7 +392,7 @@ void get_client_rect_scrn(HWND h, RECT *rect)
 void change_child_width(HWND child, int width)
 {
     HWND p=GetParent(child);
-    RECT rect0, rect1, rect2;
+    RECT rect0, rect1;
     get_client_rect_scrn(p, &rect0);
     GetWindowRect(child, &rect1);
     get_relative_pos(&rect0, &rect1, &rect1);
@@ -404,7 +403,7 @@ void change_child_width(HWND child, int width)
 void change_child_height(HWND child, int height)
 {
     HWND p=GetParent(child);
-    RECT rect0, rect1, rect2;
+    RECT rect0, rect1;
     get_client_rect_scrn(p, &rect0);
     GetWindowRect(child, &rect1);
     get_relative_pos(&rect0, &rect1, &rect1);
@@ -421,7 +420,7 @@ void change_child_size(HWND child, int width, int height)
 void move_child_pos(HWND child, int x, int y)
 {
     HWND p=GetParent(child);
-    RECT rect0, rect1, rect2;
+    RECT rect0, rect1;
     get_client_rect_scrn(p, &rect0);
     GetWindowRect(child, &rect1);
     get_relative_pos(&rect0, &rect1, &rect1);
@@ -694,10 +693,7 @@ void center_child_win(HWND hwndParent, HWND hwndWindow)
  
          MoveWindow(hwndWindow, nX, nY, nWidth, nHeight, FALSE);
  
-         return TRUE;
      }
- 
-     return FALSE;
 }
 
 #endif

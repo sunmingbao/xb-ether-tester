@@ -373,7 +373,6 @@ static inline int ip_frag_offset(t_ether_packet *pt_eth_hdr)
 
 static inline int ip_pkt_can_frag(t_ether_packet *pt_eth_hdr)
 {
-    t_ip_hdr *iph = eth_data(pt_eth_hdr);
     int type = eth_type(pt_eth_hdr);
     if (ip_pkt_is_frag(pt_eth_hdr))
         return 0;

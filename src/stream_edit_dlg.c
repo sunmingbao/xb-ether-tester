@@ -8,6 +8,7 @@
  * ” œ‰: sunmingbao@126.com
  */
 #include <windows.h>
+#include <pcap.h>
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
@@ -29,11 +30,11 @@ void u8_str2n(void *field_addr, char *info)
 void u8_n2str(char *info, void * field_addr, int is_hex)
 {
 if (is_hex)
-            sprintf(info, "0x%02hhx"
-            , *(unsigned char *)field_addr);
+            sprintf(info, "0x%02x"
+            , (unsigned)(*(unsigned char *)field_addr));
 else
-            sprintf(info, "%hhu"
-            , *(unsigned char *)field_addr);
+            sprintf(info, "%u"
+            , (unsigned)(*(unsigned char *)field_addr));
 }
 
 
@@ -98,13 +99,13 @@ void mac_str2n(unsigned char *mac, char *info_usr)
 void mac_n2str(char *info, void *field_addr)
 {
 unsigned char *mac = field_addr;
-sprintf(info, "%02hhx %02hhx %02hhx %02hhx %02hhx %02hhx"
-            , mac[0]
-            , mac[1]
-            , mac[2]
-            , mac[3]
-            , mac[4]
-            , mac[5]);
+sprintf(info, "%02x %02x %02x %02x %02x %02x"
+            , (unsigned)mac[0]
+            , (unsigned)mac[1]
+            , (unsigned)mac[2]
+            , (unsigned)mac[3]
+            , (unsigned)mac[4]
+            , (unsigned)mac[5]);
 }
 
 void bits_str2n(void *field_addr, char *info, int bytes_len, int bits_from, int bits_len)
@@ -514,7 +515,6 @@ HTREEITEM Selected=NULL;
 WNDPROC old_tv_proc;
 LRESULT CALLBACK my_tv_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
- 	int id = GetWindowLong (hwnd, GWL_ID) ;
  	switch (message)
  	{
      	case WM_VSCROLL :
@@ -546,30 +546,6 @@ void *get_tvi_lParam(HWND htv, HTREEITEM htvi)
 
 }
 
-void add_tvi(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data *pt_tvi_data)
-{
-    HTREEITEM treeItem2;
-    pt_tvi_data->data_offset=pt_tvi_data->ori_offset + adjust;
-    treeItem2 = insertItem(hwnd_tree, TEXT(""), treeItem1, TVI_LAST, -1, -1, pt_tvi_data);
-    update_tvi_proto_field(hwnd_tree, treeItem2);
-
-}
-
-void build_tvis(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data tvis[], int num)
-{
-    int i;
-    for (i=0;i<num;i++)
-    add_tvi(hwnd_tree, treeItem1, adjust, &(tvis[i]));
-
-}
-
-void build_hdr_info(char *info, const char *str, int off, int len)
-{
-
-    sprintf(info, "%-12s[offset=%d;length=%d]", str, off, len);
-}
-
-
 void set_tvi_text(HWND htv, HTREEITEM htvi, TCHAR *text)
 {
     TVITEM tvi={0};
@@ -589,6 +565,49 @@ void get_tvi_text(HWND htv, HTREEITEM htvi, TCHAR *text, int buf_len)
     tvi.cchTextMax = buf_len;
     TreeView_GetItem(htv, &tvi);
 }
+
+void update_tvi_proto_field(HWND htv, HTREEITEM htvi)
+{
+    t_tvi_data *pt_tvi_data;
+    char info[128], info_2[128];
+    pt_tvi_data = get_tvi_lParam(htv, htvi);
+
+    field_n2str(info_2
+        , gt_edit_stream.data+pt_tvi_data->data_offset
+        ,pt_tvi_data->len
+        ,pt_tvi_data->bits_from
+        , pt_tvi_data->bits_len
+        ,pt_tvi_data->flags);
+  
+    sprintf(info, "%-13s: %s", pt_tvi_data->name, info_2);
+    set_tvi_text(htv, htvi, info);
+
+}
+
+void add_tvi(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data *pt_tvi_data)
+{
+    HTREEITEM treeItem2;
+    pt_tvi_data->data_offset=pt_tvi_data->ori_offset + adjust;
+    treeItem2 = insertItem(hwnd_tree, TEXT(""), treeItem1, TVI_LAST, -1, -1, (LPARAM)pt_tvi_data);
+    update_tvi_proto_field(hwnd_tree, treeItem2);
+
+}
+
+void build_tvis(HWND hwnd_tree, HTREEITEM treeItem1, int adjust, t_tvi_data tvis[], int num)
+{
+    int i;
+    for (i=0;i<num;i++)
+    add_tvi(hwnd_tree, treeItem1, adjust, &(tvis[i]));
+
+}
+
+void build_hdr_info(char *info, const char *str, int off, int len)
+{
+
+    sprintf(info, "%-12s[offset=%d;length=%d]", str, off, len);
+}
+
+
 
 int htvi_is_proto_hdr(HWND htv, HTREEITEM htvi)
 {
@@ -632,24 +651,6 @@ int htvi_is_option(HWND htv, HTREEITEM htvi)
     return 1;
 }
 
-void update_tvi_proto_field(HWND htv, HTREEITEM htvi)
-{
-    TVITEM tvi={0};
-    t_tvi_data *pt_tvi_data;
-    char info[128], info_2[128];
-    pt_tvi_data = get_tvi_lParam(htv, htvi);
-
-    field_n2str(info_2
-        , gt_edit_stream.data+pt_tvi_data->data_offset
-        ,pt_tvi_data->len
-        ,pt_tvi_data->bits_from
-        , pt_tvi_data->bits_len
-        ,pt_tvi_data->flags);
-  
-    sprintf(info, "%-13s: %s", pt_tvi_data->name, info_2);
-    set_tvi_text(htv, htvi, info);
-
-}
 
 void update_tvi_proto_hdr(HWND htv, HTREEITEM htvi)
 {
@@ -680,7 +681,7 @@ void update_tvi_options(HWND htv, HTREEITEM htvi)
 void update_tvi_text(HWND htv, HTREEITEM htvi)
 {
 
-    if (NULL==htvi) return 0;
+    if (NULL==htvi) return;
     
     if (htvi_edit_able(htv, htvi))
         update_tvi_proto_field(htv, htvi);
@@ -758,7 +759,6 @@ void tvi_update_ip6_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
     int eth_len = eth_hdr_len(pt_edit_stream->data);
-    t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
     
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
@@ -914,7 +914,6 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
     }
     else if (type==ETH_P_ARP)
     {
-        t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
         if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
         {
             offset = eth_len+FIXED_ARP_HDR_LEN;
@@ -1012,7 +1011,7 @@ void build_tv(HWND hwnd_tree)
 
     TreeView_DeleteAllItems(hwnd_tree);
 
-    treeItem1=insertItem(hwnd_tree, "ethernet", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_eth_hdr);
+    treeItem1=insertItem(hwnd_tree, "ethernet", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_eth_hdr);
     update_tvi_proto_hdr(hwnd_tree, treeItem1);
 
     if (eth_is_vlan(gt_edit_stream.data))
@@ -1027,7 +1026,7 @@ void build_tv(HWND hwnd_tree)
     if (type==ETH_P_ARP)
     {
         t_arp_hdr *pt_arp = eth_data(gt_edit_stream.data);
-        treeItem1=insertItem(hwnd_tree, TEXT("arp"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_arp_hdr);
+        treeItem1=insertItem(hwnd_tree, TEXT("arp"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_arp_hdr);
         update_tvi_proto_hdr(hwnd_tree, treeItem1);
         if (4==pt_arp->ar_pln)
         {
@@ -1043,7 +1042,7 @@ void build_tv(HWND hwnd_tree)
         {
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_arp_base_tvis, ARRAY_SIZE(gat_arp_base_tvis));
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
         }
@@ -1051,7 +1050,7 @@ void build_tv(HWND hwnd_tree)
     else if (type==ETH_P_IP)
     {
         t_ip_hdr *iph=eth_data(gt_edit_stream.data);
-        treeItem1=insertItem(hwnd_tree, TEXT("ip"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip_hdr);
+        treeItem1=insertItem(hwnd_tree, TEXT("ip"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip_hdr);
         update_tvi_proto_hdr(hwnd_tree, treeItem1);
 
 
@@ -1061,7 +1060,7 @@ void build_tv(HWND hwnd_tree)
         if (ip_hdr_len(iph)>FIXED_IP_HDR_LEN)
         {
 
-            treeItem2=insertItem(hwnd_tree, TEXT("options"), treeItem1, TVI_LAST, -1, -1, tvi_update_options_ip);
+            treeItem2=insertItem(hwnd_tree, TEXT("options"), treeItem1, TVI_LAST, -1, -1, (LPARAM)tvi_update_options_ip);
             update_tvi_options(hwnd_tree, treeItem2);
         }
         
@@ -1071,7 +1070,7 @@ void build_tv(HWND hwnd_tree)
         {
             if (ip_frag_offset(&(gt_edit_stream.eth_packet)))
             {
-                treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+                treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
                 tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
                 return;
             }
@@ -1081,7 +1080,7 @@ void build_tv(HWND hwnd_tree)
         if (iph->protocol==IPPROTO_ICMP)
         {
             t_icmp_hdr *pt_icmp_hdr=ip_data(iph);
-            treeItem1=insertItem(hwnd_tree, "icmp", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip_upper_hdr);
+            treeItem1=insertItem(hwnd_tree, "icmp", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
 
             build_tvis(hwnd_tree, treeItem1
@@ -1094,38 +1093,38 @@ void build_tv(HWND hwnd_tree)
                 , adjust, gat_icmp_echo_hdr_tvis, ARRAY_SIZE(gat_icmp_echo_hdr_tvis));
             }
 
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
         }
         else if (iph->protocol==IPPROTO_IGMP)
         {
             t_igmp_hdr *pt_igmp_hdr=ip_data(iph);
-            treeItem1=insertItem(hwnd_tree, "igmp", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip_upper_hdr);
+            treeItem1=insertItem(hwnd_tree, "igmp", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_igmp_hdr_tvis, ARRAY_SIZE(gat_igmp_hdr_tvis));
         }
         else if (iph->protocol==IPPROTO_UDP)
         {
-            treeItem1=insertItem(hwnd_tree, "udp", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip_upper_hdr);
+            treeItem1=insertItem(hwnd_tree, "udp", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_udp_hdr_tvis, ARRAY_SIZE(gat_udp_hdr_tvis));
             if (udp_data_len(iph)>0)
             {
-                treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+                treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
                 tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
             }
         }
         else if (iph->protocol==IPPROTO_TCP)
         {
             build_hdr_info(info, TEXT("tcp"), 14+ip_hdr_len(iph), ip_data_len(iph));
-            treeItem1=insertItem(hwnd_tree, info, TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip_upper_hdr);
+            treeItem1=insertItem(hwnd_tree, info, TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_tcp_hdr_tvis, 5);
-treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL);
+treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, 0);
 
             build_tvis(hwnd_tree, treeItem2
                 , adjust, gat_tcp_hdr_tvis+5, 7);
@@ -1136,19 +1135,19 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
             if (tcp_hdr_len(ip_data(iph))>sizeof(t_tcp_hdr))
             {
 
-                treeItem2=insertItem(hwnd_tree, TEXT("options"), treeItem1, TVI_LAST, -1, -1, tvi_update_options_tcp);
+                treeItem2=insertItem(hwnd_tree, TEXT("options"), treeItem1, TVI_LAST, -1, -1, (LPARAM)tvi_update_options_tcp);
                 update_tvi_options(hwnd_tree, treeItem2);
             }
             
             if (tcp_data_len(iph)>0)
             {
-                treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+                treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
                 tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
             }
         }
         else
         {
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
         }
 
@@ -1156,7 +1155,7 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
     else if (type==ETH_P_IPV6)
     {
         t_ipv6_hdr *ip6h=eth_data(gt_edit_stream.data);
-        treeItem1=insertItem(hwnd_tree, TEXT("ipv6"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip6_hdr);
+        treeItem1=insertItem(hwnd_tree, TEXT("ipv6"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip6_hdr);
         update_tvi_proto_hdr(hwnd_tree, treeItem1);
 
         build_tvis(hwnd_tree, treeItem1
@@ -1166,19 +1165,19 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
         if (ip_pkt_is_frag(&(gt_edit_stream.eth_packet)))
         {
 
-            treeItem1=insertItem(hwnd_tree, "frag", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip6_upper_hdr);
+            treeItem1=insertItem(hwnd_tree, "frag", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip6_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_ipv6_frag_hdr_tvis, ARRAY_SIZE(gat_ipv6_frag_hdr_tvis));
             
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
         }
         else if (ip6h->nexthdr==IPPROTO_ICMPV6)
         {
             t_icmp_hdr *pt_icmp_hdr=ip6_data(ip6h);
-            treeItem1=insertItem(hwnd_tree, "icmpv6", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip6_upper_hdr);
+            treeItem1=insertItem(hwnd_tree, "icmpv6", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip6_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
 
             build_tvis(hwnd_tree, treeItem1
@@ -1191,30 +1190,30 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
                 , adjust, gat_icmp_echo_hdr_tvis, ARRAY_SIZE(gat_icmp_echo_hdr_tvis));
             }
 
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
         }
 
         else if (ip6h->nexthdr==IPPROTO_UDP)
         {
-            treeItem1=insertItem(hwnd_tree, "udp", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip6_upper_hdr);
+            treeItem1=insertItem(hwnd_tree, "udp", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip6_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_udp_hdr_tvis, ARRAY_SIZE(gat_udp_hdr_tvis));
 
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
         }
         else if (ip6h->nexthdr==IPPROTO_TCP)
         {
-            treeItem1=insertItem(hwnd_tree, "tcp", TVI_ROOT, TVI_LAST, -1, -1, tvi_update_ip6_upper_hdr);
+            treeItem1=insertItem(hwnd_tree, "tcp", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip6_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_tcp_hdr_tvis, 5);
             
-treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL);
+treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, 0);
 
             build_tvis(hwnd_tree, treeItem2
                 , adjust, gat_tcp_hdr_tvis+5, 7);
@@ -1222,21 +1221,21 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, NULL
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_tcp_hdr_tvis+12, 3);
             
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
 
         }
         else
         {
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
             tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
         }
 
     }
     else
     {
-        treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, tvi_update_data);
+        treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
         tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
     }
@@ -1261,10 +1260,7 @@ int htvi_edit_able(HWND htv, HTREEITEM htvi)
 
 BOOL InitDlgFromStream(HWND hDlg, t_stream* pt_stream)
 {
-    TCHAR    info[32], info_2[32];
     HWND hwnd_tree, hwnd_edit, hwnd_button, hwnd_comb;
-    HTREEITEM treeItem1, treeItem2;
-    t_ip_hdr *iph=eth_data(pt_stream->data);
 
   hwnd_tree = GetDlgItem(hDlg, ID_SED_TREE_VIEW);
   hwnd_edit = GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT);
@@ -1392,7 +1388,7 @@ int tvi_char_width(HWND htv)
 }
 #endif
 
-int cur_field_addr;
+void * cur_field_addr;
 int cur_field_offset;
 void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
 {
@@ -1941,10 +1937,6 @@ void rule_cfg_gui_switch(HWND hDlg, int is_valid)
 
 BOOL CALLBACK RuleCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
-    TCHAR    info[MAX_FILE_PATH_LEN];
-    int ret;
-    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
-
      	switch (message)
      	{
      	case 	WM_INITDIALOG :
@@ -2334,8 +2326,6 @@ int make_frags(const t_stream *pt_stream, int frag_num)
 }
 void init_ui_stream_edit(HWND hDlg)
 {
-    RECT rect0, rect1, rect2;
-
     HWND hwnd_tree=GetDlgItem(hDlg,ID_SED_TREE_VIEW);
     HWND hwnd_hexedit=GetDlgItem(hDlg,ID_SED_HEX_EDIT);
     HWND hwnd_button = GetDlgItem(hDlg,ID_SED_DYNAMIC_RULE_BUTTON);
@@ -2387,10 +2377,8 @@ void insert_bytes(HWND hDlg, int offset, int len)
 BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
     HTREEITEM htvi;
-    TVITEM tvi;
     HWND hwnd_tree=GetDlgItem(hDlg,ID_SED_TREE_VIEW);
     HWND hwnd_hex_edit=GetDlgItem(hDlg,ID_SED_HEX_EDIT);
-    TCHAR    info[32];
     int ret;
     int type;
 
@@ -2631,7 +2619,7 @@ break;
     
     case WM_CTLCOLOREDIT:
     {
-        if (lParam==GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT))
+        if ((HWND)lParam==GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT))
         {
             HDC hdc = (HDC)wParam;
             SetBkMode(hdc, TRANSPARENT);
@@ -2665,7 +2653,6 @@ TCHAR *pkt_view_lv_col_names[] =
 
 BOOL InitLvColumns(HWND hWndListView, int *col_width) 
 { 
-    TCHAR szText[256];     // Temporary buffer.
     LVCOLUMN lvc;
     int iCol, col_num = ARRAY_SIZE(pkt_view_lv_col_names);
 
@@ -2706,13 +2693,11 @@ BOOL InsertItemFromPkt(HWND hWndListView, t_dump_pkt *pt_pkt, struct timeval *ba
 {
     LVITEM lvI;
     int index=ListView_GetItemCount(hWndListView);
-    int iCol;
     TCHAR    info[128];
-    struct tm ltime;
     char timestr[32];
     time_t local_tv_sec;
     struct timeval tmp=pt_pkt->header.ts;
-    t_ether_packet *pt_eth_hdr = pt_pkt->pkt_data;
+    t_ether_packet *pt_eth_hdr = (void *)pt_pkt->pkt_data;
 
     // Initialize LVITEM members that are different for each item.
     {
@@ -2852,8 +2837,6 @@ void rel_sel_pkt(HWND hList)
         }
     }
 
-  return 0;
-
 }
 
 void sel_pkt_to_stream(HWND hList)
@@ -2877,28 +2860,22 @@ void sel_pkt_to_stream(HWND hList)
         }
     }
 
-  return 0;
-
 }
 
 void sel_pkt_to_pcap_dump(HWND hList, char *dump_file)
 {
-  int i, n;
-  t_dump_pkt    *pt_pkt;
+    int i, n;
+    t_dump_pkt    *pt_pkt;
   
   	pcap_t *fp;
-    pcap_t *fp_rcv;
 	char errbuf[PCAP_ERRBUF_SIZE];
-    struct pcap_pkthdr *header;
-const u_char *pkt_data;
-int saved_cnt=0;
-pcap_dumper_t *dumpfile;
+    pcap_dumper_t *dumpfile;
     
 	/* Open the adapter */
 	if ((fp = pcap_open_offline(pcap_file_to_view, errbuf)) == NULL)
 	{
-		WinPrintf(GetParent(hList), TEXT("Unable to open the adapter. %s is not supported by WinPcap"), pcap_file_to_view);
-		return 2;
+		err_msg_box(TEXT("Unable to open the adapter. %s is not supported by WinPcap"), pcap_file_to_view);
+		return;
 	}
 
 dumpfile = pcap_dump_open(fp, dump_file);
@@ -2908,21 +2885,16 @@ dumpfile = pcap_dump_open(fp, dump_file);
         if (ListView_GetCheckState(hList, i))
         {
             pt_pkt=get_lvi_lparam(hList, i);
-            pcap_dump(dumpfile, &(pt_pkt->header), pt_pkt->pkt_data);
+            pcap_dump((unsigned char *)dumpfile, &(pt_pkt->header), pt_pkt->pkt_data);
         }
     }
 
     pcap_dump_close(dumpfile);
 	pcap_close(fp);	
-
-  return 0;
-
 }
 
 void init_ui_pkt_view(HWND hDlg)
 {
-    RECT rect0, rect1, rect2;
-
     HWND hlv=GetDlgItem(hDlg,ID_VIEW_STREAM_LV);
     HWND hwnd_tree=GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW);
     HWND hwnd_hexedit=GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT);
@@ -2959,13 +2931,11 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
     t_tvi_data *pt_tvi_data;
     HWND hlv=GetDlgItem(hDlg,ID_VIEW_STREAM_LV);
     HWND hwnd_tree=GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW);
-    TCHAR    info[32];
     int ret;
 
     static HMENU	hMenu ;
     POINT point ;
 
-    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
     t_dump_pkt    *pt_pkt;
 
      	switch (message)
@@ -3043,7 +3013,6 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
 
                     case ID_VIEW_STREAM_SAVE_AS:
                     {
-                        char info[1024];
                         char file_name[MAX_FILE_PATH_LEN];
                         ret=get_save_file_name(file_name, hDlg, "pcap file(*.pcap)\0*.pcap\0\0", "pcap");
                         if (ret) return TRUE;
@@ -3105,7 +3074,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
                 tvi.hItem = htvi;
                 tvi.mask=TVIF_PARAM;
                 TreeView_GetItem(hwnd_tree, &tvi);
-                pt_tvi_data = tvi.lParam;
+                pt_tvi_data = (void *)tvi.lParam;
                 hex_win_sel(GetDlgItem(hDlg, ID_VIEW_STREAM_HEX_EDIT), pt_tvi_data->data_offset, pt_tvi_data->len);
             }
             else
@@ -3238,10 +3207,7 @@ void clr_cap_dlg_stat(HWND hDlg)
 
 BOOL CALLBACK PktCapDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
-    TCHAR    info[MAX_FILE_PATH_LEN];
     int ret;
-    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
-    t_dump_pkt    *pt_pkt;
 
      	switch (message)
      	{
@@ -3337,15 +3303,7 @@ CLR_STAT:
 
 BOOL CALLBACK FragDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
-    HTREEITEM htvi;
-    TVITEM tvi={0};
-    t_tvi_data *pt_tvi_data;
-    HWND hlv=GetDlgItem(hDlg,ID_VIEW_STREAM_LV);
-    HWND hwnd_tree=GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW);
-    TCHAR    info[32];
     int ret;
-    t_ip_hdr *iph=eth_data(gt_edit_stream.data);
-    t_dump_pkt    *pt_pkt;
 
      	switch (message)
      	{

@@ -32,7 +32,7 @@ int cur_strm_idx;
 int line_width;
 
 
-char  *test_buf = gt_edit_stream.data;
+char  *test_buf = (void *)gt_edit_stream.data;
 int cur_data_len;
 int line_num;
 
@@ -61,7 +61,7 @@ void format_line(char *buf, int line_idx, void *start_addr, int length)
 
         for (i = 0; i < length; i++)
         {
-            sprintf(str_data + i*3, "%02hhx ", cur_pos[i]);
+            sprintf(str_data + i*3, "%02x ", (unsigned)cur_pos[i]);
             if (cur_pos[i] > 31 &&  cur_pos[i] < 127)
             sprintf(str_readable + i, "%c", (char)(cur_pos[i]));
             else
@@ -461,8 +461,6 @@ LRESULT CALLBACK hex_edit_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
     char buf[LINE_CHAR_NUM+16];
 
 
-    POINT point ;
-    
     switch (message)
     {
         case WM_CREATE:

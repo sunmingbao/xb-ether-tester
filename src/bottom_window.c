@@ -39,15 +39,8 @@ TCHAR *tab_b_labels[] = {TEXT("Í³¼Æ")};
 int err_cnt, info_cnt;
 LRESULT CALLBACK bottom_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    HDC hdc ;
-    PAINTSTRUCT ps ;
-    HWND    hwnd_sub ;
     RECT		rect ;
     int cxClient, cyClient;
-    int tab_height;
-    
-static HMENU	hMenu ;
-    POINT point ;
     
     switch (message)
     {

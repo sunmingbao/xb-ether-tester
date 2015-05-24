@@ -55,7 +55,7 @@ int get_field_value_by_idx(char *file_path
 {
     FILE *history_file = fopen(file_path, "r");
     int i;
-    int ret;
+    int ret=1;
     
     if (history_file==NULL) return 1;
     

@@ -16,6 +16,7 @@ CFLAG := -Wall -O2  -DBUILD_TIME='"$(BUILD_TIME)"' -D_WIN32_IE=0x0501 -D_WIN32_W
 LDFLAG := -mwindows  -s  -lkernel32 -luser32 -lgdi32 -lcomctl32 -lws2_32 -lwpcap 
 
 #CFLAG := $(CFLAG) -D_DEBUG
+CFLAG := $(CFLAG) -fno-strict-aliasing
 
 PRJ_DIR:=.
 RES_DIR := $(PRJ_DIR)\res

@@ -8,6 +8,7 @@
  * ” œ‰: sunmingbao@126.com
  */
 #include <pcap.h>
+#include <sys/time.h>
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
@@ -207,12 +208,10 @@ uint64_t cap_save_cnt, cap_save_bytes_cnt;
 int rcv_pkt(char *dev_name, int cnt)
 {
 	pcap_t *fp;
-    pcap_t *fp_rcv;
 	char errbuf[PCAP_ERRBUF_SIZE];
     struct pcap_pkthdr *header;
 const u_char *pkt_data;
-int saved_cnt=0;
-pcap_dumper_t *dumpfile;
+pcap_dumper_t *dumpfile=NULL;
     
 	/* Open the adapter */
 	if ((fp = pcap_open_live(dev_name,		// name of the device
@@ -249,7 +248,7 @@ dumpfile = pcap_dump_open(fp, PKT_CAP_FILE_WHILE_SND);
                 cap_save_cnt++;
                 cap_save_bytes_cnt+=header->caplen;
                 //fwrite(pkt_data, 1, header->len, file);
-                pcap_dump(dumpfile, header, pkt_data);
+                pcap_dump((void *)dumpfile, header, pkt_data);
             }
         }
 
@@ -257,15 +256,14 @@ dumpfile = pcap_dump_open(fp, PKT_CAP_FILE_WHILE_SND);
     }
 
 exit:
-    pcap_dump_close(dumpfile);
-	pcap_close(fp);	
+    if (dumpfile) pcap_dump_close(dumpfile);
+	if (fp) pcap_close(fp);	
 	return 0;
 }
 
 int send_pkt(char *dev_name, int cnt)
 {
 	pcap_t *fp;
-    pcap_t *fp_rcv;
 	char errbuf[PCAP_ERRBUF_SIZE];
 	int i;
 	struct timeval cur_tv, next_snd_tv={(time_t)0};
@@ -337,12 +335,10 @@ int cap_stopped=1;
 DWORD WINAPI  rcv_pkt_2(LPVOID lpParameter)
 {
 	pcap_t *fp;
-    pcap_t *fp_rcv;
 	char errbuf[PCAP_ERRBUF_SIZE];
     struct pcap_pkthdr *header;
 const u_char *pkt_data;
-int saved_cnt=0;
-pcap_dumper_t *dumpfile;
+pcap_dumper_t *dumpfile=NULL;
     
 	/* Open the adapter */
 	if ((fp = pcap_open_live(cur_dev_name,		// name of the device
@@ -369,7 +365,7 @@ dumpfile = pcap_dump_open(fp, PKT_CAP_FILE_ONLY_CAP);
             update_pkt_cap_stats((void *)pkt_data);
             if (gt_pkt_cap_cfg.need_save_capture /* && saved_cnt<save_capture_num */) 
             {
-                pcap_dump(dumpfile, header, pkt_data);
+                pcap_dump((void *)dumpfile, header, pkt_data);
             }
         }
 
@@ -377,8 +373,8 @@ dumpfile = pcap_dump_open(fp, PKT_CAP_FILE_ONLY_CAP);
     }
 
 exit:
-    pcap_dump_close(dumpfile);
-	pcap_close(fp);	
+    if (dumpfile) pcap_dump_close(dumpfile);
+	if (fp) pcap_close(fp);	
     cap_stopped=1;
 	return 0;
 }
@@ -387,8 +383,6 @@ int select_if(int idx)
 {
     pcap_if_t *d;
     int i=0;
-    char errbuf[PCAP_ERRBUF_SIZE];
-    
     
     /* Print the list */
     for(d= alldevs; d != NULL; d= d->next)
@@ -435,7 +429,6 @@ DWORD WINAPI  wpcap_rcv_test(LPVOID lpParameter)
 int stream2dump(char *file_name)
 {
 	pcap_t *fp;
-    pcap_t *fp_rcv;
 	char errbuf[PCAP_ERRBUF_SIZE];
     struct pcap_pkthdr header;
 const u_char *pkt_data;
@@ -468,7 +461,7 @@ dumpfile = pcap_dump_open(fp, file_name);
         pkt_data=g_apt_streams[i]->data;
         header.caplen=g_apt_streams[i]->len;
         header.len=g_apt_streams[i]->len;
-        pcap_dump(dumpfile, &header, pkt_data);
+        pcap_dump((void *)dumpfile, &header, pkt_data);
     }
 
     pcap_dump_close(dumpfile);
@@ -496,6 +489,7 @@ int save_stream(char *file_path)
 
     fclose(file);
     doc_modified=0;
+    return 0;
 }
 
 void update_fc_gap()
@@ -561,5 +555,6 @@ int load_stream(char *file_path)
 
     fclose(file);
     doc_modified=0;
+    return 0;
 }
 

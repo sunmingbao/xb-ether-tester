@@ -54,7 +54,7 @@ ListView_SetExtendedListViewStyle(hWndListView,
 
     return (hWndListView);
 }
-
+#if 0
 BOOL InitListViewImageLists(HWND hWndListView) 
 { 
     HICON hiconItem;     // Icon for list-view items.
@@ -105,7 +105,7 @@ BOOL InitListViewImageLists(HWND hWndListView)
     
     return TRUE; 
 }
-
+#endif
 TCHAR *col_names[] = 
 {
     NULL,
@@ -121,7 +121,6 @@ TCHAR *col_names[] =
 
 BOOL InitListViewColumns(HWND hWndListView) 
 { 
-    TCHAR szText[256];     // Temporary buffer.
     LVCOLUMN lvc;
     int iCol, col_num = ARRAY_SIZE(col_names);
 int order[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8}; 
@@ -223,7 +222,6 @@ BOOL InsertItemFromStream(HWND hWndListView, t_stream* pt_stream)
 {
     LVITEM lvI;
     int index=ListView_GetItemCount(hWndListView);
-    int iCol;
     TCHAR    info[128];
     t_ether_packet *pt_eth_hdr = pt_stream->data;
 
@@ -587,15 +585,12 @@ LRESULT CALLBACK my_lv_proc (HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPa
     }
 
 // continue with default message processing
-    return CallWindowProc (
+   return  CallWindowProc (
         (FARPROC) old_lv_proc, hWnd, iMessage, wParam, lParam);
 }
 
 LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    HDC hdc ;
-    PAINTSTRUCT ps ;
-    HWND    hwnd_sub ;
     RECT		rect ;
     int cxClient, cyClient;
     static HMENU	hMenu ;
@@ -617,7 +612,7 @@ LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             hwnd_dynamic_edit=CreateWindow (TEXT("edit"), TEXT(""),
                 WS_CHILD|ES_AUTOHSCROLL,
                 CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
-                hwnd, ID_DYNAMIC_EDIT, g_hInstance, NULL) ;
+                hwnd, (HMENU)ID_DYNAMIC_EDIT, g_hInstance, NULL) ;
 
             SendMessage(hwnd_dynamic_edit, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
 
@@ -859,18 +854,8 @@ LRESULT CALLBACK fc_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 {
     HDC hdc ;
     PAINTSTRUCT ps ;
-    HWND    hwnd_sub ;
     RECT		rect ;
-    int cxClient, cyClient;
-    static HMENU	hMenu ;
-    POINT point ;
-    int ret;
-    TCHAR  buf[32];
 
-    static int edit_iItem=-1 ;
-    static int edit_iSubItem;
-
-     LVITEM lv_item;
     switch (message)
     {
         case WM_CREATE:
@@ -895,29 +880,70 @@ LRESULT CALLBACK fc_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
     return DefWindowProc (hwnd, message, wParam, lParam) ;
 }
 
+int register_stream_win()
+{
+    WNDCLASS    sub_wndclass;
+    sub_wndclass.style      = CS_HREDRAW | CS_VREDRAW;
+    sub_wndclass.lpfnWndProc= stream_WndProc;
+    sub_wndclass.cbClsExtra = 0;
+    sub_wndclass.cbWndExtra = 0;
+    sub_wndclass.hInstance  = g_hInstance;
+    sub_wndclass.hIcon      = LoadIcon (g_hInstance, TEXT("my_frame_icon"));
+    sub_wndclass.hCursor    = LoadCursor (NULL, IDC_ARROW);
+    sub_wndclass.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    sub_wndclass.lpszMenuName   = NULL;
+    sub_wndclass.lpszClassName  = szStreamWinClassName;
+
+
+    if (!RegisterClass (&sub_wndclass))
+     {
+        MessageBox (NULL, TEXT ("Program requires Windows NT!"),
+          szAppName, MB_ICONERROR) ;
+        return FAIL;
+     }
+
+    return SUCCESS;
+
+}
+
+int register_fc_win()
+{
+    WNDCLASS    sub_wndclass;
+    sub_wndclass.style      = CS_HREDRAW | CS_VREDRAW;
+    sub_wndclass.lpfnWndProc= fc_WndProc;
+    sub_wndclass.cbClsExtra = 0;
+    sub_wndclass.cbWndExtra = 0;
+    sub_wndclass.hInstance  = g_hInstance;
+    sub_wndclass.hIcon      = LoadIcon (g_hInstance, TEXT("my_frame_icon"));
+    sub_wndclass.hCursor    = LoadCursor (NULL, IDC_ARROW);
+    sub_wndclass.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    sub_wndclass.lpszMenuName   = NULL;
+    sub_wndclass.lpszClassName  = szFcWinClassName;
+
+
+    if (!RegisterClass (&sub_wndclass))
+     {
+        MessageBox (NULL, TEXT ("Program requires Windows NT!"),
+          szAppName, MB_ICONERROR) ;
+        return FAIL;
+     }
+
+    return SUCCESS;
+
+}
+
 LRESULT CALLBACK right_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    HDC hdc ;
-    PAINTSTRUCT ps ;
-    HWND    hwnd_sub ;
-    RECT		rect ;
     int cxClient, cyClient;
-    static HMENU	hMenu ;
-    POINT point ;
-    int ret;
-    TCHAR  buf[32];
 
-    static int edit_iItem=-1 ;
-    static int edit_iSubItem;
 
-     LVITEM lv_item;
     switch (message)
     {
         case WM_CREATE:
             hwnd_right = hwnd;
             register_stream_win();
             register_fc_win();
-hwnd_stream =CreateWindowEx(NULL, szStreamWinClassName, NULL,
+hwnd_stream =CreateWindowEx(0, szStreamWinClassName, NULL,
                       WS_CHILD,
                       CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,CW_USEDEFAULT,
                          hwnd, 	//Handle of the Parent window.
@@ -975,55 +1001,4 @@ int register_right_win()
 }
 
 
-int register_stream_win()
-{
-    WNDCLASS    sub_wndclass;
-    sub_wndclass.style      = CS_HREDRAW | CS_VREDRAW;
-    sub_wndclass.lpfnWndProc= stream_WndProc;
-    sub_wndclass.cbClsExtra = 0;
-    sub_wndclass.cbWndExtra = 0;
-    sub_wndclass.hInstance  = g_hInstance;
-    sub_wndclass.hIcon      = LoadIcon (g_hInstance, TEXT("my_frame_icon"));
-    sub_wndclass.hCursor    = LoadCursor (NULL, IDC_ARROW);
-    sub_wndclass.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
-    sub_wndclass.lpszMenuName   = NULL;
-    sub_wndclass.lpszClassName  = szStreamWinClassName;
-
-
-    if (!RegisterClass (&sub_wndclass))
-     {
-        MessageBox (NULL, TEXT ("Program requires Windows NT!"),
-          szAppName, MB_ICONERROR) ;
-        return FAIL;
-     }
-
-    return SUCCESS;
-
-}
-
-int register_fc_win()
-{
-    WNDCLASS    sub_wndclass;
-    sub_wndclass.style      = CS_HREDRAW | CS_VREDRAW;
-    sub_wndclass.lpfnWndProc= fc_WndProc;
-    sub_wndclass.cbClsExtra = 0;
-    sub_wndclass.cbWndExtra = 0;
-    sub_wndclass.hInstance  = g_hInstance;
-    sub_wndclass.hIcon      = LoadIcon (g_hInstance, TEXT("my_frame_icon"));
-    sub_wndclass.hCursor    = LoadCursor (NULL, IDC_ARROW);
-    sub_wndclass.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
-    sub_wndclass.lpszMenuName   = NULL;
-    sub_wndclass.lpszClassName  = szFcWinClassName;
-
-
-    if (!RegisterClass (&sub_wndclass))
-     {
-        MessageBox (NULL, TEXT ("Program requires Windows NT!"),
-          szAppName, MB_ICONERROR) ;
-        return FAIL;
-     }
-
-    return SUCCESS;
-
-}
 

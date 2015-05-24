@@ -84,6 +84,8 @@ extern HWND hwnd_dynamic_edit;
 extern TCHAR szTipWinClassName[];
 extern HWND    hwnd_tip;
 void show_tip(TCHAR *info);
+void dbg_print(TCHAR * szFormat, ...);
+void err_msg_box(TCHAR * szFormat, ...);
 
 extern TCHAR szStatsWinClassName[];
 extern HWND hwnd_stats;
@@ -164,7 +166,9 @@ extern HWND    hwnd_capture_checkbox;
 extern int need_capture;
 
 void rx_tx_init();
+void *get_lvi_lparam(HWND hlv, int idx);
 void fc_and_pkt_cap_init();
+void del_all_streams();
 void init_net_card_combbox(HWND hwnd_comb);
 int select_if(int idx);
 int is_filter_valid(char *packet_filter);

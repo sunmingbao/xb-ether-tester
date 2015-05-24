@@ -9,6 +9,7 @@
  */
 #include <windows.h>
 #include <windowsx.h>
+#include <ctype.h>
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
@@ -38,13 +39,35 @@ HWND  hwnd_tv;
 #define    ID_TV    (45003)
 
 
+int register_tab1_win()
+{
+    WNDCLASS    sub_wndclass;
+    sub_wndclass.style      = CS_HREDRAW | CS_VREDRAW;
+    sub_wndclass.lpfnWndProc= tab1_WndProc;
+    sub_wndclass.cbClsExtra = 0;
+    sub_wndclass.cbWndExtra = 0;
+    sub_wndclass.hInstance  = g_hInstance;
+    sub_wndclass.hIcon      = LoadIcon (g_hInstance, TEXT("my_frame_icon"));
+    sub_wndclass.hCursor    = LoadCursor (NULL, IDC_ARROW);
+    sub_wndclass.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
+    sub_wndclass.lpszMenuName   = NULL;
+    sub_wndclass.lpszClassName  = szTab1WinClassName;
+
+
+    if (!RegisterClass (&sub_wndclass))
+     {
+        MessageBox (NULL, TEXT ("Program requires Windows NT!"),
+          szAppName, MB_ICONERROR) ;
+        return FAIL;
+     }
+
+    return SUCCESS;
+
+}
+
 
 LRESULT CALLBACK sub_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    HDC hdc ;
-    PAINTSTRUCT ps ;
-    HWND    hwnd_sub ;
-    RECT		rect ;
     int cxClient, cyClient;
 
     
@@ -175,31 +198,6 @@ int register_left_win()
 
 }
 
-int register_tab1_win()
-{
-    WNDCLASS    sub_wndclass;
-    sub_wndclass.style      = CS_HREDRAW | CS_VREDRAW;
-    sub_wndclass.lpfnWndProc= tab1_WndProc;
-    sub_wndclass.cbClsExtra = 0;
-    sub_wndclass.cbWndExtra = 0;
-    sub_wndclass.hInstance  = g_hInstance;
-    sub_wndclass.hIcon      = LoadIcon (g_hInstance, TEXT("my_frame_icon"));
-    sub_wndclass.hCursor    = LoadCursor (NULL, IDC_ARROW);
-    sub_wndclass.hbrBackground  = (HBRUSH)GetStockObject(WHITE_BRUSH);
-    sub_wndclass.lpszMenuName   = NULL;
-    sub_wndclass.lpszClassName  = szTab1WinClassName;
-
-
-    if (!RegisterClass (&sub_wndclass))
-     {
-        MessageBox (NULL, TEXT ("Program requires Windows NT!"),
-          szAppName, MB_ICONERROR) ;
-        return FAIL;
-     }
-
-    return SUCCESS;
-
-}
 
 void enable_speed_value(HWND hDlg, int is_enable)
 {
@@ -257,7 +255,6 @@ void ui_update_fc_cfg(HWND hDlg)
 
 BOOL CALLBACK FcCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
-    TCHAR    info[32];
     int ret;
 
  	switch (message)
@@ -471,7 +468,7 @@ void build_filter(char *str_filter_output)
 int get_pkt_cap_cfg(HWND hDlg, char *str_filter_output)
 {
     int ret;
-    char info[32], info_2[32];
+    char info[32];
     str_filter_output[0]=0;
 
     gt_pkt_cap_cfg.need_save_capture=button_checked(GetDlgItem(hDlg, ID_PKT_CAP_CFG_SAVE2FILE));
@@ -539,7 +536,7 @@ int get_pkt_cap_cfg(HWND hDlg, char *str_filter_output)
 
 BUILD_AND_CHECK_FILTER:
     build_filter(str_filter_output);
-CHECK_FILTER:
+//CHECK_FILTER:
     if (str_filter_output[0]==0) goto SUCC_EXIT;
         
     if (!is_filter_valid(str_filter_output))
@@ -577,9 +574,7 @@ void init_protocol_comb(HWND comb, int add_all)
 
 BOOL CALLBACK PktCapCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
-    TCHAR    info[MAX_FILE_PATH_LEN], info_2[32];
-    int ret;
-
+    TCHAR    info[MAX_FILE_PATH_LEN];
 
  	switch (message)
  	{
@@ -702,7 +697,6 @@ LRESULT CALLBACK tab1_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 {
     HDC hdc ;
     PAINTSTRUCT ps ;
-    HWND    hwnd_sub ;
     RECT		rect ;
     int cxClient, cyClient;
     int ret;
@@ -754,12 +748,12 @@ SendMessage(hwnd_tv, TVM_SETIMAGELIST,
                   (WPARAM)TVSIL_NORMAL, (LPARAM)imageList);
 
     // add root item
-    parentItem = insertItem(hwnd_tv, TEXT("配置"), TVI_ROOT, TVI_LAST, 0, 0, NULL);
+    parentItem = insertItem(hwnd_tv, TEXT("配置"), TVI_ROOT, TVI_LAST, 0, 0, 0);
 
     // add some children
-    childItem1 = insertItem(hwnd_tv, TEXT("新建流"), parentItem, TVI_LAST, 1, 1, NULL);
-    childItem2 = insertItem(hwnd_tv, TEXT("流控"), parentItem, TVI_LAST, 2, 2, NULL);
-    childItem3 = insertItem(hwnd_tv, TEXT("抓包"), parentItem, TVI_LAST, 3, 3, NULL);
+    childItem1 = insertItem(hwnd_tv, TEXT("新建流"), parentItem, TVI_LAST, 1, 1, 0);
+    childItem2 = insertItem(hwnd_tv, TEXT("流控"), parentItem, TVI_LAST, 2, 2, 0);
+    childItem3 = insertItem(hwnd_tv, TEXT("抓包"), parentItem, TVI_LAST, 3, 3, 0);
 
     TreeView_Expand(hwnd_tv, parentItem, TVM_EXPAND);
 
@@ -799,10 +793,9 @@ case WM_NOTIFY:
      {
         HTREEITEM Selected;
         TV_ITEM tvi;
-        char Text[255]="";
         memset(&tvi,0,sizeof(tvi));
         Selected=(HTREEITEM)SendDlgItemMessage(hwnd_tab1,
-           ID_TV,TVM_GETNEXTITEM,TVGN_CARET,(LPARAM)Selected);
+           ID_TV,TVM_GETNEXTITEM,TVGN_CARET,(LPARAM)0);
 
         if (!init_over) break;
        

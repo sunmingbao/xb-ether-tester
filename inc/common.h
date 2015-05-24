@@ -16,6 +16,8 @@
 #include <windows.h>
 #include <windowsx.h>
 #include <stdint.h>
+#include <string.h>
+#include <stdio.h>
 #include "defs.h"
 
 #define    ARRAY_SIZE(array_name)    (sizeof(array_name)/sizeof(array_name[0]))
@@ -135,7 +137,7 @@ HWND DoCreateTabControl(HINSTANCE hInstance, HWND hwndParent, DWORD dwStyle, int
 HWND DoCreateFlatTabControl(HINSTANCE hInstance, HWND hwndParent, TCHAR *tab_class_name, int nr_tabs, TCHAR *labels[]);
 HWND create_tab_win(HINSTANCE hInstance, HWND hwin_parent, TCHAR *WinClassName, int style);
 
-HTREEITEM insertItem(HWND  hwnd_treeview, const wchar_t* str, HTREEITEM parent, HTREEITEM insertAfter,
+HTREEITEM insertItem(HWND  hwnd_treeview, const TCHAR* str, HTREEITEM parent, HTREEITEM insertAfter,
                      int imageIndex, int selectedImageIndex, LPARAM lParam);
 
 int get_open_file_name(char *file_name, HWND hwnd, char *filter_str);
@@ -193,7 +195,7 @@ static inline int button_checked(HWND hwnd)
 static inline void button_check(HWND hwnd, int is_check)
 {
     WPARAM wParam=(is_check?BST_CHECKED:BST_UNCHECKED);
-    return SendMessage(hwnd, BM_SETCHECK, wParam, 0);
+    SendMessage(hwnd, BM_SETCHECK, wParam, 0);
 }
 
 static inline void set_I64u_text(HWND hwnd, uint64_t value)
