@@ -845,7 +845,7 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         else
         {
             offset = eth_len+ip_hdr_len(iph);
-            len = ip_data_len(iph)-ip_hdr_len(iph);
+            len = ip_data_len(iph);
             goto exit;
         }
     }
@@ -893,7 +893,7 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
         else
         {
             offset = eth_len+IPV6_HDR_LEN;
-            len = ip6_data_len(ip6h)-IPV6_HDR_LEN;
+            len = ip6_data_len(ip6h);
             goto exit;
         }
 
