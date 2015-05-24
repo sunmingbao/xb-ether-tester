@@ -13,7 +13,7 @@
 #include "res.h"
 #include "net.h"
 
-const char version[4]={'2','6','8','0'};
+const char version[4]={'2','6','9','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
