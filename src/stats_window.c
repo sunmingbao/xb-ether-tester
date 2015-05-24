@@ -38,8 +38,6 @@ void update_stats()
     gt_pkt_stat_tmp=gt_pkt_stat;
     
     time_gap=time_a_between_b(&last_timer_tv, &cur_tv);
-    //if ((time_gap/1000)<50) return;
-
     time_elapsed.tv_usec+=time_gap;
     if (time_elapsed.tv_usec>=1000000)
     {
@@ -61,11 +59,6 @@ void update_stats()
     gap_ms = tmp_tv.tv_sec*1000 + tmp_tv.tv_usec/1000;
     total_ms = (time_elapsed.tv_sec*1000 + time_elapsed.tv_usec/1000);
 
-    if ((1000*8*(pt_pkt_stat->send_total_bytes-gt_pkt_stat_pre.send_total_bytes)/gap_ms)>4000)
-    {
-         dbg_print("%I64u  %I64u  %lu", pt_pkt_stat->send_total_bytes,gt_pkt_stat_pre.send_total_bytes,  gap_ms);
-    }
-    
     set_I64u_text(hwnd_snd_bps, (1000*8*(pt_pkt_stat->send_total_bytes-gt_pkt_stat_pre.send_total_bytes)/gap_ms)); 
     set_I64u_text(hwnd_snd_pps, (1000*(pt_pkt_stat->send_total-gt_pkt_stat_pre.send_total)/gap_ms)); 
     set_I64u_text(hwnd_snd_bps_avg, (1000*8*(pt_pkt_stat->send_total_bytes)/total_ms)); 
