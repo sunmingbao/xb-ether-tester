@@ -85,7 +85,7 @@ int stats_captured_pkts_proc()
     if (!cap_save_cnt) goto STATS_PROC;
     if (strcmp(query_save_captured_pkts, "no")==0) goto CLR_CAP_PKTS;
 
-    ret=AskConfirmation_3state(hwnd_frame, TEXT("即将清除抓到的包。\r\n\r\n是否保存?\r\n\r\n(可通过 选项 菜单取消此提示)"), szAppName);
+    ret=AskConfirmation_3state(hwnd_frame, TEXT("即将清除抓到的包。\r\n\r\n是否保存?\r\n\r\n[可通过 选项 菜单关闭此提示]"), szAppName);
     if (IDCANCEL == ret) return 1;
     if (IDYES == ret)
     {
@@ -106,7 +106,7 @@ STATS_PROC:
 
     if (strcmp(auto_clr_stats,"query")==0)
     {
-        ret= AskConfirmation_3state(hwnd_frame, TEXT("是否清空已有的统计?\r\n\r\n(可通过 选项 菜单取消此提示)"), szAppName);
+        ret= AskConfirmation_3state(hwnd_frame, TEXT("是否清空已有的统计?\r\n\r\n[可通过 选项 菜单关闭此提示]"), szAppName);
         if (IDCANCEL == ret) return 1;
         if (IDNO == ret) return 0;
 

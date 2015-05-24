@@ -11,7 +11,9 @@
 #include "common.h"
 #include <tchar.h>     
 #include <stdio.h>
+#include <ctype.h>
 #include "net.h"
+#include "global_info.h"
 
 void ip_str2n(void *field_addr, char *info)
 {

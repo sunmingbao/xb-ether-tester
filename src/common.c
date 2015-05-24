@@ -152,7 +152,7 @@ HTREEITEM insertItem(HWND  hwnd_treeview, const TCHAR* str, HTREEITEM parent, HT
     insertStruct.hParent = parent;
     insertStruct.hInsertAfter = insertAfter;
     insertStruct.item.mask = TVIF_TEXT | TVIF_IMAGE | TVIF_SELECTEDIMAGE|TVIF_PARAM;
-    insertStruct.item.pszText = str;
+    insertStruct.item.pszText = (void *)str;
     insertStruct.item.cchTextMax = sizeof(str)/sizeof(str[0]);
     insertStruct.item.iImage = imageIndex;
     insertStruct.item.iSelectedImage = selectedImageIndex;

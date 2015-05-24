@@ -63,31 +63,31 @@ static inline __u16 set_eth_type_to_addr(__u16 type, void *addr)
     return *p_type = htons(type);
 }
 
-static inline int eth_is_vlan(void *p_eth_hdr)
+static inline int eth_is_vlan(const void *p_eth_hdr)
 {
-    t_ether_packet *pt_eth  = p_eth_hdr;
+    const t_ether_packet *pt_eth  = p_eth_hdr;
     __u16 type = ntohs(pt_eth->type);
     return (type == ETH_P_VLAN);
 }
 
-static inline __u16 eth_type(void *p_eth_hdr)
+static inline __u16 eth_type(const void *p_eth_hdr)
 {
-    t_ether_packet *pt_eth           = p_eth_hdr;
-    t_ether_vlan_packet *pt_eth_vlan = p_eth_hdr;
+    const t_ether_packet *pt_eth           = p_eth_hdr;
+    const t_ether_vlan_packet *pt_eth_vlan = p_eth_hdr;
     __u16 type = ntohs(pt_eth->type);
     if (type != ETH_P_VLAN) return type;
     return ntohs(pt_eth_vlan->type);
 }
 
-static inline int eth_hdr_len(void *p_eth_hdr)
+static inline int eth_hdr_len(const void *p_eth_hdr)
 {
     if (eth_is_vlan(p_eth_hdr))     return sizeof(t_ether_vlan_packet);
     return sizeof(t_ether_packet);
 }
 
-static inline void * eth_data(void *p_eth_hdr)
+static inline void * eth_data(const void *p_eth_hdr)
 {
-    return p_eth_hdr+eth_hdr_len(p_eth_hdr);
+    return (void *)p_eth_hdr+eth_hdr_len(p_eth_hdr);
 }
 
 
@@ -421,8 +421,8 @@ typedef struct
     char rsv[7];
     char name[64];
     uint32_t flags;
-    char    rule_num;
-    char    rule_idx[MAX_FIELD_RULE_NUM];
+    unsigned char    rule_num;
+    unsigned char    rule_idx[MAX_FIELD_RULE_NUM];
     t_rule  at_rules[MAX_FIELD_RULE_NUM];
     int len;
     union

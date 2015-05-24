@@ -13,7 +13,7 @@
 #include "res.h"
 #include "net.h"
 
-const char version[4]={'2','6','7','0'};
+const char version[4]={'2','6','8','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -223,7 +223,7 @@ BOOL InsertItemFromStream(HWND hWndListView, t_stream* pt_stream)
     LVITEM lvI;
     int index=ListView_GetItemCount(hWndListView);
     TCHAR    info[128];
-    t_ether_packet *pt_eth_hdr = pt_stream->data;
+    t_ether_packet *pt_eth_hdr = (void *)pt_stream->data;
 
     // Initialize LVITEM members that are different for each item.
     {
@@ -334,7 +334,7 @@ void update_grid_from_edit(int edit_iItem, int edit_iSubItem)
 {
     TCHAR buf[64];
     t_stream* pt_stream=g_apt_streams[edit_iItem];
-    t_ether_packet *pt_eth_hdr = pt_stream->data;
+    t_ether_packet *pt_eth_hdr = (void *)pt_stream->data;
     t_ip_hdr *iph=eth_data(pt_eth_hdr);
     t_ipv6_hdr *ip6h=(void *)iph;
     int type = eth_type(pt_eth_hdr);
@@ -388,7 +388,7 @@ exit:
 }
 
 
-void cpy_stream(t_stream *dst, t_stream *src)
+void cpy_stream(t_stream *dst, const t_stream *src)
 {
     memcpy(dst, src, STREAM_HDR_LEN);
     memcpy(dst->data, src->data, src->len);
@@ -539,8 +539,7 @@ void PaintAlternatingRows (HWND hWnd)
 //    get the rectangle to be updated
     GetUpdateRect (hWnd, &rectUpd, FALSE);
 //    allow default processing first
-    CallWindowProc (
-        (FARPROC) old_lv_proc, hWnd, WM_PAINT, 0, 0);
+    CallWindowProc (old_lv_proc, hWnd, WM_PAINT, 0, 0);
 //    set the row horizontal dimensions
     SetRect (&rect, rectUpd.left, 0, rectUpd.right, 0);
 //    number of displayed rows
@@ -563,8 +562,7 @@ void PaintAlternatingRows (HWND hWnd)
 //            invalidate the row rectangle then...
             InvalidateRect (hWnd, &rect, FALSE);
 //            ...force default processing
-            CallWindowProc (
-                (FARPROC) old_lv_proc, hWnd, WM_PAINT, 0, 0);
+            CallWindowProc (old_lv_proc, hWnd, WM_PAINT, 0, 0);
         }
     }
 }
@@ -585,8 +583,7 @@ LRESULT CALLBACK my_lv_proc (HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPa
     }
 
 // continue with default message processing
-   return  CallWindowProc (
-        (FARPROC) old_lv_proc, hWnd, iMessage, wParam, lParam);
+   return  CallWindowProc (old_lv_proc, hWnd, iMessage, wParam, lParam);
 }
 
 LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)

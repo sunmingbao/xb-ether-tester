@@ -145,7 +145,7 @@ typedef struct
     uint64_t send_total, send_fail, rcv_total;
     uint64_t send_total_bytes, send_fail_bytes, rcv_total_bytes;
 } t_pkt_stat;
-extern t_pkt_stat gt_pkt_stat, gt_pkt_stat_pre, gt_pkt_stat_tmp;
+extern t_pkt_stat gt_pkt_stat, gt_pkt_stat_pre;
 
 void update_stats();
 void clear_stats();
@@ -182,6 +182,15 @@ int stream2dump(char *file_name);
 int save_stream(char *file_path);
 int load_stream(char *file_path);
 int load_stream_from_dump_file(char *file_path);
+void add_stream(t_stream *pt_stream);
+void cpy_stream(t_stream *dst, const t_stream *src);
+void mac_str2n(unsigned char *mac, char *info_usr);
+void mac_n2str(char *info, void *field_addr);
+void update_check_sum(t_stream *pt_stream);
+void update_len(t_stream *pt_stream);
+int get_eth_type_comb(HWND comb);
+void init_eth_type_comb(HWND comb);
+
 extern t_stream gt_edit_stream;
 BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam);
 void rule_fileds_init(t_stream *pt_stream);

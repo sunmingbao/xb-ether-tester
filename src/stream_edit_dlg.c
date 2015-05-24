@@ -69,10 +69,10 @@ void u32_n2str(char *info, void * field_addr, int is_hex)
 {
     if (is_hex)
         sprintf(info, "0x%08x"
-            , ntohl(*(unsigned *)field_addr));
+            , (unsigned)ntohl(*(unsigned *)field_addr));
     else
        sprintf(info, "%u"
-            , ntohl(*(unsigned *)field_addr));
+            , (unsigned)ntohl(*(unsigned *)field_addr));
 }
 
 
@@ -143,7 +143,7 @@ unsigned bits_value(void * field_addr, int bytes_len, int bits_from, int bits_le
         whole_value = *(unsigned char *)field_addr;
     else if (2==bytes_len)
         whole_value = ntohs(*(unsigned short *)field_addr);
-    else if (4==bytes_len)
+    else //if (4==bytes_len)
         whole_value = ntohl(*(unsigned int *)field_addr);
 
         whole_value=(whole_value>>shift_len);
@@ -678,21 +678,6 @@ void update_tvi_options(HWND htv, HTREEITEM htvi)
 
 }
 
-void update_tvi_text(HWND htv, HTREEITEM htvi)
-{
-
-    if (NULL==htvi) return;
-    
-    if (htvi_edit_able(htv, htvi))
-        update_tvi_proto_field(htv, htvi);
-    else if (htvi_is_proto_hdr(htv, htvi))
-        update_tvi_proto_hdr(htv, htvi);
-    else if (htvi_is_data(htv, htvi))
-        tvi_update_data(htv, htvi, &gt_edit_stream);
-    else if (htvi_is_option(htv, htvi))
-        update_tvi_options(htv, htvi);
-
-}
 
 
 void tvi_update_eth_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
@@ -803,12 +788,16 @@ void tvi_update_ip6_upper_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream
 
 }
 
+
+
 void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 {
     char info[128];
-    int offset, len;
     int type = eth_type(pt_edit_stream->data);
     int eth_len = eth_hdr_len(pt_edit_stream->data);
+    int offset=eth_len;
+    int len=pt_edit_stream->len-eth_len;
+    
     if (type==ETH_P_IP)
     {
         t_ip_hdr *iph=eth_data(pt_edit_stream->data);
@@ -859,9 +848,6 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
             len = ip_data_len(iph)-ip_hdr_len(iph);
             goto exit;
         }
-
-
-
     }
     else if (type==ETH_P_IPV6)
     {
@@ -914,26 +900,16 @@ void tvi_update_data(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
     }
     else if (type==ETH_P_ARP)
     {
-        if (ip_pkt_is_frag(&(pt_edit_stream->eth_packet)))
-        {
             offset = eth_len+FIXED_ARP_HDR_LEN;
             len = pt_edit_stream->len-offset;
             goto exit;
-        
-        }
-
     }
-    else
-    {
-            offset = eth_len;
-            len = pt_edit_stream->len-eth_len;
-    }
-
 
 exit:
     sprintf(info, TEXT("%-12s(offset=%d;length=%d)"), "data", offset, len);
     set_tvi_text(htv, htvi, info);
 }
+
 
 void set_tvi_text_options(HWND htv, HTREEITEM htvi, int offset, int len)
 {
@@ -970,33 +946,7 @@ void tvi_update_options_ip(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
     set_tvi_text_options(htv, htvi, offset, len);
 }
 
-static void update_tv_sub(HWND htv, HTREEITEM htvi_p)
-{
-    HTREEITEM htvi_c;
-    update_tvi_text(htv, htvi_p);
-    htvi_c=TreeView_GetChild(htv, htvi_p);
-    
-    while (NULL != htvi_c)
-    {
-        update_tv_sub(htv, htvi_c);
-        htvi_c=TreeView_GetNextSibling(htv,htvi_c);
-    }
-}
 
-static void update_tv(HWND htv)
-{
-
-    HTREEITEM htvi_p, htvi_c;
-
-    htvi_p=TreeView_GetRoot(htv);
-    
-    while (NULL != htvi_p)
-    {
-        update_tv_sub(htv, htvi_p);
-        htvi_p=TreeView_GetNextSibling(htv,htvi_p);
-    }
-    
-}
 
 
 void build_tv(HWND hwnd_tree)
@@ -1099,7 +1049,6 @@ void build_tv(HWND hwnd_tree)
         }
         else if (iph->protocol==IPPROTO_IGMP)
         {
-            t_igmp_hdr *pt_igmp_hdr=ip_data(iph);
             treeItem1=insertItem(hwnd_tree, "igmp", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_ip_upper_hdr);
             update_tvi_proto_hdr(hwnd_tree, treeItem1);
             build_tvis(hwnd_tree, treeItem1
@@ -1256,7 +1205,49 @@ int htvi_edit_able(HWND htv, HTREEITEM htvi)
     return 1;
 }
 
+void update_tvi_text(HWND htv, HTREEITEM htvi)
+{
 
+    if (NULL==htvi) return;
+    
+    if (htvi_edit_able(htv, htvi))
+        update_tvi_proto_field(htv, htvi);
+    else if (htvi_is_proto_hdr(htv, htvi))
+        update_tvi_proto_hdr(htv, htvi);
+    else if (htvi_is_data(htv, htvi))
+        tvi_update_data(htv, htvi, &gt_edit_stream);
+    else if (htvi_is_option(htv, htvi))
+        update_tvi_options(htv, htvi);
+
+}
+
+static void update_tv_sub(HWND htv, HTREEITEM htvi_p)
+{
+    HTREEITEM htvi_c;
+    update_tvi_text(htv, htvi_p);
+    htvi_c=TreeView_GetChild(htv, htvi_p);
+    
+    while (NULL != htvi_c)
+    {
+        update_tv_sub(htv, htvi_c);
+        htvi_c=TreeView_GetNextSibling(htv,htvi_c);
+    }
+}
+
+static void update_tv(HWND htv)
+{
+
+    HTREEITEM htvi_p;
+
+    htvi_p=TreeView_GetRoot(htv);
+    
+    while (NULL != htvi_p)
+    {
+        update_tv_sub(htv, htvi_p);
+        htvi_p=TreeView_GetNextSibling(htv,htvi_p);
+    }
+    
+}
 
 BOOL InitDlgFromStream(HWND hDlg, t_stream* pt_stream)
 {
@@ -1291,6 +1282,26 @@ BOOL InitDlgFromStream(HWND hDlg, t_stream* pt_stream)
     return TRUE;
 }
 
+void insert_bytes(HWND hDlg, int offset, int len)
+{
+    memmove(gt_edit_stream.data+offset+len 
+        , gt_edit_stream.data+offset
+        , gt_edit_stream.len-offset);
+
+    gt_edit_stream.len += len;
+    set_int_text(GetDlgItem(hDlg, ID_SED_LEN), gt_edit_stream.len);
+}
+
+void del_bytes(HWND hDlg, int offset, int len)
+{
+    memmove(gt_edit_stream.data+offset
+        , gt_edit_stream.data+offset+len
+        , gt_edit_stream.len-offset-len);
+
+    gt_edit_stream.len -= len;
+    set_int_text(GetDlgItem(hDlg, ID_SED_LEN), gt_edit_stream.len);
+}
+
 void resize_hdr_len(HWND hDlg, int is_ip_hdr, int old_value, int new_value)
 {
 
@@ -1318,65 +1329,7 @@ void resize_hdr_len(HWND hDlg, int is_ip_hdr, int old_value, int new_value)
 
     }
 }
-int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int edit_visible)
-{
-    char info[64], info_2[64];
-    t_ip_hdr *iph= eth_data(gt_edit_stream.data);
-    t_tvi_data *pt_tvi_data;
-    int data_changed;
-    int old_value, new_value;
-    void *field_addr; 
-    
-    GetWindowText(hedit, info_2, sizeof(info_2));
-hide_edit_ui(hDlg);
-    pt_tvi_data = get_tvi_lParam(htv, htvi);
-    field_addr = gt_edit_stream.data+pt_tvi_data->data_offset;
-    memcpy(info, field_addr, pt_tvi_data->len);
 
-    if ((pt_tvi_data->flags&IP_HDR_LEN_FIELD) 
-        || (pt_tvi_data->flags&TCP_HDR_LEN_FIELD))
-    {
-        old_value = 
-          bits_value(field_addr, pt_tvi_data->len, pt_tvi_data->bits_from, pt_tvi_data->bits_len);
-    }
-    field_str2n(info_2
-        , field_addr
-        , pt_tvi_data->len
-        , pt_tvi_data->bits_from
-        , pt_tvi_data->bits_len
-        , pt_tvi_data->flags);
-    
-    data_changed=memcmp(info, gt_edit_stream.data+pt_tvi_data->data_offset, pt_tvi_data->len);
-    if (!data_changed) return 0;
-
-    if ((pt_tvi_data->flags&IP_HDR_LEN_FIELD) 
-        || (pt_tvi_data->flags&TCP_HDR_LEN_FIELD))
-    {
-        new_value = 
-          bits_value(field_addr, pt_tvi_data->len, pt_tvi_data->bits_from, pt_tvi_data->bits_len);
-
-        resize_hdr_len(hDlg, pt_tvi_data->flags&IP_HDR_LEN_FIELD, old_value, new_value);
-    }
-
-    InvalidateRect(GetDlgItem(hDlg,ID_SED_HEX_EDIT), NULL, TRUE) ;
-    //update_tvi_text(htv, htvi);
-    update_stream_from_dlg(hDlg);
-    update_tv(htv);
-
-    if (pt_tvi_data->flags&FLAG_REBUILD_TV)
-    {
-        if (delete_all_rule(&gt_edit_stream))
-            show_tip("字段变化规则已经删除，因为报文结构有变化");
-        
-        SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
-
-        return 1;
-    }
-
-    return 1;
-
-
-}
 #if 0
 int tvi_char_width(HWND htv)
 {
@@ -1421,7 +1374,7 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
     tvi.hItem = htvi;
     tvi.mask=TVIF_PARAM;
     TreeView_GetItem(htv, &tvi);
-    pt_tvi_data = tvi.lParam;
+    pt_tvi_data = (void *)tvi.lParam;
 
     hex_win_sel(GetDlgItem(hDlg, ID_SED_HEX_EDIT), pt_tvi_data->data_offset, pt_tvi_data->len);
 
@@ -1533,6 +1486,7 @@ int htvi_sel_hex(HWND hHexEdit, HWND htv, HTREEITEM htvi)
             hex_win_sel(hHexEdit, off, len);
         }
 
+    return 0;
 }
 
 void hide_edit_ui(HWND hDlg)
@@ -2144,7 +2098,6 @@ uint32_t  build_err_flags(t_ether_packet *pt_eth, int len)
 {
     uint32_t err_flags = 0;
     int type = eth_type(pt_eth);
-    t_ip_hdr *iph = eth_data(pt_eth);
 
     if (type==ETH_P_ARP)
         return build_err_flags_arp(pt_eth, len);
@@ -2354,24 +2307,63 @@ move_child_a2b_left_top(GetDlgItem(hDlg,IDOK), GetDlgItem(hDlg,IDCANCEL), 10);
 
 }
 
-void del_bytes(HWND hDlg, int offset, int len)
+int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int edit_visible)
 {
-    memmove(gt_edit_stream.data+offset
-        , gt_edit_stream.data+offset+len
-        , gt_edit_stream.len-offset-len);
+    char info[64], info_2[64];
+    t_tvi_data *pt_tvi_data;
+    int data_changed;
+    int old_value, new_value;
+    void *field_addr; 
+    
+    GetWindowText(hedit, info_2, sizeof(info_2));
+hide_edit_ui(hDlg);
+    pt_tvi_data = get_tvi_lParam(htv, htvi);
+    field_addr = gt_edit_stream.data+pt_tvi_data->data_offset;
+    memcpy(info, field_addr, pt_tvi_data->len);
 
-    gt_edit_stream.len -= len;
-    set_int_text(GetDlgItem(hDlg, ID_SED_LEN), gt_edit_stream.len);
-}
+    if ((pt_tvi_data->flags&IP_HDR_LEN_FIELD) 
+        || (pt_tvi_data->flags&TCP_HDR_LEN_FIELD))
+    {
+        old_value = 
+          bits_value(field_addr, pt_tvi_data->len, pt_tvi_data->bits_from, pt_tvi_data->bits_len);
+    }
+    field_str2n(info_2
+        , field_addr
+        , pt_tvi_data->len
+        , pt_tvi_data->bits_from
+        , pt_tvi_data->bits_len
+        , pt_tvi_data->flags);
+    
+    data_changed=memcmp(info, gt_edit_stream.data+pt_tvi_data->data_offset, pt_tvi_data->len);
+    if (!data_changed) return 0;
 
-void insert_bytes(HWND hDlg, int offset, int len)
-{
-    memmove(gt_edit_stream.data+offset+len 
-        , gt_edit_stream.data+offset
-        , gt_edit_stream.len-offset);
+    if ((pt_tvi_data->flags&IP_HDR_LEN_FIELD) 
+        || (pt_tvi_data->flags&TCP_HDR_LEN_FIELD))
+    {
+        new_value = 
+          bits_value(field_addr, pt_tvi_data->len, pt_tvi_data->bits_from, pt_tvi_data->bits_len);
 
-    gt_edit_stream.len += len;
-    set_int_text(GetDlgItem(hDlg, ID_SED_LEN), gt_edit_stream.len);
+        resize_hdr_len(hDlg, pt_tvi_data->flags&IP_HDR_LEN_FIELD, old_value, new_value);
+    }
+
+    InvalidateRect(GetDlgItem(hDlg,ID_SED_HEX_EDIT), NULL, TRUE) ;
+    //update_tvi_text(htv, htvi);
+    update_stream_from_dlg(hDlg);
+    update_tv(htv);
+
+    if (pt_tvi_data->flags&FLAG_REBUILD_TV)
+    {
+        if (delete_all_rule(&gt_edit_stream))
+            show_tip("字段变化规则已经删除，因为报文结构有变化");
+        
+        SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
+
+        return 1;
+    }
+
+    return 1;
+
+
 }
 
 BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
@@ -2583,7 +2575,7 @@ case WM_NOTIFY:
    switch(LOWORD(wParam))
    { 
      case ID_SED_TREE_VIEW:
-     if (lParam==NULL ||
+     if ((void *)lParam==NULL ||
         ((LPNMHDR)lParam)->code == TVN_ITEMEXPANDED)
     {
             hide_edit_ui(hDlg);

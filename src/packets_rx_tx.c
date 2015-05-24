@@ -20,7 +20,7 @@ int snd_stopped=1, rcv_stopped=1;
 int snd_started, rcv_started;
 uint64_t send_times_cnt;
 
-t_pkt_stat gt_pkt_stat, gt_pkt_stat_pre, gt_pkt_stat_tmp;
+t_pkt_stat gt_pkt_stat, gt_pkt_stat_pre;
 struct timeval last_timer_tv;
 struct timeval time_elapsed;
 struct timeval last_stat_tv;

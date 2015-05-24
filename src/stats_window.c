@@ -149,6 +149,7 @@ void clear_stats()
     int i, j;
     
     memset(&gt_pkt_stat, 0, sizeof(t_pkt_stat));
+    memset(&gt_pkt_stat_pre, 0, sizeof(t_pkt_stat));
     time_elapsed.tv_sec =0;
     time_elapsed.tv_usec =0;
 
