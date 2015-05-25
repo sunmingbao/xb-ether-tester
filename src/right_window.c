@@ -13,7 +13,7 @@
 #include "res.h"
 #include "net.h"
 
-const char version[4]={'2','6','9','0'};
+const char version[4]={'2','7','0','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -439,11 +439,12 @@ COLORREF colorShade (COLORREF c, float fPercent)
         (BYTE) ((float) GetBValue (c) * fPercent / 100.0));
 }
 
+char  dump_pkt_cache[2048];
 int get_row_color_idx(HWND hWnd, int idx)
 {
     t_ether_packet *pt_eth_hdr;
     uint32_t err_flags;
-    t_dump_pkt *pt_pkt;
+    t_dump_pkt *pt_pkt = dump_pkt_cache;
     
     if (idx>=ListView_GetItemCount(hWnd)) return 0;
     
@@ -455,7 +456,7 @@ int get_row_color_idx(HWND hWnd, int idx)
     }
     else
     {
-        pt_pkt=get_lvi_lparam(hWnd, idx);
+        get_pkt_by_idx(idx, pt_pkt);
         pt_eth_hdr = (void *)(pt_pkt->pkt_data);
         err_flags = pt_pkt->err_flags;
     }

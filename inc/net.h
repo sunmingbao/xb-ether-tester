@@ -490,9 +490,10 @@ extern char *protocol_name_map[];
 typedef struct
 {
     struct pcap_pkthdr header;
+    uint32_t pkt_idx;
     uint32_t err_flags;
     u_char  pkt_data[0];
-} t_dump_pkt;
+}__attribute__ ((aligned (1))) t_dump_pkt;
 
 #endif
 

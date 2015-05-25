@@ -156,7 +156,7 @@ void load_app_profile()
     HMENU hMenu = GetMenu(hwnd_frame);
     GetPrivateProfileString("before_send_pkt", "clear_stat", "query"
         , auto_clr_stats, ARRAY_SIZE(auto_clr_stats), APP_PROFILE_FILE);
-    dbg_print(auto_clr_stats);
+
     CheckMenuItem (hMenu, IDM_APP_QUERY_CLR_STATS, MF_UNCHECKED);
     CheckMenuItem (hMenu, IDM_APP_CLR_STATS, MF_UNCHECKED);
     CheckMenuItem (hMenu, IDM_APP_NOT_CLR_STATS, MF_UNCHECKED);
@@ -288,12 +288,6 @@ CreateStatusBar();
 
             DragAcceptFiles(hwnd, TRUE);
 
-            if (!file_exists(file_to_open)) 
-            {
-                new_cfg();
-                return 0 ;
-            }
-
             ret=get_history_cfg_file_by_idx(1, file_to_open);
             if (ret) 
             {
@@ -301,6 +295,11 @@ CreateStatusBar();
                 return 0 ;
             }
             
+            if (!file_exists(file_to_open)) 
+            {
+                new_cfg();
+                return 0 ;
+            }
 
             open_file();
 
@@ -615,7 +614,9 @@ CreateStatusBar();
                     ui_switch(1);
                     
                     gettimeofday(&last_timer_tv, NULL);
-                    last_stat_tv=last_timer_tv;
+                    last_stat_tv_snd=last_timer_tv;
+                    last_stat_tv_rcv=last_timer_tv;
+                    last_stat_tv_sndf=last_timer_tv;
                     SetTimer(hwnd_frame, TIMER_STATUS_BAR, TIMER_STATUS_GAP, NULL);
                     launch_thread(wpcap_rcv_test, NULL);
                     //while (!rcv_started) Sleep(1);

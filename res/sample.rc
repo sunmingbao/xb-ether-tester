@@ -298,7 +298,7 @@ BEGIN
     	        MENUITEM "全选", 			        ID_VIEW_STREAM_SEL_ALL
         		MENUITEM "反选", 			        ID_VIEW_STREAM_SEL_RSV
         		MENUITEM SEPARATOR
-        		MENUITEM "删除所选", 			ID_VIEW_STREAM_DEL_SEL, GRAYED
+        		//MENUITEM "删除所选", 			ID_VIEW_STREAM_DEL_SEL, GRAYED
         		MENUITEM "所选生成流", 	        ID_VIEW_STREAM_SEL2STREAM, GRAYED
         		MENUITEM "所选另存为...", 	    ID_VIEW_STREAM_SAVE_AS, GRAYED
     	END

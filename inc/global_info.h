@@ -93,7 +93,7 @@ extern HWND hwnd_stats;
 extern int need_stop;
 extern struct timeval last_timer_tv;
 extern struct timeval time_elapsed;
-extern struct timeval last_stat_tv;
+extern struct timeval last_stat_tv_snd, last_stat_tv_rcv, last_stat_tv_sndf;
 extern int snd_stopped, rcv_stopped;
 extern int snd_started, rcv_started;
 
@@ -272,6 +272,14 @@ extern HWND    hwnd_b_tab;
 extern int err_cnt, info_cnt;
 void PrintText(TCHAR * szFormat, ...);
 
-    
+#define FILE_PCAP_CACHE_INFO    ".\\pcap_cache_info"
+#define FILE_PCAP_CACHE_DATA    ".\\pcap_cache_data"
+
+typedef struct
+{
+    uint32_t offset;
+    uint32_t len;
+
+} __attribute__ ((aligned (1))) t_data_seg_info;
 #endif
 

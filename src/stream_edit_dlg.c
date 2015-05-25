@@ -2751,6 +2751,21 @@ BOOL InsertItemFromPkt(HWND hWndListView, t_dump_pkt *pt_pkt, struct timeval *ba
     return TRUE;
 }
 
+char  g_dump_pkt_cache[2048];
+void get_pkt_by_idx(uint32_t idx, t_dump_pkt *pt_pkt)
+{
+    FILE *f_seg_info=NULL, *f_seg=NULL;
+    t_data_seg_info seg_info = {0};
+
+    f_seg_info = fopen(FILE_PCAP_CACHE_INFO, "rb");
+    f_seg      = fopen(FILE_PCAP_CACHE_DATA, "rb");
+    fseek(f_seg_info, idx*sizeof(t_data_seg_info), SEEK_SET);
+    fread(&seg_info, 1, sizeof(seg_info), f_seg_info);
+    fseek(f_seg, seg_info.offset, SEEK_SET);
+    fread(pt_pkt, 1, seg_info.len, f_seg);
+    fclose(f_seg_info);
+    fclose(f_seg);
+}
 
 int init_lv_from_dump_file(HWND hlv, char *file_path)
 {
@@ -2758,8 +2773,11 @@ pcap_t *fp;
 char errbuf[PCAP_ERRBUF_SIZE];
 char source[PCAP_BUF_SIZE];
 struct pcap_pkthdr *header;
+uint32_t pkt_cnt = 0;
 const u_char *pkt_data;
 t_dump_pkt    *pt_pkt;
+FILE *f_seg_info=NULL, *f_seg=NULL;
+t_data_seg_info seg_info = {0};
 struct timeval 	base={(time_t)0};
     /* Create the source string according to the new WinPcap syntax */
     if ( pcap_createsrcstr( source,         // variable that will keep the source string
@@ -2788,16 +2806,28 @@ struct timeval 	base={(time_t)0};
         return -1;
     }
 
+f_seg_info = fopen(FILE_PCAP_CACHE_INFO, "wb");
+f_seg      = fopen(FILE_PCAP_CACHE_DATA, "wb");
+pt_pkt = malloc(2048);
         while (pcap_next_ex( fp, &header, &pkt_data)>0)
         {
-            pt_pkt = malloc(sizeof(t_dump_pkt)+header->caplen);
             memcpy(pt_pkt, header, sizeof(struct pcap_pkthdr));
             memcpy(pt_pkt->pkt_data, pkt_data, header->caplen);
+            pt_pkt->pkt_idx = pkt_cnt;
             if (base.tv_sec==(time_t)0) base=header->ts;
             pt_pkt->err_flags = build_err_flags((void *)(pt_pkt->pkt_data), header->caplen);
             InsertItemFromPkt(hlv, pt_pkt, &base);
+            seg_info.len = sizeof(*pt_pkt)+header->caplen;
+            fwrite(&seg_info, 1, sizeof(seg_info), f_seg_info);
+            fwrite(pt_pkt   , 1, seg_info.len    , f_seg);
+            seg_info.offset += seg_info.len;
+            pkt_cnt++;
         }
 
+    free(pt_pkt);
+    pcap_close(fp);	
+    fclose(f_seg_info);
+    fclose(f_seg);
     return 0;
 }
 
@@ -2815,26 +2845,10 @@ void *get_lvi_lparam(HWND hlv, int idx)
 
 }
 
-void rel_sel_pkt(HWND hList)
-{
-  int i, n;
-  t_dump_pkt    *pt_pkt;
-  n = ListView_GetItemCount(hList);
-  for (i = 0; i < n; i++)
-    {
-        if (ListView_GetCheckState(hList, i))
-        {
-          pt_pkt=get_lvi_lparam(hList, i);
-          free(pt_pkt);
-        }
-    }
-
-}
-
 void sel_pkt_to_stream(HWND hList)
 {
   int i, n;
-  t_dump_pkt    *pt_pkt;
+  t_dump_pkt    *pt_pkt=malloc(2048);
   t_stream t_stream_tmp;
   n = ListView_GetItemCount(hList);
   for (i = 0; i < n; i++)
@@ -2842,7 +2856,7 @@ void sel_pkt_to_stream(HWND hList)
         if (ListView_GetCheckState(hList, i))
         {
             if (nr_cur_stream>=MAX_STREAM_NUM) break;
-            pt_pkt=get_lvi_lparam(hList, i);
+            get_pkt_by_idx(i, pt_pkt);
             init_stream(&t_stream_tmp);
             t_stream_tmp.len=pt_pkt->header.caplen;
             memcpy(t_stream_tmp.data, pt_pkt->pkt_data, pt_pkt->header.caplen);
@@ -2852,12 +2866,13 @@ void sel_pkt_to_stream(HWND hList)
         }
     }
 
+    free(pt_pkt);
 }
 
 void sel_pkt_to_pcap_dump(HWND hList, char *dump_file)
 {
     int i, n;
-    t_dump_pkt    *pt_pkt;
+    t_dump_pkt    *pt_pkt=malloc(2048);
   
   	pcap_t *fp;
 	char errbuf[PCAP_ERRBUF_SIZE];
@@ -2876,11 +2891,12 @@ dumpfile = pcap_dump_open(fp, dump_file);
     {
         if (ListView_GetCheckState(hList, i))
         {
-            pt_pkt=get_lvi_lparam(hList, i);
+            get_pkt_by_idx(i, pt_pkt);
             pcap_dump((unsigned char *)dumpfile, &(pt_pkt->header), pt_pkt->pkt_data);
         }
     }
 
+    free(pt_pkt);
     pcap_dump_close(dumpfile);
 	pcap_close(fp);	
 }
@@ -2928,7 +2944,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
     static HMENU	hMenu ;
     POINT point ;
 
-    t_dump_pkt    *pt_pkt;
+    t_dump_pkt    *pt_pkt = NULL;
 
      	switch (message)
      	{
@@ -2977,8 +2993,8 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
                     }
 
               		case 	IDCANCEL :
-                            SelAll(hlv);
-                            rel_sel_pkt(hlv);
+                            //SelAll(hlv);
+                            //rel_sel_pkt(hlv);
 
                				EndDialog (hDlg, LOWORD(wParam));
                             is_read_only=0;
@@ -2993,9 +3009,9 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
                         return TRUE ;
                                 
                     case ID_VIEW_STREAM_DEL_SEL:
-                        rel_sel_pkt(hlv);
-                        DelSel(hlv);
-                        cur_view_pkt_idx=-1;
+                        //rel_sel_pkt(hlv);
+                        //DelSel(hlv);
+                        //cur_view_pkt_idx=-1;
 
                         return TRUE ;
                         
@@ -3033,7 +3049,8 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             if (iItem>=0 && iItem!=cur_view_pkt_idx) 
             {
                 cur_view_pkt_idx=iItem;
-                pt_pkt=get_lvi_lparam(hlv, cur_view_pkt_idx);
+                pt_pkt = g_dump_pkt_cache;
+                get_pkt_by_idx((uint32_t)cur_view_pkt_idx, pt_pkt);
                 gt_edit_stream.len=pt_pkt->header.caplen;
                 memcpy(gt_edit_stream.data, pt_pkt->pkt_data, gt_edit_stream.len);
                 build_tv(GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW));
@@ -3089,7 +3106,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             if (lParam == 0)
             {
                 EnableMenuItem ((HMENU) wParam, ID_VIEW_STREAM_SEL_ALL, item_cnt ? MF_ENABLED : MF_GRAYED);     EnableMenuItem ((HMENU) wParam, ID_VIEW_STREAM_SEL_RSV, item_cnt ? MF_ENABLED : MF_GRAYED);
-                EnableMenuItem ((HMENU) wParam, ID_VIEW_STREAM_DEL_SEL, sel_cnt ? MF_ENABLED : MF_GRAYED);
+                //EnableMenuItem ((HMENU) wParam, ID_VIEW_STREAM_DEL_SEL, sel_cnt ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, ID_VIEW_STREAM_SEL2STREAM, sel_cnt ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, ID_VIEW_STREAM_SAVE_AS, sel_cnt ? MF_ENABLED : MF_GRAYED);
 

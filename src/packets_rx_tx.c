@@ -23,7 +23,7 @@ uint64_t send_times_cnt;
 t_pkt_stat gt_pkt_stat, gt_pkt_stat_pre;
 struct timeval last_timer_tv;
 struct timeval time_elapsed;
-struct timeval last_stat_tv;
+struct timeval last_stat_tv_snd, last_stat_tv_rcv, last_stat_tv_sndf;
     
 int need_capture;
 
@@ -118,7 +118,7 @@ void init_net_card_combbox(HWND hwnd_comb)
               break;
             }
         }
-        dbg_print(d->name);
+
         SendMessage(hwnd_comb,(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)info);
         if (strcmp(d->name, last_nic_name)==0) last_nic_idx = nic_cnt;
         nic_cnt++;

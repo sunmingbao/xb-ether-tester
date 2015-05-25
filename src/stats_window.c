@@ -54,10 +54,13 @@ void update_stats()
         (gt_pkt_stat_tmp.send_fail==gt_pkt_stat_pre.send_fail)  &&
         (gt_pkt_stat_tmp.rcv_total==gt_pkt_stat_pre.rcv_total)) 
         return;
-    
-    tmp_tv = time_a_between_b2(last_stat_tv, cur_tv);
-    gap_ms = tmp_tv.tv_sec*1000 + tmp_tv.tv_usec/1000;
+
     total_ms = (time_elapsed.tv_sec*1000 + time_elapsed.tv_usec/1000);
+
+if (gt_pkt_stat_tmp.send_total!=gt_pkt_stat_pre.send_total)
+{
+    tmp_tv = time_a_between_b2(last_stat_tv_snd, cur_tv);
+    gap_ms = tmp_tv.tv_sec*1000 + tmp_tv.tv_usec/1000;
 
     set_I64u_text(hwnd_snd_bps, (1000*8*(pt_pkt_stat->send_total_bytes-gt_pkt_stat_pre.send_total_bytes)/gap_ms)); 
     set_I64u_text(hwnd_snd_pps, (1000*(pt_pkt_stat->send_total-gt_pkt_stat_pre.send_total)/gap_ms)); 
@@ -65,6 +68,13 @@ void update_stats()
     set_I64u_text(hwnd_snd_pps_avg, (1000*(pt_pkt_stat->send_total)/total_ms)); 
     set_I64u_text(hwnd_snd_bits, pt_pkt_stat->send_total_bytes*8); 
     set_I64u_text(hwnd_snd_pkt, pt_pkt_stat->send_total); 
+        last_stat_tv_snd= cur_tv;
+}
+
+if (gt_pkt_stat_tmp.send_fail!=gt_pkt_stat_pre.send_fail)
+{
+    tmp_tv = time_a_between_b2(last_stat_tv_sndf, cur_tv);
+    gap_ms = tmp_tv.tv_sec*1000 + tmp_tv.tv_usec/1000;
 
     set_I64u_text(hwnd_snd_fail_bps, (1000*8*(pt_pkt_stat->send_fail_bytes-gt_pkt_stat_pre.send_fail_bytes)/gap_ms)); 
     set_I64u_text(hwnd_snd_fail_pps, (1000*(pt_pkt_stat->send_fail-gt_pkt_stat_pre.send_fail)/gap_ms)); 
@@ -72,16 +82,23 @@ void update_stats()
     set_I64u_text(hwnd_snd_fail_pps_avg, (1000*(pt_pkt_stat->send_fail)/total_ms)); 
     set_I64u_text(hwnd_snd_fail_bits, pt_pkt_stat->send_fail_bytes*8); 
     set_I64u_text(hwnd_snd_fail_pkt, pt_pkt_stat->send_fail); 
-    
+        last_stat_tv_sndf= cur_tv;
+}
+
+if (gt_pkt_stat_tmp.rcv_total!=gt_pkt_stat_pre.rcv_total)
+{
+    tmp_tv = time_a_between_b2(last_stat_tv_rcv, cur_tv);
+    gap_ms = tmp_tv.tv_sec*1000 + tmp_tv.tv_usec/1000;
+
     set_I64u_text(hwnd_rcv_bps, (1000*8*(pt_pkt_stat->rcv_total_bytes-gt_pkt_stat_pre.rcv_total_bytes)/gap_ms)); 
     set_I64u_text(hwnd_rcv_pps, (1000*(pt_pkt_stat->rcv_total-gt_pkt_stat_pre.rcv_total)/gap_ms)); 
     set_I64u_text(hwnd_rcv_bps_avg, (1000*8*(pt_pkt_stat->rcv_total_bytes)/total_ms)); 
     set_I64u_text(hwnd_rcv_pps_avg, (1000*(pt_pkt_stat->rcv_total)/total_ms)); 
     set_I64u_text(hwnd_rcv_bits, pt_pkt_stat->rcv_total_bytes*8); 
     set_I64u_text(hwnd_rcv_pkt, pt_pkt_stat->rcv_total); 
-    
+        last_stat_tv_rcv= cur_tv;
+}
     gt_pkt_stat_pre= *pt_pkt_stat;
-    last_stat_tv = cur_tv;
 }
 
 void copy_stats_2_clip_board()
