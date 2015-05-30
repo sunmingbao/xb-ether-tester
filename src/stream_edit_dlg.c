@@ -12,6 +12,7 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
+#include "debug.h"
 
 #define  STREAM_EDIT_DATA_CHANGE     (WM_USER + 1)
 void stream_edit_data_change(HWND  hwnd, int offset)
@@ -2973,16 +2974,18 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             hMenu = LoadMenu (g_hInstance, TEXT("pkt_view_popup_menu")) ;
             hMenu = GetSubMenu (hMenu, 0) ;
             add_tip(hwndTip, hlv, TEXT("点击鼠标右键进行操作"));
-            SendMessage(hDlg, WM_PROC_PCAP_FILE, 0, 0);
+            PostMessage(hDlg, WM_PROC_PCAP_FILE, 0, 0);
           		return FALSE;
 
         case 	WM_PROC_PCAP_FILE:
              pcap_proc_exit = 0;
+             //SetCursor (LoadCursor (NULL, IDC_WAIT)) ;
+             //ShowCursor (TRUE) ;
              launch_thread(proc_pcap_file, (LPVOID)hDlg);
              return TRUE ;
              
         case 	WM_CLOSE:
-   				SendMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+   				PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
    				return TRUE ;
 
      	case 	WM_COMMAND :
@@ -3005,7 +3008,6 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
 
               		case 	IDCANCEL :
                             pcap_proc_exit = 1;
-                            Sleep(10);
                				EndDialog (hDlg, LOWORD(wParam));
                             is_read_only=0;
                				return TRUE ;
@@ -3059,7 +3061,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             if (iItem>=0 && iItem!=cur_view_pkt_idx) 
             {
                 cur_view_pkt_idx=iItem;
-                pt_pkt = g_dump_pkt_cache;
+                pt_pkt = (void *)g_dump_pkt_cache;
                 get_pkt_by_idx((uint32_t)cur_view_pkt_idx, pt_pkt);
                 gt_edit_stream.len=pt_pkt->header.caplen;
                 memcpy(gt_edit_stream.data, pt_pkt->pkt_data, gt_edit_stream.len);
@@ -3234,11 +3236,11 @@ BOOL CALLBACK PktCapDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
                 hPktCapDlg=hDlg;
                 center_child_win(hwnd_frame, hDlg);
                 delete_file_f(PKT_CAP_FILE_ONLY_CAP);
-                //init_pkt_cap_info(hDlg, info);
+                clr_cap_dlg_stat(hDlg);
           		return FALSE;
 
         case 	WM_CLOSE:
-   				SendMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+   				PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
    				return TRUE ;
 
      	case 	WM_COMMAND :
@@ -3248,7 +3250,7 @@ BOOL CALLBACK PktCapDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
               		case 	IDCANCEL :
                             if (!cap_stopped)
                                 SendMessage(hDlg, WM_COMMAND, ID_PKT_CAP_CAP, 0);
-               				EndDialog (hDlg, LOWORD(wParam));
+               				EndDialog(hDlg, LOWORD(wParam));
                				return TRUE ;
 
               		case 	ID_PKT_CAP_CFG:
@@ -3284,7 +3286,6 @@ CLR_STAT:
                         else
                         {
                             need_cap_stop=1;
-                            while (cap_stopped==0) Sleep(1);
                             SetDlgItemText(hDlg, ID_PKT_CAP_CAP, "抓包");
                         }
                				return TRUE ;
@@ -3341,7 +3342,7 @@ BOOL CALLBACK FragDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
                     {
                         int frag_payload=get_int_text(GetDlgItem(hDlg, ID_FRAG_PAYLOAD));
                         t_stream *pt_stream = g_apt_streams[GetIndex(hwnd_lv)];
-                        if (frag_payload<=7)
+                        if ((frag_payload<8) || (frag_payload%8))
                         {
                             WinPrintf(hDlg, "输入值 %d 非法。净何必须大于0且是8的整数倍", frag_payload);
                             return TRUE;

@@ -13,7 +13,7 @@
 #include "res.h"
 #include "net.h"
 
-const char version[4]={'2','7','1','0'};
+const char version[4]={'2','7','2','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -444,7 +444,7 @@ int get_row_color_idx(HWND hWnd, int idx)
 {
     t_ether_packet *pt_eth_hdr;
     uint32_t err_flags;
-    t_dump_pkt *pt_pkt = dump_pkt_cache;
+    t_dump_pkt *pt_pkt = (void *)dump_pkt_cache;
     
     if (idx>=ListView_GetItemCount(hWnd)) return 0;
     

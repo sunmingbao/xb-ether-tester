@@ -50,6 +50,7 @@ OBJECTS :=  \
 	$(OBJ_DIR)\net.o \
 	$(OBJ_DIR)\history.o \
 	$(OBJ_DIR)\common.o \
+	$(OBJ_DIR)\debug.o \
 	$(OBJ_DIR)\res.orc
 
 ### Targets: ###
@@ -106,6 +107,9 @@ $(OBJ_DIR)\history.o: $(PRJ_DIR)\src\history.c
 	$(CC) -c $(CFLAG) -o $@  $<
 
 $(OBJ_DIR)\common.o: $(PRJ_DIR)\src\common.c
+	$(CC) -c $(CFLAG) -o $@  $<
+
+$(OBJ_DIR)\debug.o: $(PRJ_DIR)\src\debug.c
 	$(CC) -c $(CFLAG) -o $@  $<
 
 installer:

@@ -84,7 +84,6 @@ extern HWND hwnd_dynamic_edit;
 extern TCHAR szTipWinClassName[];
 extern HWND    hwnd_tip;
 void show_tip(TCHAR *info);
-void dbg_print(TCHAR * szFormat, ...);
 void err_msg_box(TCHAR * szFormat, ...);
 
 extern TCHAR szStatsWinClassName[];
@@ -174,6 +173,7 @@ void init_net_card_combbox(HWND hwnd_comb);
 int select_if(int idx);
 int is_filter_valid(char *packet_filter);
 void update_fc_gap();
+void get_pkt_by_idx(uint32_t idx, t_dump_pkt *pt_pkt);
 
 int re_populate_items();
 LRESULT CALLBACK my_lv_proc (HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -239,8 +239,8 @@ extern int snd_gap_us;
 
 #define PKT_CAP_CFG_MODE_NORMAL     0
 #define PKT_CAP_CFG_MODE_ADVANCED   1
-#define PKT_CAP_FILE_WHILE_SND    "C:\\WINDOWS\\temp\\fsm_haha_1.pcap"
-#define PKT_CAP_FILE_ONLY_CAP     "C:\\WINDOWS\\temp\\fsm_haha_2.pcap"
+#define PKT_CAP_FILE_WHILE_SND    ".\\pkt_cap_while_snd.pcap"
+#define PKT_CAP_FILE_ONLY_CAP     ".\\cap_independent.pcap"
 #define PKT_CAP_PKT_TYPE_L2    1
 #define PKT_CAP_PKT_TYPE_IP    2
 #define PKT_CAP_PKT_TYPE_ALL    3

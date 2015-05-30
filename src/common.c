@@ -11,7 +11,7 @@
 #include "common.h"
 #include <tchar.h>     
 #include <stdio.h>
-
+#include "debug.h"
 
 int WinPrintf(HWND hwnd, TCHAR * szFormat, ...)
 {

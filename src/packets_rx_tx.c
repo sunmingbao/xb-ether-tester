@@ -13,6 +13,7 @@
 #include "global_info.h"
 #include "res.h"
 #include "net.h"
+#include "debug.h"
 
 int need_stop=1;
 int need_cap_stop=1;
@@ -334,6 +335,7 @@ exit:
 int cap_stopped=1;
 DWORD WINAPI  rcv_pkt_2(LPVOID lpParameter)
 {
+    int ret = 0;
 	pcap_t *fp;
 	char errbuf[PCAP_ERRBUF_SIZE];
     struct pcap_pkthdr *header;
@@ -360,7 +362,8 @@ dumpfile = pcap_dump_open(fp, PKT_CAP_FILE_ONLY_CAP);
 	/* Send down the packet */
 	while (!need_cap_stop)
 	{
-        if (1==pcap_next_ex( fp, &header, &pkt_data))
+        ret = pcap_next_ex( fp, &header, &pkt_data);
+        if (1==ret)
         {
             update_pkt_cap_stats((void *)pkt_data);
             if (gt_pkt_cap_cfg.need_save_capture /* && saved_cnt<save_capture_num */) 
@@ -369,7 +372,6 @@ dumpfile = pcap_dump_open(fp, PKT_CAP_FILE_ONLY_CAP);
             }
         }
 
-    	continue;
     }
 
 exit:
