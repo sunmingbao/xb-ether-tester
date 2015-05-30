@@ -156,7 +156,7 @@
 #define ID_RULE_CFG_STEP        40552
 #define ID_RULE_CFG_USE_RULE    40553
 
-#define ID_FRAG_NUM             40600
+#define ID_FRAG_PAYLOAD             40600
 
 #define ID_FILE_RECENT_CFG_FILE_BEGIN    40700
 #define MAX_RECENT_FILE_NUM     10

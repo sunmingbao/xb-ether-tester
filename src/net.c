@@ -1049,4 +1049,36 @@ int type = eth_type(pt_stream->data);
        update_len_v6(pt_stream);
 }
 
+int ipv4_fragable(t_ip_hdr *iph)
+{
+    if(ntohs(iph->frag_off)&((1<<14) - 1))
+        return 0;
+        
+    if (ip_data_len(iph)<=8)
+        return 0;
+
+    return 1;
+}
+
+int ipv6_fragable(t_ipv6_hdr *ipv6h)
+{
+    if (IPPROTO_FRAGMENT==ipv6h->nexthdr)
+        return 0;
+    
+    if (ip6_data_len(ipv6h)<=8)
+        return 0;
+
+    return 1;
+}
+
+int stream_fragable(t_stream *pt_stream)
+{
+    int type = eth_type(pt_stream->data);
+    if (type==ETH_P_IP)
+        return ipv4_fragable(eth_data(pt_stream->data));
+   else if (type==ETH_P_IPV6)
+       return ipv6_fragable(eth_data(pt_stream->data));
+
+    return 0;
+}
 

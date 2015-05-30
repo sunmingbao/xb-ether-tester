@@ -759,6 +759,7 @@ SendMessage(hwnd_tv, TVM_SETIMAGELIST,
 
 
             ShowWindow (hwnd_tv, 1) ;
+            InvalidateRect(hwnd_tv,NULL,TRUE);
             UpdateWindow (hwnd_tv) ;
     //TreeView_Select(hwnd_tv, childItem1, TVGN_CARET);
 

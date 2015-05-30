@@ -2173,21 +2173,18 @@ void *alloc_stream()
     return pt_stream;
 }
 
-int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
+int make_frags_ipv4(const t_stream *pt_stream, int frag_data_len)
 {
     int i, ret;
     int eth_len=eth_hdr_len(pt_stream->data);
     t_ip_hdr *iph=eth_data(pt_stream->data);
     void *p_ip_data=ip_data(iph);
     int data_len = ip_data_len(iph);
-    int data_unit_num = data_len/8 + !!(data_len%8);
-    int frag_data_unit_num = data_unit_num/frag_num 
-        + !!(data_unit_num%frag_num);
-
-    int frag_data_len = frag_data_unit_num*8;
+    int frag_num = data_len/frag_data_len + !!(data_len%frag_data_len);
     int frag_len = frag_data_len + ip_hdr_len(iph);
     int frag_frame_len = frag_len + eth_len;
-
+    int frag_data_unit_num = frag_data_len/8;
+    
     t_stream t_stream_tmp;
     t_ip_hdr *iph_frag;
     void *p_frag_data;
@@ -2217,18 +2214,16 @@ int make_frags_ipv4(const t_stream *pt_stream, int frag_num)
     return ret;
 }
 
-int make_frags_ipv6(const t_stream *pt_stream, int frag_num)
+int make_frags_ipv6(const t_stream *pt_stream, int frag_data_len)
 {
     int i, ret;
     int eth_len=eth_hdr_len(pt_stream->data);
     t_ipv6_hdr *ip6h=eth_data(pt_stream->data);
     void *p_ip_data=ip6_data(ip6h);
     int data_len = ip6_data_len(ip6h);
-    int data_unit_num = data_len/8 + !!(data_len%8);
-    int frag_data_unit_num = data_unit_num/frag_num 
-        + !!(data_unit_num%frag_num);
+    int frag_num = data_len/frag_data_len + !!(data_len%frag_data_len);
+    int frag_data_unit_num = frag_data_len/8; 
 
-    int frag_data_len = frag_data_unit_num*8;
     int frag_len = frag_data_len + 8 + IPV6_HDR_LEN;
     int frag_frame_len = frag_len + eth_len;
 
@@ -2267,13 +2262,13 @@ int make_frags_ipv6(const t_stream *pt_stream, int frag_num)
     return ret;
 }
 
-int make_frags(const t_stream *pt_stream, int frag_num)
+int make_frags(const t_stream *pt_stream, int frag_payload)
 {
     int type = eth_type(pt_stream->data);
     if (type==ETH_P_IP)
-        return make_frags_ipv4(pt_stream, frag_num);
+        return make_frags_ipv4(pt_stream, frag_payload);
     else if (type==ETH_P_IPV6)
-        return make_frags_ipv6(pt_stream, frag_num);
+        return make_frags_ipv6(pt_stream, frag_payload);
 
     return 0;
 }
@@ -2767,8 +2762,11 @@ void get_pkt_by_idx(uint32_t idx, t_dump_pkt *pt_pkt)
     fclose(f_seg);
 }
 
-int init_lv_from_dump_file(HWND hlv, char *file_path)
+int pcap_proc_exit;
+int init_lv_from_dump_file(HWND hDlg, char *file_path)
 {
+    HWND hlv=GetDlgItem(hDlg,ID_VIEW_STREAM_LV);
+    TCHAR info[128];
 pcap_t *fp;
 char errbuf[PCAP_ERRBUF_SIZE];
 char source[PCAP_BUF_SIZE];
@@ -2809,7 +2807,7 @@ struct timeval 	base={(time_t)0};
 f_seg_info = fopen(FILE_PCAP_CACHE_INFO, "wb");
 f_seg      = fopen(FILE_PCAP_CACHE_DATA, "wb");
 pt_pkt = malloc(2048);
-        while (pcap_next_ex( fp, &header, &pkt_data)>0)
+        while (pcap_next_ex(fp, &header, &pkt_data)>0 && !pcap_proc_exit)
         {
             memcpy(pt_pkt, header, sizeof(struct pcap_pkthdr));
             memcpy(pt_pkt->pkt_data, pkt_data, header->caplen);
@@ -2822,12 +2820,19 @@ pt_pkt = malloc(2048);
             fwrite(pt_pkt   , 1, seg_info.len    , f_seg);
             seg_info.offset += seg_info.len;
             pkt_cnt++;
+
+            sprintf(info, TEXT("报文浏览 - 正在加载报文... %u"), pkt_cnt);
+            SetWindowText(hDlg, info);
         }
 
     free(pt_pkt);
     pcap_close(fp);	
     fclose(f_seg_info);
     fclose(f_seg);
+    InvalidateRect(hlv,NULL,TRUE);
+    UpdateWindow (hlv);
+    sprintf(info, TEXT("报文浏览 - 报文总数 %u"), pkt_cnt);
+    SetWindowText(hDlg, info);
     return 0;
 }
 
@@ -2932,6 +2937,11 @@ void init_ui_pkt_view(HWND hDlg)
 
 }
 
+DWORD WINAPI  proc_pcap_file(LPVOID lpParameter)
+{
+    return init_lv_from_dump_file((HWND)lpParameter, pcap_file_to_view);
+}
+
 BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
     HTREEITEM htvi;
@@ -2955,11 +2965,6 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             old_lv_proc = (WNDPROC) SetWindowLong (hlv, 
                                  	GWL_WNDPROC, (LONG)my_lv_proc) ;
 
-                if (init_lv_from_dump_file(hlv, pcap_file_to_view))
-                {
-                    SendMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
-                    return FALSE;
-                }
                 gt_edit_stream.len=0;
                 hex_win_reinit(GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT));
                 cur_view_pkt_idx=-1;
@@ -2968,8 +2973,14 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             hMenu = LoadMenu (g_hInstance, TEXT("pkt_view_popup_menu")) ;
             hMenu = GetSubMenu (hMenu, 0) ;
             add_tip(hwndTip, hlv, TEXT("点击鼠标右键进行操作"));
+            SendMessage(hDlg, WM_PROC_PCAP_FILE, 0, 0);
           		return FALSE;
 
+        case 	WM_PROC_PCAP_FILE:
+             pcap_proc_exit = 0;
+             launch_thread(proc_pcap_file, (LPVOID)hDlg);
+             return TRUE ;
+             
         case 	WM_CLOSE:
    				SendMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
    				return TRUE ;
@@ -2993,9 +3004,8 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
                     }
 
               		case 	IDCANCEL :
-                            //SelAll(hlv);
-                            //rel_sel_pkt(hlv);
-
+                            pcap_proc_exit = 1;
+                            Sleep(10);
                				EndDialog (hDlg, LOWORD(wParam));
                             is_read_only=0;
                				return TRUE ;
@@ -3329,21 +3339,15 @@ BOOL CALLBACK FragDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
           		{
               		case 	IDOK :
                     {
-                        int frag_num=0;
-                        frag_num=get_int_text(GetDlgItem(hDlg, ID_FRAG_NUM));
-
-                        if (frag_num<=1)
+                        int frag_payload=get_int_text(GetDlgItem(hDlg, ID_FRAG_PAYLOAD));
+                        t_stream *pt_stream = g_apt_streams[GetIndex(hwnd_lv)];
+                        if (frag_payload<=7)
                         {
-                            WinPrintf(hDlg, "输入值 %d 非法。请输入大于1的整数", frag_num);
-                            return TRUE;
-                        }
-                        if (nr_cur_stream+frag_num>MAX_STREAM_NUM)
-                        {
-                            WinPrintf(hDlg, "分片后，将超过支持的最大流数 %d。请减小分片数，或删除部分流", MAX_STREAM_NUM);
+                            WinPrintf(hDlg, "输入值 %d 非法。净何必须大于0且是8的整数倍", frag_payload);
                             return TRUE;
                         }
                     
-                        ret=make_frags(g_apt_streams[GetIndex(hwnd_lv)], frag_num);
+                        ret=make_frags(pt_stream, frag_payload);
                         re_populate_items();
                         if (ret) show_tip("注意，字段变化规则已经从分片报文中删除");
                     }

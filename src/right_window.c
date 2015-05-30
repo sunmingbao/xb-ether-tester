@@ -13,7 +13,7 @@
 #include "res.h"
 #include "net.h"
 
-const char version[4]={'2','7','0','0'};
+const char version[4]={'2','7','1','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -772,14 +772,7 @@ case WM_NOTIFY:
 
                 case    IDM_STREAM_MAKE_FRAGS:
                 {
-                    if (!ip_pkt_can_frag(&(g_apt_streams[GetIndex(hwnd_lv)]->eth_packet)))
-                    {
-                        WinPrintf(hwnd, TEXT("暂不支持对该类报文进行分片"));
-                        return 0 ;
-                    }
-                    
        				ret=DialogBox(g_hInstance, TEXT("FRAG_DLG"), hwnd, FragDlgProc);
-
        				return 0 ;
                 }
 
@@ -821,6 +814,7 @@ case   WM_KEYDOWN:
         case 	WM_INITMENUPOPUP:
         {
             int idx=GetIndex(hwnd_lv);
+            t_stream *pt_stream = g_apt_streams[idx];
             int sel_cnt=GetSelCnt(hwnd_lv);
             int item_cnt=ListView_GetItemCount(hwnd_lv);
             if (lParam == 0)
@@ -833,7 +827,7 @@ case   WM_KEYDOWN:
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_DEL_SEL, sel_cnt ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_SEL_ALL, item_cnt ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_SEL_RVS, item_cnt ? MF_ENABLED : MF_GRAYED);
-                EnableMenuItem ((HMENU) wParam, IDM_STREAM_MAKE_FRAGS, idx>=0 ? MF_ENABLED : MF_GRAYED);
+                EnableMenuItem ((HMENU) wParam, IDM_STREAM_MAKE_FRAGS, idx>=0&&stream_fragable(pt_stream) ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_SEL2PCAP, sel_cnt ? MF_ENABLED : MF_GRAYED);
 
                 return 0;

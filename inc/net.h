@@ -371,21 +371,6 @@ static inline int ip_frag_offset(t_ether_packet *pt_eth_hdr)
     return ntohs(frag_hdr->frag_off)>>3;
 }
 
-static inline int ip_pkt_can_frag(t_ether_packet *pt_eth_hdr)
-{
-    int type = eth_type(pt_eth_hdr);
-    if (ip_pkt_is_frag(pt_eth_hdr))
-        return 0;
-    
-    if (type!=ETH_P_IP
-        && type!=ETH_P_IPV6)
-    {
-        return 0;
-    }
-    
-    return 1;
-}
-
 void get_protocol_name(int protocol, char *name);
 int get_eth_type_name(int type, char *info);
 
@@ -464,7 +449,7 @@ extern int  nr_cur_stream;
 extern int  copy_idx;
 extern t_stream    *g_apt_streams[MAX_STREAM_NUM];
 void init_stream(t_stream    *pt_streams);
-int make_frags(const t_stream *pt_stream, int frag_num);
+int make_frags(const t_stream *pt_stream, int frag_payload);
 void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags);
 uint32_t  build_err_flags(t_ether_packet *pt_eth, int len);
 void update_stream(t_stream* pt_stream);

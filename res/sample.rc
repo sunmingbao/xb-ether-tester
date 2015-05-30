@@ -414,10 +414,10 @@ CAPTION "报文分片"
 FONT 8, "MS Sans Serif"
 BEGIN
 
-        CTEXT     "报文将被平均分成如下片数(最后一片长度可能会短一些)",IDC_STATIC,10,10,200,14
+        CTEXT     "请输入分片报文的IP净荷大小",IDC_STATIC,10,10,200,14
 
-    	CTEXT       "分成几片:",IDC_STATIC,10,50,40,14
-    	EDITTEXT    ID_FRAG_NUM, 65, 50, 40, 14
+    	CTEXT       "分片净荷:",IDC_STATIC,10,50,40,14
+    	EDITTEXT    ID_FRAG_PAYLOAD, 65, 50, 40, 14
     	
 
   	DEFPUSHBUTTON   "确定",    IDOK,100,100,50,14

@@ -130,6 +130,7 @@ void update_statusbar();
 
 #define  WM_SPLITTER_X     (WM_USER + 3)
 #define  WM_SPLITTER_Y     (WM_USER + 4)
+#define  WM_PROC_PCAP_FILE (WM_USER + 5)
 static inline void send_splitter_x(HWND  hwnd, int pos)
 {
     SendMessage(hwnd, WM_SPLITTER_X, pos, 0);
@@ -188,6 +189,7 @@ void mac_str2n(unsigned char *mac, char *info_usr);
 void mac_n2str(char *info, void *field_addr);
 void update_check_sum(t_stream *pt_stream);
 void update_len(t_stream *pt_stream);
+int stream_fragable(t_stream *pt_stream);
 int get_eth_type_comb(HWND comb);
 void init_eth_type_comb(HWND comb);
 

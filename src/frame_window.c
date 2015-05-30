@@ -232,8 +232,6 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 we_pos-SPLT_WIDTH, ns_pos-SPLT_WIDTH,
                 hwnd, NULL, g_hInstance, NULL) ;
 
-            ShowWindow (hwnd_left, 1) ;
-            UpdateWindow (hwnd_left) ;
 
             hwnd_splt_we= CreateWindow (szSpltWeClassName, TEXT ("sub win"),
                 WS_CHILD,
@@ -252,8 +250,6 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                   			cxClient-we_pos, ns_pos-SPLT_WIDTH,
                 hwnd, NULL, g_hInstance, NULL) ;
 
-            ShowWindow (hwnd_right, 1) ;
-            UpdateWindow (hwnd_right) ;
 
             hwnd_splt_ns= CreateWindow (szSpltNsClassName, TEXT ("sub win"),
                 WS_CHILD,
@@ -269,6 +265,12 @@ LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
                 we_pos,    ns_pos,
                   			cxClient-we_pos, cyClient-ns_pos,
                 hwnd, NULL, g_hInstance, NULL) ;
+
+            ShowWindow (hwnd_left, 1) ;
+            UpdateWindow (hwnd_left) ;
+
+            ShowWindow (hwnd_right, 1) ;
+            UpdateWindow (hwnd_right) ;
 
             ShowWindow (hwnd_bottom, 1) ;
             UpdateWindow (hwnd_bottom) ;
