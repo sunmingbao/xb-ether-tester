@@ -14,6 +14,7 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
+#include "gui.h"
 
 TCHAR szBottomWinClassName[] = TEXT ("bottom_win") ;
 HWND    hwnd_bottom;

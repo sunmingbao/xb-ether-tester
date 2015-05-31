@@ -22,8 +22,6 @@ extern const char version[4];
 extern HINSTANCE g_hInstance;
 extern TCHAR szAppName[];
 extern int init_over;
-extern int scrn_width;
-extern int scrn_height;
 
 #define TIMER_STATUS_BAR 1
 #define TIMER_STATUS_GAP 100
@@ -123,8 +121,6 @@ void add_tip(HWND htip_control, HWND hwnd, TCHAR *tips);
 void resize_window(HWND hwnd);
 void hex_win_sel(HWND  hwnd, int offset, int len);
 void hex_win_desel(HWND  hwnd, int offset, int len);
-extern int cxChar, cyChar;
-void init_char_size_info();
 void update_statusbar();
 
 #define  WM_SPLITTER_X     (WM_USER + 3)

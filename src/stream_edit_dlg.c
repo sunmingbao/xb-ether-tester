@@ -12,6 +12,7 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
+#include "gui.h"
 #include "debug.h"
 
 #define  STREAM_EDIT_DATA_CHANGE     (WM_USER + 1)
@@ -2280,11 +2281,13 @@ void init_ui_stream_edit(HWND hDlg)
     HWND hwnd_button = GetDlgItem(hDlg,ID_SED_DYNAMIC_RULE_BUTTON);
     HWND hwnd_edit = GetDlgItem(hDlg,ID_SED_DYNAMIC_EDIT);
     HWND hwnd_comb = GetDlgItem(hDlg,ID_SED_DYNAMIC_COMB);
+    HWND hwnd_comb_eth = GetDlgItem(hDlg,ID_SED_DYNAMIC_COMB_ETH);
 
-   SendMessage(hwnd_tree, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
-   SendMessage(hwnd_edit, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
-   SendMessage(hwnd_button, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
-   SendMessage(hwnd_comb, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
+   PostMessage(hwnd_tree, WM_SETFONT, (WPARAM)char_font, 0); 
+   PostMessage(hwnd_edit, WM_SETFONT, (WPARAM)char_font, 0); 
+   PostMessage(hwnd_button, WM_SETFONT, (WPARAM)char_font, 0); 
+   PostMessage(hwnd_comb, WM_SETFONT, (WPARAM)char_font, 0); 
+   PostMessage(hwnd_comb_eth, WM_SETFONT, (WPARAM)char_font, 0); 
 
     change_child_size(hwnd_tree,cxChar*80, cyChar*10);
     move_child_a2b_bottom_left(hwnd_tree, GetDlgItem(hDlg,ID_SED_UPDATE_LEN), 10);
@@ -2912,22 +2915,25 @@ void init_ui_pkt_view(HWND hDlg)
     HWND hlv=GetDlgItem(hDlg,ID_VIEW_STREAM_LV);
     HWND hwnd_tree=GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW);
     HWND hwnd_hexedit=GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT);
-    int lv_width=cxChar*120, lv_height=cxChar*28;
+    int  line_char_num = 120, line_num = 28*scrn_height/gt_gui_size_value.scrn_height;
+    int width=cxChar*line_char_num, height=cyChar*line_num;
     int col_width[] = {cxChar*10, cxChar*15, cxChar*20, cxChar*20, cxChar*9, cxChar*7, cxChar*34};
 
-    SendMessage(hwnd_tree, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
-    SendMessage(hlv, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
+    SendMessage(hwnd_tree, WM_SETFONT, (WPARAM)char_font, 0); 
+    SendMessage(hlv, WM_SETFONT, (WPARAM)char_font, 0); 
+    //SendMessage(hwnd_tree, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
+    //SendMessage(hlv, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
     ListView_SetExtendedListViewStyle(hlv, LVS_EX_CHECKBOXES|LVS_EX_GRIDLINES|LVS_EX_FULLROWSELECT);
 
-    change_child_size(hlv, lv_width, lv_height);
+    change_child_size(hlv, width, height/2);
     move_child_pos(hlv, 10, 10);
 
     InitLvColumns(hlv, col_width);
 
-    change_child_size(hwnd_tree,cxChar*40, cyChar*16);
+    change_child_size(hwnd_tree,cxChar*40, cyChar*line_num/2);
     move_child_a2b_bottom_left(hwnd_tree, hlv, 10);
 
-    change_child_size(hwnd_hexedit,cxChar*80, cyChar*16);
+    change_child_size(hwnd_hexedit,cxChar*80, cyChar*line_num/2);
     move_child_a2b_right_top(hwnd_hexedit, hwnd_tree, 10);
 
     if (a_include_b_right(hwnd_hexedit, hlv))
@@ -3344,7 +3350,7 @@ BOOL CALLBACK FragDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
                         t_stream *pt_stream = g_apt_streams[GetIndex(hwnd_lv)];
                         if ((frag_payload<8) || (frag_payload%8))
                         {
-                            WinPrintf(hDlg, "输入值 %d 非法。净何必须大于0且是8的整数倍", frag_payload);
+                            WinPrintf(hDlg, "输入值 %d 非法。净何必须大于0，并且是8的整数倍", frag_payload);
                             return TRUE;
                         }
                     

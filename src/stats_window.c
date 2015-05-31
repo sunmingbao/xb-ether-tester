@@ -12,6 +12,7 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
+#include "gui.h"
 
 TCHAR szStatsWinClassName[] = TEXT("stats_win") ;
 HWND hwnd_stats;
@@ -47,7 +48,7 @@ void update_stats()
     }
     last_timer_tv=cur_tv;
     
-    _stprintf (	info, TEXT("时间(秒): %lu.%lu"), time_elapsed.tv_sec, (time_elapsed.tv_usec/100000)) ;
+    _stprintf (	info, TEXT("时间: %lu.%lu"), time_elapsed.tv_sec, (time_elapsed.tv_usec/100000)) ;
     SetWindowText(hwnd_hdr_time, info); 
 
     if ((gt_pkt_stat_tmp.send_total==gt_pkt_stat_pre.send_total)  &&
@@ -163,13 +164,39 @@ void clear_stats()
     time_elapsed.tv_sec =0;
     time_elapsed.tv_usec =0;
 
-    SetWindowText(hwnd_stats_handles[0][0], TEXT("时间(秒): 0.0")); 
+    SetWindowText(hwnd_stats_handles[0][0], TEXT("时间: 0.0")); 
         for (i=1;i<4;i++)
             for (j=1;j<7;j++)
             {
                     SetWindowText(hwnd_stats_handles[i][j], TEXT("0"));
             }
 
+}
+
+static HWND create_statis_grid()
+{
+    HWND ret = CreateWindow (TEXT ("edit"), TEXT ("0"),
+                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY|SS_RIGHT,
+                10, 10,
+                300, 25,
+                hwnd_stats, NULL, g_hInstance, NULL);
+
+    SendMessage(ret, WM_SETFONT, (WPARAM)char_font_2, 0);
+
+    return ret;
+}
+
+static HWND create_statis_button(TCHAR *cap)
+{
+    HWND ret = CreateWindow (TEXT ("button"), cap,
+                WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_CENTER|BS_TEXT,
+                10, 10,
+                300, 25,
+                hwnd_stats, NULL, g_hInstance, NULL);
+
+    SendMessage(ret, WM_SETFONT, (WPARAM)char_font_2, 0);
+
+    return ret;
 }
 
 LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -185,174 +212,53 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
             hwnd_stats = hwnd;
 
-            hwnd_stats_handles[0][0]=hwnd_hdr_time = CreateWindow (TEXT ("button"), TEXT ("时间(秒): 0.0"),
+            hwnd_stats_handles[0][0]=hwnd_hdr_time = CreateWindow (TEXT ("button"), TEXT ("时间: 0.0"),
                 WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
                 10, 10,
                 300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);;
-
-            hwnd_stats_handles[0][1]=hwnd_hdr_bps= CreateWindow (TEXT ("button"), TEXT ("实时bps"),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);;
-
-            hwnd_stats_handles[0][2]=hwnd_hdr_pps = CreateWindow (TEXT ("button"), TEXT ("实时pps"),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);;
-
-            hwnd_stats_handles[0][3]=hwnd_hdr_bps_avg= CreateWindow (TEXT ("button"), TEXT ("平均bps"),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);;
-
-            hwnd_stats_handles[0][4]=hwnd_hdr_pps_avg= CreateWindow (TEXT ("button"), TEXT ("平均pps"),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);;
-
-            hwnd_stats_handles[0][5]=hwnd_hdr_pkt= CreateWindow (TEXT ("button"), TEXT ("报文总数"),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);;
-
-            hwnd_stats_handles[0][6]=hwnd_hdr_bits= CreateWindow (TEXT ("button"), TEXT ("总流量(bit)"),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);;
-
-            hwnd_stats_handles[1][0]=hwnd_snd=CreateWindow (TEXT ("button"), TEXT ("发送"),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
                 hwnd_stats, NULL, g_hInstance, NULL);
 
+            SendMessage(hwnd_hdr_time, WM_SETFONT, (WPARAM)char_font_2, 0);
 
-            hwnd_stats_handles[1][1]=hwnd_snd_bps=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[0][1]=hwnd_hdr_bps= create_statis_button(TEXT ("实时bps"));
 
-            hwnd_stats_handles[1][2]=hwnd_snd_pps=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[0][2]=hwnd_hdr_pps = create_statis_button(TEXT ("实时pps"));
 
-            hwnd_stats_handles[1][3]=hwnd_snd_bps_avg=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[0][3]=hwnd_hdr_bps_avg= create_statis_button(TEXT ("平均bps"));
 
-            hwnd_stats_handles[1][4]=hwnd_snd_pps_avg=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[0][4]=hwnd_hdr_pps_avg= create_statis_button(TEXT ("平均pps"));
 
-            hwnd_stats_handles[1][5]=hwnd_snd_pkt=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[0][5]=hwnd_hdr_pkt= create_statis_button(TEXT ("报文总数"));
 
-            hwnd_stats_handles[1][6]=hwnd_snd_bits=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[0][6]=hwnd_hdr_bits= create_statis_button(TEXT ("总流量(bit)"));
 
-            hwnd_stats_handles[2][0]=hwnd_snd_fail=CreateWindow (TEXT ("button"), TEXT ("发送失败"),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[1][0]=hwnd_snd=create_statis_button(TEXT ("发送"));
+
+
+            hwnd_stats_handles[1][1]=hwnd_snd_bps=create_statis_grid();
+            hwnd_stats_handles[1][2]=hwnd_snd_pps=create_statis_grid();
+            hwnd_stats_handles[1][3]=hwnd_snd_bps_avg=create_statis_grid();
+            hwnd_stats_handles[1][4]=hwnd_snd_pps_avg=create_statis_grid();
+            hwnd_stats_handles[1][5]=hwnd_snd_pkt=create_statis_grid();
+            hwnd_stats_handles[1][6]=hwnd_snd_bits=create_statis_grid();
             
-            hwnd_stats_handles[2][1]=hwnd_snd_fail_bps=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[2][0]=hwnd_snd_fail=create_statis_button(TEXT ("发送失败"));
+            
+            hwnd_stats_handles[2][1]=hwnd_snd_fail_bps=create_statis_grid();
+            hwnd_stats_handles[2][2]=hwnd_snd_fail_pps=create_statis_grid();
+            hwnd_stats_handles[2][3]=hwnd_snd_fail_bps_avg=create_statis_grid();
+            hwnd_stats_handles[2][4]=hwnd_snd_fail_pps_avg=create_statis_grid();
+            hwnd_stats_handles[2][5]=hwnd_snd_fail_pkt=create_statis_grid();
+            hwnd_stats_handles[2][6]=hwnd_snd_fail_bits=create_statis_grid();
 
-            hwnd_stats_handles[2][2]=hwnd_snd_fail_pps=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[3][0]=hwnd_rcv=create_statis_button(TEXT ("抓包"));
 
-            hwnd_stats_handles[2][3]=hwnd_snd_fail_bps_avg=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[2][4]=hwnd_snd_fail_pps_avg=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[2][5]=hwnd_snd_fail_pkt=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[2][6]=hwnd_snd_fail_bits=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[3][0]=hwnd_rcv=CreateWindow (TEXT ("button"), TEXT ("抓包"),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[3][1]=hwnd_rcv_bps=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[3][2]=hwnd_rcv_pps=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[3][3]=hwnd_rcv_bps_avg=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[3][4]=hwnd_rcv_pps_avg=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[3][5]=hwnd_rcv_pkt=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
-
-            hwnd_stats_handles[3][6]=hwnd_rcv_bits=CreateWindow (TEXT ("edit"), TEXT (""),
-                WS_CHILD|WS_BORDER|WS_VISIBLE|ES_READONLY,
-                10, 10,
-                300, 25,
-                hwnd_stats, NULL, g_hInstance, NULL);
+            hwnd_stats_handles[3][1]=hwnd_rcv_bps=create_statis_grid();
+            hwnd_stats_handles[3][2]=hwnd_rcv_pps=create_statis_grid();
+            hwnd_stats_handles[3][3]=hwnd_rcv_bps_avg=create_statis_grid();
+            hwnd_stats_handles[3][4]=hwnd_rcv_pps_avg=create_statis_grid();
+            hwnd_stats_handles[3][5]=hwnd_rcv_pkt=create_statis_grid();
+            hwnd_stats_handles[3][6]=hwnd_rcv_bits=create_statis_grid();
 
             clear_stats();
 
@@ -369,6 +275,7 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
       		cyClient = HIWORD (lParam) ;
             GetWindowRect(hwnd_stats, &rect1);
 
+#if 0
             MoveWindow	(hwnd_hdr_time, 	10,  5, 180, 25, TRUE) ;
             MoveWindow	(hwnd_hdr_bps,      200, 5, 90, 25, TRUE) ;
             MoveWindow	(hwnd_hdr_pps,      300, 5,  90, 25, TRUE) ;
@@ -376,14 +283,22 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             MoveWindow	(hwnd_hdr_pps_avg,  500, 5, 90, 25, TRUE) ;
             MoveWindow	(hwnd_hdr_pkt, 	    600, 5, 140, 25, TRUE) ;
             MoveWindow	(hwnd_hdr_bits, 	750, 5, 180, 25, TRUE) ;
-            
+#else
+            MoveWindow	(hwnd_hdr_time,     10 *WIDTH_COEFFICIENT, 5, 180*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_bps,      200*WIDTH_COEFFICIENT, 5,  150*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_pps,      360*WIDTH_COEFFICIENT, 5,  125*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_bps_avg,  495*WIDTH_COEFFICIENT, 5,  150*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_pps_avg,  655*WIDTH_COEFFICIENT, 5,  125*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_pkt, 	    790*WIDTH_COEFFICIENT, 5, 145*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_bits,     945*WIDTH_COEFFICIENT, 5, 205*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+#endif
 
         for (i=1;i<4;i++)
             for (j=0;j<7;j++)
             {
                     GetWindowRect(hwnd_stats_handles[i-1][j], &rect2);
                     get_relative_pos(&rect1, &rect2, &rect2);
-                    MoveWindow	(hwnd_stats_handles[i][j], 	rect2.left, rect2.bottom+10,
+                    MoveWindow(hwnd_stats_handles[i][j], 	rect2.left, rect2.bottom+10,
                         rect2.right-rect2.left, rect2.bottom-rect2.top, TRUE) ;
             }
             

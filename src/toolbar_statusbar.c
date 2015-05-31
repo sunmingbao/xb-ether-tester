@@ -11,6 +11,7 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
+#include "gui.h"
 
 HWND    hwnd_toolbar;
 int     toolbar_height;
@@ -55,12 +56,11 @@ LRESULT CALLBACK my_tb_proc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
     SendMessage(hwnd_toolbar,TB_GETITEMRECT,(WPARAM)ARRAY_SIZE(at_button)-1,(LPARAM)&rc);
     button_width = rc.right-rc.left;
     button_height = rc.bottom-rc.top;
-#if 0
+#if 1
     MoveWindow	(hwnd_net_card_text
-        ,cxClient - button_width*11, rc.top, 3*button_width, button_height, TRUE) ;
+        ,cxClient - cxChar_2*40, rc.top, cxChar_2*10, button_height, TRUE) ;
 
-    MoveWindow	(hwnd_net_card_comb, cxClient - button_width*8, rc.top,
-                button_width*8, 250, TRUE) ;
+    MoveWindow	(hwnd_net_card_comb, cxClient - cxChar_2*30, rc.top, cxChar_2*30, 250, TRUE) ;
 #else
     rc.left += 8*button_width;
 
@@ -220,7 +220,8 @@ hwnd_net_card_text=CreateWindowEx(0, TEXT("static"), TEXT("Íø¿¨Ñ¡Ôñ")
         , WS_CHILD | WS_VISIBLE | CBS_DROPDOWNLIST|CBS_DISABLENOSCROLL|WS_VSCROLL
         , rc.left+2*(rc.right-rc.left)+8, rc.top, (rc.right-rc.left)*6, 250,
             hwnd_toolbar, (HMENU)NULL, g_hInstance, NULL);
-
+SendMessage(hwnd_net_card_text, WM_SETFONT, (WPARAM)char_font_2, 0);
+SendMessage(hwnd_net_card_comb, WM_SETFONT, (WPARAM)char_font_2, 0);
 
     rx_tx_init();
     init_net_card_combbox(hwnd_net_card_comb);
@@ -257,7 +258,10 @@ void update_statusbar()
 
 int CreateStatusBar()
 {
-    int d[] = {200, 400, 700,-1};
+    int d[] = {200*WIDTH_COEFFICIENT
+        , 400*WIDTH_COEFFICIENT
+        , 700*WIDTH_COEFFICIENT
+        ,-1};
     hwnd_statusbar = CreateWindow(STATUSCLASSNAME, NULL,
         SBARS_SIZEGRIP | WS_CHILD | WS_VISIBLE|WS_BORDER,0,0,0,0, hwnd_frame, NULL, g_hInstance, NULL);
     ShowWindow(hwnd_statusbar,  TRUE);

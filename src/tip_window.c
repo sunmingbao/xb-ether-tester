@@ -12,6 +12,7 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
+#include "gui.h"
 
 TCHAR szTipWinClassName[] = TEXT ("TipWin");
 HWND    hwnd_tip;

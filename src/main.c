@@ -10,27 +10,24 @@
 #include <windows.h>
 #include "res.h"
 #include "global_info.h"
+#include "gui.h"
 
 HINSTANCE g_hInstance;
 TCHAR     szAppName[] = TEXT ("–°±¯“‘Ã´Õ¯≤‚ ‘“«") ;
 int init_over;
 
-int scrn_width;
-int scrn_height;
 
 void run_env_init()
 {
     char exe_file_path[MAX_FILE_PATH_LEN];
     char *pchar;
-    init_char_size_info();
+    init_gui_info();
     CreateDirectory("C:\\WINDOWS\\temp", NULL);
     GetModuleFileName(NULL,  exe_file_path,  sizeof(exe_file_path));
     pchar=strrchr(exe_file_path, '\\');
     *pchar=0;
     SetCurrentDirectory(exe_file_path);
 
-    scrn_width = GetSystemMetrics(SM_CXSCREEN);
-    scrn_height = GetSystemMetrics(SM_CYSCREEN);
 }
 
 int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,

@@ -11,7 +11,7 @@
 #include <sys/time.h>
 #include "common.h"
 #include "global_info.h"
-
+#include "gui.h"
 #include "res.h"
 
 
@@ -329,8 +329,8 @@ CreateStatusBar();
 
             if (we_pos==0 || ns_pos==0)
             {
-                we_pos = 200;
-                ns_pos = cyClient-300;
+                we_pos = 200*WIDTH_COEFFICIENT;
+                ns_pos = cyClient-300*HEIGHT_COEFFICIENT;
 
             }
 

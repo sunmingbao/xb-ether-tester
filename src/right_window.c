@@ -7,11 +7,13 @@
  * 作者: 孙明保
  * 邮箱: sunmingbao@126.com
  */
+
 #include <windows.h>
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
 #include "net.h"
+#include "gui.h"
 
 const char version[4]={'2','7','2','0'};
 
@@ -124,11 +126,11 @@ BOOL InitListViewColumns(HWND hWndListView)
     LVCOLUMN lvc;
     int iCol, col_num = ARRAY_SIZE(col_names);
 int order[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8}; 
-int lv_width = GetSystemMetrics(SM_CXSCREEN) - 240;
-int col_width[] = {40, 20, cxChar*7, cxChar*10, cxChar*20, cxChar*20
-    , cxChar*9, cxChar*7, cxChar*30};
+int lv_width = GetSystemMetrics(SM_CXSCREEN) - 240*WIDTH_COEFFICIENT;
+int col_width[] = {40, 20, cxChar*7, cxChar*13, cxChar*20, cxChar*20
+    , cxChar*9, cxChar*7, cxChar*27};
 
-SendMessage(hWndListView, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
+SendMessage(hWndListView, WM_SETFONT, (WPARAM)char_font_2, 0); 
     lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
 
     // Add the columns.
@@ -612,7 +614,7 @@ LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                 hwnd, (HMENU)ID_DYNAMIC_EDIT, g_hInstance, NULL) ;
 
-            SendMessage(hwnd_dynamic_edit, WM_SETFONT, (WPARAM)GetStockObject(SYSTEM_FIXED_FONT), 0); 
+            SendMessage(hwnd_dynamic_edit, WM_SETFONT, (WPARAM)char_font, 0); 
 
             hwnd_lv = CreateListView(hwnd);
             //InitListViewImageLists(hwnd_lv);
@@ -632,7 +634,7 @@ LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
       		cxClient = LOWORD (lParam) ;
       		cyClient = HIWORD (lParam) ;
 
-            MoveWindow	(hwnd_lv, 	0, 0,
+            MoveWindow(hwnd_lv, 	0, 0,
                 cxClient, cyClient, TRUE) ;
 
             return 0 ;

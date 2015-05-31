@@ -11,13 +11,11 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
-
+#include "gui.h"
 extern t_stream gt_edit_stream;
 
 TCHAR szHexEditWinClassName[] = TEXT ("hex_edit") ;
 HWND hwnd_hex_edit;
-TEXTMETRIC textmetric;
-int cxChar, cyChar;
 int is_read_only;
 
 #define LINE_DATA_LEN    (16)
@@ -57,7 +55,7 @@ void format_line(char *buf, int line_idx, void *start_addr, int length)
     int i;
 
     buf[0]=0;
-    sprintf(str_addr, "%05x: ", line_idx*16);
+    sprintf(str_addr, "%05x  ", line_idx*16);
 
         for (i = 0; i < length; i++)
         {
@@ -76,19 +74,6 @@ void format_line(char *buf, int line_idx, void *start_addr, int length)
 
         sprintf(buf, "%s%s%s", str_addr, str_data, str_readable);
 
-
-}
-
-void init_char_size_info()
-{
-            HDC hdc = CreateIC (TEXT ("DISPLAY"), NULL, NULL, NULL) ;
-            SelectObject (hdc, GetStockObject(SYSTEM_FIXED_FONT)) ;
-            GetTextMetrics(hdc, &textmetric) ;
-            DeleteObject (SelectObject (hdc, GetStockObject(SYSTEM_FONT))) ;
-            DeleteDC (hdc) ;
-
-            cxChar = textmetric.tmAveCharWidth ;
-            cyChar = textmetric.tmHeight + textmetric.tmExternalLeading ;
 
 }
 
@@ -506,7 +491,7 @@ LRESULT CALLBACK hex_edit_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
             int cur_edit_line = cur_hdr_line+row;
             int line_data_idx = get_line_data_idx();
             hdc = BeginPaint (hwnd, &ps) ;
-            SelectObject(hdc, GetStockObject(SYSTEM_FIXED_FONT)) ;
+            SelectObject(hdc, char_font) ;
 
             //draw some thing here
             GetClientRect(hwnd, &rect) ;
@@ -580,7 +565,7 @@ LRESULT CALLBACK hex_edit_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARA
                 }
 
             }
-            DeleteObject(SelectObject (hdc, GetStockObject(SYSTEM_FONT))) ;
+            SelectObject (hdc, GetStockObject(SYSTEM_FONT)) ;
   			EndPaint (hwnd, &ps) ;
 
 			return 0 ;
