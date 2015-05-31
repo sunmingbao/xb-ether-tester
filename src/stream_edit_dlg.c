@@ -2915,7 +2915,7 @@ void init_ui_pkt_view(HWND hDlg)
     HWND hlv=GetDlgItem(hDlg,ID_VIEW_STREAM_LV);
     HWND hwnd_tree=GetDlgItem(hDlg,ID_VIEW_STREAM_TREE_VIEW);
     HWND hwnd_hexedit=GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT);
-    int  line_char_num = 120, line_num = 28*scrn_height/gt_gui_size_value.scrn_height;
+    int  line_char_num = 120, line_num = 28*HEIGHT_COEFFICIENT;
     int width=cxChar*line_char_num, height=cyChar*line_num;
     int col_width[] = {cxChar*10, cxChar*15, cxChar*20, cxChar*20, cxChar*9, cxChar*7, cxChar*34};
 

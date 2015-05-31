@@ -19,7 +19,8 @@ int scrn_height;
 
 int cxChar, cyChar;
 int cxChar_2, cyChar_2;
-t_gui_size_value gt_gui_size_value = 
+
+t_gui_size_scale_ref gt_gui_size_scale_ref = 
 {
     .scrn_width  = 1440,
     .scrn_height = 900,
@@ -34,8 +35,8 @@ void get_sys_gui_info()
     dbg_print("screen size: %d %d", scrn_width, scrn_height);
 }
 
-HFONT  char_font, char_font_2, char_font_3;
-HFONT  create_font(int height, const char *font_name)
+HFONT  char_font, char_font_2, char_font_3, fixedsys_font;
+HFONT  create_font(int height, TCHAR *font_name, int use_black)
 {
     HFONT  h_font;
     LOGFONT lf ;
@@ -43,15 +44,16 @@ HFONT  create_font(int height, const char *font_name)
     memset(&lf, 0, sizeof(lf));
     lf.lfCharSet = 1;
 
+    /* font_name如果是Fixedsys，height不起作用 */
     lf.lfHeight = height;
+    
     lf.lfPitchAndFamily = FIXED_PITCH;
-    lf.lfWeight  = FW_BLACK;
+
+    if (use_black)
+        lf.lfWeight  = FW_BLACK;
 dbg_print("font height: %d", height);
     if (NULL != font_name)
         strcpy(lf.lfFaceName, font_name);
-    else
-        strcpy(lf.lfFaceName, "Fixedsys");
-
     
     h_font = CreateFontIndirect(&lf);
 
@@ -77,9 +79,12 @@ void get_font_size(HFONT  the_font, int *width, int *height)
 void init_gui_info()
 {
     get_sys_gui_info();
-    char_font = create_font(gt_gui_size_value.cyChar*WIDTH_COEFFICIENT, "Courier New");
-    char_font_2 = create_font(gt_gui_size_value.cyChar*4/3*WIDTH_COEFFICIENT, "Courier New");
-
+    if (scrn_width==1440 && scrn_height==900)
+        char_font = create_font(gt_gui_size_scale_ref.cyChar*WIDTH_COEFFICIENT, "Fixedsys", 0);
+    else
+        char_font = create_font(gt_gui_size_scale_ref.cyChar*WIDTH_COEFFICIENT, "Courier New", 1);
+    char_font_2 = create_font(gt_gui_size_scale_ref.cyChar*4/3*WIDTH_COEFFICIENT, TEXT("宋体"), 1);
+   fixedsys_font = create_font(0, "Fixedsys", 0);
     get_font_size(char_font, &cxChar, &cyChar);
     get_font_size(char_font_2, &cxChar_2, &cyChar_2);
     dbg_print("Char size: %d %d", cxChar, cyChar);

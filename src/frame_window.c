@@ -329,7 +329,7 @@ CreateStatusBar();
 
             if (we_pos==0 || ns_pos==0)
             {
-                we_pos = 200*WIDTH_COEFFICIENT;
+                we_pos = 220*WIDTH_COEFFICIENT;
                 ns_pos = cyClient-300*HEIGHT_COEFFICIENT;
 
             }

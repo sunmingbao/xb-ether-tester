@@ -13,6 +13,7 @@
 #include "common.h"
 #include "global_info.h"
 #include "res.h"
+#include "gui.h"
 
 TCHAR szSubWinClassName[] = TEXT ("left_win") ;
 HWND    hwnd_left;
@@ -715,7 +716,7 @@ LRESULT CALLBACK tab1_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
     50, 50,
                                hwnd, (HMENU)ID_TV,
                g_hInstance, NULL) ;
-
+SendMessage(hwnd_tv, WM_SETFONT, (WPARAM)fixedsys_font, 0);
             imageList = ImageList_Create(32,
                                           32,
                                           ILC_COLORDDB | ILC_MASK,

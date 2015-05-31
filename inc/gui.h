@@ -25,12 +25,12 @@ typedef struct
     int cxChar;
     int cyChar;
 
-} t_gui_size_value;
+} t_gui_size_scale_ref;
 
-#define    WIDTH_COEFFICIENT   scrn_width/gt_gui_size_value.scrn_width
-#define    HEIGHT_COEFFICIENT  scrn_height/gt_gui_size_value.scrn_height
+#define    WIDTH_COEFFICIENT   scrn_width/gt_gui_size_scale_ref.scrn_width
+#define    HEIGHT_COEFFICIENT  scrn_height/gt_gui_size_scale_ref.scrn_height
 
-extern t_gui_size_value gt_gui_size_value;
-extern HFONT  char_font, char_font_2, char_font_3;
+extern t_gui_size_scale_ref gt_gui_size_scale_ref;
+extern HFONT  char_font, char_font_2, char_font_3, fixedsys_font;
 #endif
 

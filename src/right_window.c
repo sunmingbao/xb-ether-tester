@@ -15,7 +15,7 @@
 #include "net.h"
 #include "gui.h"
 
-const char version[4]={'2','7','2','0'};
+const char version[4]={'2','7','3','0'};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -127,8 +127,8 @@ BOOL InitListViewColumns(HWND hWndListView)
     int iCol, col_num = ARRAY_SIZE(col_names);
 int order[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8}; 
 int lv_width = GetSystemMetrics(SM_CXSCREEN) - 240*WIDTH_COEFFICIENT;
-int col_width[] = {40, 20, cxChar*7, cxChar*13, cxChar*20, cxChar*20
-    , cxChar*9, cxChar*7, cxChar*27};
+int col_width[] = {40, 20, cxChar_2*6, cxChar_2*10, cxChar_2*17, cxChar_2*17
+    , cxChar_2*6, cxChar_2*6, cxChar_2*15};
 
 SendMessage(hWndListView, WM_SETFONT, (WPARAM)char_font_2, 0); 
     lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
@@ -136,7 +136,10 @@ SendMessage(hWndListView, WM_SETFONT, (WPARAM)char_font_2, 0);
     // Add the columns.
     for (iCol = 0; iCol < col_num; iCol++)
     {
-        lvc.fmt = LVCFMT_LEFT;
+        if (7==iCol)
+            lvc.fmt = LVCFMT_RIGHT;
+        else
+            lvc.fmt = LVCFMT_LEFT;
         lvc.iSubItem = iCol;
         lvc.pszText = col_names[iCol];
         if ( iCol == 0 || iCol == 1)
@@ -614,7 +617,7 @@ LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
                 CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
                 hwnd, (HMENU)ID_DYNAMIC_EDIT, g_hInstance, NULL) ;
 
-            SendMessage(hwnd_dynamic_edit, WM_SETFONT, (WPARAM)char_font, 0); 
+            SendMessage(hwnd_dynamic_edit, WM_SETFONT, (WPARAM)char_font_2, 0); 
 
             hwnd_lv = CreateListView(hwnd);
             //InitListViewImageLists(hwnd_lv);
