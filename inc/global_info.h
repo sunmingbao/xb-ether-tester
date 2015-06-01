@@ -256,7 +256,7 @@ typedef struct
     int filter_str_len;
     char rsv[32];
     char filter_str_usr[MAX_CAP_FILTER_STR_LEN];
-} __attribute__ ((aligned (1))) t_pkt_cap_cfg;
+} __attribute__((packed)) t_pkt_cap_cfg;
 #define    PKT_CAP_CFG_FIX_LEN    ((unsigned long)(void *)(&(((t_pkt_cap_cfg *)NULL)->filter_str_usr)))
 
 extern t_pkt_cap_cfg  gt_pkt_cap_cfg;
@@ -265,6 +265,8 @@ extern t_pkt_cap_cfg  gt_pkt_cap_cfg;
 extern char pkt_cap_filter_str[MAX_CAP_FILTER_STR_LEN];
 extern char pcap_file_to_view[MAX_FILE_PATH_LEN];
 extern int  cur_view_pkt_idx;
+
+extern char query_save_captured_pkts_2[8];
 
 extern HWND    hwnd_b_tab;
 extern int err_cnt, info_cnt;
@@ -278,6 +280,6 @@ typedef struct
     uint32_t offset;
     uint32_t len;
 
-} __attribute__ ((aligned (1))) t_data_seg_info;
+} __attribute__((packed)) t_data_seg_info;
 #endif
 

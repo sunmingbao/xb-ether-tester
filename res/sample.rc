@@ -91,6 +91,11 @@ BEGIN
         	MENUITEM "询问是否保存抓到的报文", 	IDM_APP_QUERY_SAVE_CAPTURED_PKS, CHECKED
         	MENUITEM "直接清除抓到的报文", 	IDM_APP_CLR_CAPTURED_PKS
     		END
+    		
+    		POPUP "每次独立抓包前"
+    	    BEGIN
+        	MENUITEM "询问是否保存抓到的报文", 	IDM_APP_QUERY_SAVE_CAPTURED_PKS_2
+            END
     	END
     	
     	POPUP "帮助(&H)"

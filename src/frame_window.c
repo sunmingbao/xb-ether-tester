@@ -36,7 +36,7 @@ int display_statusbar=1;
 char auto_clr_stats[8];
 char last_nic_name[128];
 char query_save_captured_pkts[8];
-
+char query_save_captured_pkts_2[8];
 char cfg_file_path[MAX_FILE_PATH_LEN];
 char file_to_open[MAX_FILE_PATH_LEN];
 
@@ -128,7 +128,7 @@ void open_file()
 {
     if (doc_save_proc()) return;
 
-    load_stream(file_to_open);
+    if (load_stream(file_to_open)) return;
     re_populate_items();
     strcpy(cfg_file_path, file_to_open);
     set_frame_title(strrchr(cfg_file_path, '\\')+1);
@@ -177,7 +177,12 @@ void load_app_profile()
         CheckMenuItem (hMenu, IDM_APP_QUERY_SAVE_CAPTURED_PKS, MF_CHECKED) ;
     else
         CheckMenuItem (hMenu, IDM_APP_CLR_CAPTURED_PKS, MF_CHECKED) ;
-    
+
+    GetPrivateProfileString("before_only_cap_pkt", "query_save_captured_pkts", "yes"
+        , query_save_captured_pkts_2, ARRAY_SIZE(query_save_captured_pkts_2), APP_PROFILE_FILE);
+CheckMenuItem (hMenu, IDM_APP_QUERY_SAVE_CAPTURED_PKS_2
+    , (strcmp(query_save_captured_pkts_2, "yes")==0)?MF_CHECKED:MF_UNCHECKED) ;
+
     GetPrivateProfileString("last_nic", "name", ""
         , last_nic_name, ARRAY_SIZE(last_nic_name), APP_PROFILE_FILE);
 }
@@ -290,16 +295,15 @@ CreateStatusBar();
 
             DragAcceptFiles(hwnd, TRUE);
 
+            new_cfg();
             ret=get_history_cfg_file_by_idx(1, file_to_open);
             if (ret) 
             {
-                new_cfg();
                 return 0 ;
             }
             
             if (!file_exists(file_to_open)) 
             {
-                new_cfg();
                 return 0 ;
             }
 
@@ -329,8 +333,8 @@ CreateStatusBar();
 
             if (we_pos==0 || ns_pos==0)
             {
-                we_pos = 220*WIDTH_COEFFICIENT;
-                ns_pos = cyClient-300*HEIGHT_COEFFICIENT;
+                we_pos = 230*WIDTH_COEFFICIENT;
+                ns_pos = cyClient-330*HEIGHT_COEFFICIENT;
 
             }
 
@@ -578,6 +582,21 @@ CreateStatusBar();
                     WritePrivateProfileString("before_send_pkt", "query_save_captured_pkts", query_save_captured_pkts, APP_PROFILE_FILE);
                     CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_CLR_CAPTURED_PKS, MF_UNCHECKED) ;
+       		        return 0 ;
+
+                case    IDM_APP_QUERY_SAVE_CAPTURED_PKS_2:
+                    if (strcmp(query_save_captured_pkts_2, "no")==0)
+                    {
+                        strcpy(query_save_captured_pkts_2, "yes");
+                        CheckMenuItem (hMenu, IDM_APP_QUERY_SAVE_CAPTURED_PKS_2, MF_CHECKED) ;
+                    }
+                    else
+                    {
+                        strcpy(query_save_captured_pkts_2, "no");
+                        CheckMenuItem (hMenu, IDM_APP_QUERY_SAVE_CAPTURED_PKS_2, MF_UNCHECKED) ;
+                    }
+                    WritePrivateProfileString("before_only_cap_pkt", "query_save_captured_pkts", query_save_captured_pkts_2, APP_PROFILE_FILE);
+
        		        return 0 ;
 
                 case    IDM_APP_CLR_CAPTURED_PKS:

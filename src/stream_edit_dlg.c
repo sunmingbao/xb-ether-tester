@@ -3272,7 +3272,11 @@ BOOL CALLBACK PktCapDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
                         {
                             if (0==get_int_text(GetDlgItem(hDlg, ID_PKT_CAP_TOTAL))) 
                                 goto CLR_STAT;
-                            ret=AskConfirmation_3state(hDlg, TEXT("即将清除已有的抓包。\r\n是否保存?"), szAppName);
+
+                            if (strcmp(query_save_captured_pkts_2, "no")==0)
+                                goto CLR_STAT;
+                            
+                            ret=AskConfirmation_3state(hDlg, TEXT("即将清除已有的抓包。\r\n是否保存?\r\n\r\n[可通过 选项 菜单关闭此提示]"), szAppName);
                             if (IDCANCEL == ret) return TRUE;
                             
                             if (IDYES == ret)

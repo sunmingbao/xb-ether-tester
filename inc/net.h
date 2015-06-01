@@ -112,7 +112,7 @@ typedef struct
 	__u32	saddr;
 	__u32	daddr;
 	/*The options start here. */
-} __attribute__ ((aligned (1))) t_ip_hdr ;
+} __attribute__((packed)) t_ip_hdr ;
 
 #define FIXED_IP_HDR_LEN    20
 #define MIN_PKT_LEN         (FIXED_IP_HDR_LEN+14)
@@ -161,7 +161,7 @@ typedef struct
 		__u16	mtu;
 	} frag;
   } un;
-} __attribute__ ((aligned (1))) t_icmp_hdr;
+} __attribute__((packed)) t_icmp_hdr;
 #define  FIXED_ICMP_HDR_LEN    (4)
 #define  FIXED_ICMP_ECHO_HDR_LEN    (8)
 static inline int icmp_hdr_len(void *p_icmp_hdr)
@@ -194,7 +194,7 @@ typedef struct
 	__u8 code;		/* For newer IGMP */
 	__u16 csum;
 	__u32 group;
-} t_igmp_hdr;
+}__attribute__((packed)) t_igmp_hdr;
 
 void icmp_igmp_update_check(t_ip_hdr *iph);
 int icmp_igmp_checksum_wrong(t_ip_hdr *iph);
@@ -206,7 +206,7 @@ typedef struct
 	__u8	bz;
 	__u8	protocol;
 	__u16	len;
-} __attribute__ ((aligned (1))) t_tcp_udp_pseudo_hdr;
+} __attribute__((packed)) t_tcp_udp_pseudo_hdr;
 
 
 typedef struct 
@@ -230,7 +230,7 @@ typedef struct
 	__u16	window;
 	__u16	check;
 	__u16	urg_ptr;
-} __attribute__ ((aligned (1))) t_tcp_hdr ;
+} __attribute__((packed)) t_tcp_hdr ;
 static inline int tcp_hdr_len(void *pt_tcp_hdr)
 {
     return ((t_tcp_hdr *)pt_tcp_hdr)->doff*4;
@@ -278,7 +278,7 @@ typedef struct
 	unsigned char		ar_tip[4];		/* target IP address		*/
 #endif
 
-} __attribute__ ((aligned (1)))  t_arp_hdr;
+} __attribute__((packed))  t_arp_hdr;
 
 static inline int arp_pkt_len(t_arp_hdr *pt_arp_hdr)
 {
@@ -299,7 +299,7 @@ typedef struct
 
 	__u8	saddr[IPV6_ADDR_LEN];
 	__u8    daddr[IPV6_ADDR_LEN];
-} __attribute__ ((aligned (1)))  t_ipv6_hdr;
+} __attribute__((packed))  t_ipv6_hdr;
 
 typedef struct 
 {
@@ -308,7 +308,7 @@ typedef struct
 
 	__u16	frag_off;
 	__u32   id;
-} __attribute__ ((aligned (1)))  t_ipv6_frag_hdr;
+} __attribute__((packed))  t_ipv6_frag_hdr;
 
 static inline void * ip6_data(t_ipv6_hdr *ip6h)
 {
@@ -335,7 +335,7 @@ typedef struct
 	__u8	bz;
 	__u8	protocol;
 	__u16	len;
-} __attribute__ ((aligned (1))) t_tcp_udp_pseudo_hdr6;
+} __attribute__((packed)) t_tcp_udp_pseudo_hdr6;
 
 #define IPPROTO_HOPOPTS		0	/* IPv6 hop-by-hop options	*/
 #define IPPROTO_ROUTING		43	/* IPv6 routing header		*/
@@ -396,7 +396,7 @@ typedef struct
     uint8_t base_value[8];
     uint8_t max_value[8];
     uint32_t step_size;
-} __attribute__ ((aligned (1))) t_rule;
+} __attribute__((packed)) t_rule;
 
 #define    MAX_FIELD_RULE_NUM    (10)
 typedef struct
@@ -419,7 +419,7 @@ typedef struct
     //non save info
     uint32_t err_flags;
 
-} __attribute__ ((aligned (1))) t_stream;
+} __attribute__((packed)) t_stream;
 
 /* t_stream.flags */
 #define    CHECK_SUM_IP      0x1
@@ -478,7 +478,7 @@ typedef struct
     uint32_t pkt_idx;
     uint32_t err_flags;
     u_char  pkt_data[0];
-}__attribute__ ((aligned (1))) t_dump_pkt;
+}__attribute__((packed)) t_dump_pkt;
 
 #endif
 

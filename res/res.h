@@ -53,6 +53,8 @@
 #define IDM_STATS_WIN_COPY2CLIP_BOARD        40034
 #define IDM_STATS_WIN_CLR                    40035
 
+#define IDM_APP_QUERY_SAVE_CAPTURED_PKS_2   40036
+
 #define IDT_TOOLBAR_STOP           40040
 #define IDT_TOOLBAR_START          40041
 #define IDT_TOOLBAR_SEL_NET_CARD   40042

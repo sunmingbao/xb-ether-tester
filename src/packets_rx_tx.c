@@ -523,12 +523,21 @@ void update_fc_gap()
 int load_stream(char *file_path)
 {
     FILE *file=fopen(file_path, "rb");
-    int i;
+    int i, ret = 0;
     char version_tmp[4];
-    del_all_streams();
 
     fread(version_tmp, sizeof(version), 1, file);
     fread(&gt_fc_cfg, sizeof(gt_fc_cfg), 1, file);
+
+    if (version_tmp[0] != version[0])
+    {
+        err_msg_box(TEXT("配置文件版本不匹配"));
+        ret = -1;
+        goto EXIT;
+
+    }
+
+    del_all_streams();
 
     fread(&gt_pkt_cap_cfg, PKT_CAP_CFG_FIX_LEN, 1, file);
     fread(gt_pkt_cap_cfg.filter_str_usr, gt_pkt_cap_cfg.filter_str_len, 1, file);
@@ -545,18 +554,11 @@ int load_stream(char *file_path)
         g_apt_streams[i]->err_flags = build_err_flags((void *)(g_apt_streams[i]->data), g_apt_streams[i]->len);
     }
 
-    if (version_tmp[0]=='1')
-    {
-        show_tip(TEXT ("配置文件格式为老的1.x版本。字段变化规则信息将丢失。\r\n下次保存配置时，将保存为新版本的格式。"));
-        for(i=0;i<nr_cur_stream;i++)
-        {
-            delete_all_rule(g_apt_streams[i]);
-        }
 
-    }
-
-    fclose(file);
     doc_modified=0;
-    return 0;
+
+EXIT:
+    fclose(file);
+    return ret;
 }
 

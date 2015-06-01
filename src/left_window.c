@@ -716,7 +716,7 @@ LRESULT CALLBACK tab1_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
     50, 50,
                                hwnd, (HMENU)ID_TV,
                g_hInstance, NULL) ;
-SendMessage(hwnd_tv, WM_SETFONT, (WPARAM)fixedsys_font, 0);
+SendMessage(hwnd_tv, WM_SETFONT, (WPARAM)char_font_2, 0);
             imageList = ImageList_Create(32,
                                           32,
                                           ILC_COLORDDB | ILC_MASK,

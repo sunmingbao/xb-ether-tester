@@ -48,7 +48,7 @@ void update_stats()
     }
     last_timer_tv=cur_tv;
     
-    _stprintf (	info, TEXT("时间: %lu.%lu"), time_elapsed.tv_sec, (time_elapsed.tv_usec/100000)) ;
+    _stprintf (	info, TEXT("时间 %lu.%lu"), time_elapsed.tv_sec, (time_elapsed.tv_usec/100000)) ;
     SetWindowText(hwnd_hdr_time, info); 
 
     if ((gt_pkt_stat_tmp.send_total==gt_pkt_stat_pre.send_total)  &&
@@ -164,7 +164,7 @@ void clear_stats()
     time_elapsed.tv_sec =0;
     time_elapsed.tv_usec =0;
 
-    SetWindowText(hwnd_stats_handles[0][0], TEXT("时间: 0.0")); 
+    SetWindowText(hwnd_stats_handles[0][0], TEXT("时间 0.0")); 
         for (i=1;i<4;i++)
             for (j=1;j<7;j++)
             {
@@ -212,7 +212,7 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
             hwnd_stats = hwnd;
 
-            hwnd_stats_handles[0][0]=hwnd_hdr_time = CreateWindow (TEXT ("button"), TEXT ("时间: 0.0"),
+            hwnd_stats_handles[0][0]=hwnd_hdr_time = CreateWindow (TEXT ("button"), TEXT ("时间 0.0"),
                 WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
                 10, 10,
                 300, 25,
