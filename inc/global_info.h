@@ -35,6 +35,12 @@ extern int init_over;
 #define TIMER_TIP_WIN_LAST    4
 #define TIMER_TIP_WIN_LAST_GAP 500
 
+#define  TIMER_VER_UPDATE_1   5
+#define  TIMER_VER_UPDATE_1_GAP  50
+
+#define  TIMER_VER_UPDATE_2   6
+#define  TIMER_VER_UPDATE_2_GAP  500
+
 extern HWND    hwnd_frame;
 extern HWND hwndTip;
 extern int  doc_modified;
@@ -123,6 +129,8 @@ void hex_win_sel(HWND  hwnd, int offset, int len);
 void hex_win_desel(HWND  hwnd, int offset, int len);
 void update_statusbar();
 
+DWORD WINAPI  ver_update(LPVOID lpParameter);
+
 #define  WM_SPLITTER_X     (WM_USER + 3)
 #define  WM_SPLITTER_Y     (WM_USER + 4)
 #define  WM_PROC_PCAP_FILE (WM_USER + 5)
@@ -156,6 +164,7 @@ void stream_edit_data_change(HWND  hwnd, int offset);
 #define    PCAP_FILE_SUFFIX    "pcap"
 
 #define    APP_PROFILE_FILE    ".\\profile.ini"
+#define    VER_UPDATE_FILE    ".\\version_update.ini"
 
 extern HWND    hwnd_net_card_comb;
 extern HWND    hwnd_capture_checkbox;
@@ -267,7 +276,7 @@ extern char pcap_file_to_view[MAX_FILE_PATH_LEN];
 extern int  cur_view_pkt_idx;
 
 extern char query_save_captured_pkts_2[8];
-
+extern char  new_version_notice[8];
 extern HWND    hwnd_b_tab;
 extern int err_cnt, info_cnt;
 void PrintText(TCHAR * szFormat, ...);

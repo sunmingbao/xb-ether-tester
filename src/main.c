@@ -49,6 +49,7 @@ int WINAPI WinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
     //register_flat_tab_win();
     register_stats_win();
     register_tip_win();
+    register_ver_update_win();
 
     run_env_init();
     

@@ -185,6 +185,12 @@ CheckMenuItem (hMenu, IDM_APP_QUERY_SAVE_CAPTURED_PKS_2
 
     GetPrivateProfileString("last_nic", "name", ""
         , last_nic_name, ARRAY_SIZE(last_nic_name), APP_PROFILE_FILE);
+
+
+    GetPrivateProfileString("update", "new_version_notice", "yes"
+        , new_version_notice, ARRAY_SIZE(new_version_notice), APP_PROFILE_FILE);
+CheckMenuItem (hMenu, IDM_NEW_VERSION_NOTICE
+    , (strcmp(new_version_notice, "yes")==0)?MF_CHECKED:MF_UNCHECKED) ;
 }
 
 LRESULT CALLBACK WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -294,6 +300,8 @@ CreateStatusBar();
             ShowWindow (hwnd_tip, 0) ;
 
             DragAcceptFiles(hwnd, TRUE);
+
+            launch_thread(ver_update, NULL);
 
             new_cfg();
             ret=get_history_cfg_file_by_idx(1, file_to_open);
@@ -450,7 +458,7 @@ CreateStatusBar();
 
                 case    IDM_GET_SOURCE:
                 ShellExecute(NULL, "open"
-                    , "http://sourceforge.net/projects/xb-ether-tester/files/v2.x/"
+                    , "http://sourceforge.net/projects/xb-ether-tester/files/"
                     , NULL, NULL, SW_SHOWNORMAL);
 
                	return 0 ;
@@ -604,6 +612,22 @@ CreateStatusBar();
                     WritePrivateProfileString("before_send_pkt", "query_save_captured_pkts", query_save_captured_pkts, APP_PROFILE_FILE);
                     CheckMenuItem (hMenu, item_id, MF_CHECKED) ;
                     CheckMenuItem (hMenu, IDM_APP_QUERY_SAVE_CAPTURED_PKS, MF_UNCHECKED) ;
+       		        return 0 ;
+
+                case    IDM_NEW_VERSION_NOTICE:
+                    if (strcmp(new_version_notice, "no")==0)
+                    {
+                        strcpy(new_version_notice, "yes");
+                        CheckMenuItem (hMenu, IDM_NEW_VERSION_NOTICE, MF_CHECKED) ;
+                        launch_thread(ver_update, NULL);
+                    }
+                    else
+                    {
+                        strcpy(new_version_notice, "no");
+                        CheckMenuItem (hMenu, IDM_NEW_VERSION_NOTICE, MF_UNCHECKED) ;
+                    }
+                    WritePrivateProfileString("update", "new_version_notice", new_version_notice, APP_PROFILE_FILE);
+
        		        return 0 ;
 
                 case    IDT_TOOLBAR_START:

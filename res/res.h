@@ -54,6 +54,7 @@
 #define IDM_STATS_WIN_CLR                    40035
 
 #define IDM_APP_QUERY_SAVE_CAPTURED_PKS_2   40036
+#define IDM_NEW_VERSION_NOTICE              40037
 
 #define IDT_TOOLBAR_STOP           40040
 #define IDT_TOOLBAR_START          40041
@@ -159,6 +160,9 @@
 #define ID_RULE_CFG_USE_RULE    40553
 
 #define ID_FRAG_PAYLOAD             40600
+
+#define ID_VER_UPDATE_CLOSE_BUTTON   40601
+#define ID_VER_UPDATE_NONEED_NOTICE  40602
 
 #define ID_FILE_RECENT_CFG_FILE_BEGIN    40700
 #define MAX_RECENT_FILE_NUM     10

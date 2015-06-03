@@ -13,7 +13,7 @@ BUILD_TIME:=$(shell echo %date:~0,10%) $(shell echo %time:~0,8%)
 CC := gcc
 
 CFLAG := -Wall -O2  -DBUILD_TIME='"$(BUILD_TIME)"' -D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0502 -DWINVER=0x0501 -DHAVE_REMOTE -DWPCAP 
-LDFLAG := -mwindows  -s  -lkernel32 -luser32 -lgdi32 -lcomctl32 -lws2_32 -lwpcap 
+LDFLAG := -mwindows  -s  -lkernel32 -luser32 -lgdi32 -lcomctl32 -lws2_32 -lwininet -lwpcap 
 
 #CFLAG := $(CFLAG) -D_DEBUG
 CFLAG := $(CFLAG) -fno-strict-aliasing
@@ -51,6 +51,7 @@ OBJECTS :=  \
 	$(OBJ_DIR)\history.o \
 	$(OBJ_DIR)\common.o \
 	$(OBJ_DIR)\gui.o \
+	$(OBJ_DIR)\ver_update.o \
 	$(OBJ_DIR)\debug.o \
 	$(OBJ_DIR)\res.orc
 
@@ -113,6 +114,9 @@ $(OBJ_DIR)\common.o: $(PRJ_DIR)\src\common.c
 $(OBJ_DIR)\gui.o: $(PRJ_DIR)\src\gui.c
 	$(CC) -c $(CFLAG) -o $@  $<
 
+$(OBJ_DIR)\ver_update.o: $(PRJ_DIR)\src\ver_update.c
+	$(CC) -c $(CFLAG) -o $@  $<
+
 $(OBJ_DIR)\debug.o: $(PRJ_DIR)\src\debug.c
 	$(CC) -c $(CFLAG) -o $@  $<
 
@@ -122,6 +126,7 @@ installer:
 clean:
 	-cmd.exe /c del /F /Q  $(OBJ_DIR)\\*
 	-cmd.exe /c copy /y profile.ini .\$(OBJ_DIR)\
+	-cmd.exe /c copy /y version_update.ini .\$(OBJ_DIR)\
 
 prepare:
 	-cmd.exe /c mkdir  $(OBJ_DIR)
