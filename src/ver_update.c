@@ -200,9 +200,12 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
 
 
         case   WM_MOUSEHOVER:
-            life = 10;
             KillTimer(hwnd, TIMER_VER_UPDATE_2);
-            refresh_window(hwnd);
+            if (life < 10)
+            {
+                life = 10;
+                refresh_window(hwnd);
+            }
         //dbg_print("===");
             return 0;
 
@@ -262,10 +265,12 @@ RGB (rand () % 256, rand () % 256, rand () % 256));
                 , new_version[0]
                 , new_version[1]
                 , new_version[2]);
+            SetTextColor(hdc, RGB (0, 0, 255));
             TextOutA(hdc, (COL_NUM-12)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 3*cyChar_2
                 , info, 12) ; 
 
             sprintf(info, "点击下载 %d秒后关闭", life/2);
+            SetTextColor(hdc, RGB(0x00,0x00,0x00)) ;
             TextOutA(hdc, 0, CLOSE_BUTTOM_SIZE + 5*cyChar_2
                 , info, 18) ; 
 
