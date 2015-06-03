@@ -55,6 +55,7 @@
 
 #define IDM_APP_QUERY_SAVE_CAPTURED_PKS_2   40036
 #define IDM_NEW_VERSION_NOTICE              40037
+#define IDM_USER_MANUAL                     40038
 
 #define IDT_TOOLBAR_STOP           40040
 #define IDT_TOOLBAR_START          40041

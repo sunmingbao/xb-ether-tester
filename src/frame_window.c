@@ -449,6 +449,13 @@ CreateStatusBar();
                 DialogBox (g_hInstance, TEXT("ABOUTBOX"), hwnd, AboutDlgProc) ;
                	return 0 ;
 
+                case    IDM_USER_MANUAL:
+                ShellExecute(NULL, "open"
+                    , "http://blog.csdn.net/crazycoder8848/article/details/38964007"
+                    , NULL, NULL, SW_SHOWNORMAL);
+
+               	return 0 ;
+                
                 case    IDM_GET_NEW_VERSION:
                 ShellExecute(NULL, "open"
                     , "http://sourceforge.net/projects/xb-ether-tester/files/latest/download?source=directory"

@@ -100,6 +100,8 @@ BEGIN
     	
     	POPUP "帮助(&H)"
     	BEGIN
+    	        MENUITEM "使用教程",            IDM_USER_MANUAL
+        	    MENUITEM SEPARATOR
         	    MENUITEM "获取新版本...",	    IDM_GET_NEW_VERSION
         	    MENUITEM "获取源代码...",	    IDM_GET_SOURCE
         	    MENUITEM "访问官方站点...",	    IDM_OPEN_OFFICIAL_SITE

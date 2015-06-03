@@ -125,8 +125,8 @@ installer:
 	
 clean:
 	-cmd.exe /c del /F /Q  $(OBJ_DIR)\\*
-	-cmd.exe /c copy /y profile.ini .\$(OBJ_DIR)\
-	-cmd.exe /c copy /y version_update.ini .\$(OBJ_DIR)\
+	-cmd.exe /c copy /y profile.ini  .\$(OBJ_DIR)\\
+	-cmd.exe /c copy /y version_update.ini .\$(OBJ_DIR)\\
 
 prepare:
 	-cmd.exe /c mkdir  $(OBJ_DIR)
