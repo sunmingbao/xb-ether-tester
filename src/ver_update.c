@@ -18,6 +18,8 @@
 #include "res.h"
 #include "debug.h"
 
+#define  VER_WIN_LIFE    (7)
+
 char  new_version_notice[8];
 
 static char new_version[4];
@@ -132,7 +134,7 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
 
 
              hieght = 0;
-             life = 5;
+             life = VER_WIN_LIFE;
              timer_msg_cnt_1 = 0;
              timer_msg_cnt_2 = 0;
              SetTimer(hwnd, TIMER_VER_UPDATE_1, TIMER_VER_UPDATE_1_GAP, NULL);
@@ -156,8 +158,8 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
                 timer_msg_cnt_1++;
                 if (hieght>=fix_height)
                 {
-                    if (0==(timer_msg_cnt_1%10))
-                        refresh_window(hwnd);
+                    //if (0==(timer_msg_cnt_1%10))
+                        //refresh_window(hwnd);
                     return 0;
                 }
 
@@ -183,6 +185,7 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
                 if (life<=0) return 0;
 
                 life-=1;
+                refresh_window(hwnd);
 
                 if (life<=0)
                 {
@@ -213,11 +216,16 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
 
         case   WM_MOUSEHOVER:
             KillTimer (hwnd, TIMER_VER_UPDATE_2);
-            life = 5;
+            if (life<VER_WIN_LIFE)
+            {
+                life = VER_WIN_LIFE;
+                refresh_window(hwnd);
+            }
             return 0;
 
 
         case   WM_MOUSELEAVE:
+            timer_msg_cnt_2 = 0;
             SetTimer(hwnd, TIMER_VER_UPDATE_2, TIMER_VER_UPDATE_2_GAP, NULL);
             return 0;
             
@@ -248,16 +256,29 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
 
             SetRect(&rect, 0, 0,
           fix_width - CLOSE_BUTTOM_SIZE, CLOSE_BUTTOM_SIZE) ;
-        hBrush = CreateSolidBrush (
-RGB (rand () % 256, rand () % 256, rand () % 256));
+        //hBrush = CreateSolidBrush (RGB (rand () % 256, rand () % 256, rand () % 256));
+        hBrush = CreateSolidBrush (RGB (0, 0, 255));
 
 
    FillRect(hdc, &rect, hBrush);
       DeleteObject (hBrush) ;
 
-
-            SelectObject(hdc, char_font_2) ;
             SetBkMode(hdc, TRANSPARENT);
+
+            if (hieght>=fix_height)
+                {
+            SelectObject(hdc, char_font_25) ;
+            SetTextColor(hdc, RGB(0xff,0xff,0xff)) ;
+
+            //SetBkMode(hdc, OPAQUE);
+            
+            sprintf(info, "%d秒后关闭", life);
+            SetTextColor(hdc, RGB(0xff,0xff,0xff)) ;
+            TextOutA(hdc, 0, 0
+                , info, 9) ; 
+                }
+            SelectObject(hdc, char_font_2) ;
+            //SetBkMode(hdc, TRANSPARENT);
             SetTextColor(hdc, RGB(0x00,0x00,0x00)) ;
             //SetBkColor (hdc, RGB(0xFF,0xFF,0xFF)) ;
             TextOutA(hdc, (COL_NUM-16)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 1*cyChar_2
@@ -271,10 +292,10 @@ RGB (rand () % 256, rand () % 256, rand () % 256));
             TextOutA(hdc, (COL_NUM-12)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 3*cyChar_2
                 , info, 12) ; 
 
-            sprintf(info, "点击下载 %d秒后关闭", life);
-            SetTextColor(hdc, RGB(0x00,0x00,0x00)) ;
-            TextOutA(hdc, 0, CLOSE_BUTTOM_SIZE + 5*cyChar_2
-                , info, 18) ; 
+            sprintf(info, "点击下载", life);
+            SetTextColor(hdc, RGB(0xff,0x00,0x00)) ;
+            TextOutA(hdc, (COL_NUM-8)*cxChar_2/2, CLOSE_BUTTOM_SIZE/2 + 5*cyChar_2
+                , info, 8) ; 
 
 
             SelectObject (hdc, GetStockObject(SYSTEM_FONT)) ;

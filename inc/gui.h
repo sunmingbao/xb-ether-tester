@@ -16,6 +16,7 @@ extern int scrn_height;
 
 extern int cxChar, cyChar;
 extern int cxChar_2, cyChar_2;
+extern int cxChar_20, cyChar_20;
 void init_gui_info();
 
 typedef struct
@@ -31,6 +32,6 @@ typedef struct
 #define    HEIGHT_COEFFICIENT  scrn_height/gt_gui_size_scale_ref.scrn_height
 
 extern t_gui_size_scale_ref gt_gui_size_scale_ref;
-extern HFONT  char_font, char_font_2, char_font_3, fixedsys_font;
+extern HFONT  char_font, char_font_2, char_font_25, fixedsys_font;
 #endif
 

@@ -19,7 +19,7 @@ int scrn_height;
 
 int cxChar, cyChar;
 int cxChar_2, cyChar_2;
-
+int cxChar_20, cyChar_20;
 t_gui_size_scale_ref gt_gui_size_scale_ref = 
 {
     .scrn_width  = 1440,
@@ -35,7 +35,7 @@ void get_sys_gui_info()
     dbg_print("screen size: %d %d", scrn_width, scrn_height);
 }
 
-HFONT  char_font, char_font_2, char_font_3, fixedsys_font;
+HFONT  char_font, char_font_2, char_font_25, fixedsys_font;
 HFONT  create_font(int height, TCHAR *font_name, int use_black)
 {
     HFONT  h_font;
@@ -84,6 +84,7 @@ void init_gui_info()
     else
         char_font = create_font(gt_gui_size_scale_ref.cyChar*WIDTH_COEFFICIENT, "Courier New", 1);
     char_font_2 = create_font(gt_gui_size_scale_ref.cyChar*7/6*WIDTH_COEFFICIENT, TEXT("ËÎÌו"), 1);
+    char_font_25 = create_font(25, TEXT("Courier New"), 0);
    fixedsys_font = create_font(0, "Fixedsys", 0);
     get_font_size(char_font, &cxChar, &cyChar);
     get_font_size(char_font_2, &cxChar_2, &cyChar_2);
