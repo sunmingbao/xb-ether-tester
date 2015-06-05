@@ -39,7 +39,7 @@ extern int init_over;
 #define  TIMER_VER_UPDATE_1_GAP  50
 
 #define  TIMER_VER_UPDATE_2   6
-#define  TIMER_VER_UPDATE_2_GAP  500
+#define  TIMER_VER_UPDATE_2_GAP  1000
 
 extern HWND    hwnd_frame;
 extern HWND hwndTip;

@@ -11,6 +11,7 @@
 #include <windows.h>
 #include <sys/time.h>
 #include <wininet.h>
+#include <mmsystem.h>
 #include "common.h"
 #include "global_info.h"
 #include "gui.h"
@@ -99,14 +100,12 @@ LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPA
     HDC hdc ;
     PAINTSTRUCT ps ;
     RECT rt ;
-                HBRUSH
-hBrush, hBrush_old ;
-           RECT rect ;
+    HBRUSH hBrush;
+    RECT rect ;
 
-
+    static int timer_msg_cnt_1, timer_msg_cnt_2;
     int cxClient, cyClient, line_num_cur_page, i;
-    static int
-hieght, life;
+    static int hieght, life;
     static TRACKMOUSEEVENT tme;
     ULONG   ulScrollLines ;
     TCHAR  info[64];
@@ -133,16 +132,20 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
 
 
              hieght = 0;
-             life = 14;
+             life = 5;
+             timer_msg_cnt_1 = 0;
+             timer_msg_cnt_2 = 0;
              SetTimer(hwnd, TIMER_VER_UPDATE_1, TIMER_VER_UPDATE_1_GAP, NULL);
-             SetTimer(hwnd, TIMER_VER_UPDATE_2, TIMER_VER_UPDATE_2_GAP, NULL);
 
 
-             tme.cbSize      = sizeof(TRACKMOUSEEVENT);
+            tme.cbSize      = sizeof(TRACKMOUSEEVENT);
             tme.dwFlags     = TME_HOVER | TME_LEAVE;
             tme.hwndTrack   = hwnd;
             tme.dwHoverTime = 10;
             TrackMouseEvent(&tme);
+            //Beep( 750, 300 );
+            //PlaySound("Notice", NULL, SND_SYNC);
+            //MessageBeep(MB_ICONEXCLAMATION);
              return 0 ;
 
 
@@ -150,30 +153,39 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
         {
             if (wParam==TIMER_VER_UPDATE_1)
             {
+                timer_msg_cnt_1++;
                 if (hieght>=fix_height)
                 {
-                    KillTimer (hwnd, TIMER_VER_UPDATE_1);
+                    if (0==(timer_msg_cnt_1%10))
+                        refresh_window(hwnd);
                     return 0;
                 }
 
 
-                hieght += fix_height/20;
+                hieght += fix_height/(1000/TIMER_VER_UPDATE_1_GAP);
 
 
                 MoveWindow(hwnd, rt.right - fix_width,
                             rt.bottom - hieght,
                   fix_width, fix_height, TRUE) ;
+
+                if (hieght>=fix_height)
+                {
+                     SetTimer(hwnd, TIMER_VER_UPDATE_2, TIMER_VER_UPDATE_2_GAP, NULL);
+                }
                 return 0;
             }
-
-
             else if (wParam==TIMER_VER_UPDATE_2)
             {
+                timer_msg_cnt_2++;
+                if (1==timer_msg_cnt_2) return 0;
+                
+                if (life<=0) return 0;
+
                 life-=1;
-                refresh_window(hwnd);
+
                 if (life<=0)
                 {
-                    KillTimer (hwnd, TIMER_VER_UPDATE_2) ;
                     PostMessage(hwnd, WM_COMMAND, ID_VER_UPDATE_CLOSE_BUTTON, 0);
                 }
 
@@ -200,34 +212,29 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
 
 
         case   WM_MOUSEHOVER:
-            KillTimer(hwnd, TIMER_VER_UPDATE_2);
-            if (life < 10)
-            {
-                life = 10;
-                refresh_window(hwnd);
-            }
-        //dbg_print("===");
+            KillTimer (hwnd, TIMER_VER_UPDATE_2);
+            life = 5;
             return 0;
 
 
         case   WM_MOUSELEAVE:
-            life = 10;
             SetTimer(hwnd, TIMER_VER_UPDATE_2, TIMER_VER_UPDATE_2_GAP, NULL);
-            //dbg_print("===");
             return 0;
             
         case WM_COMMAND:
             switch (LOWORD(wParam))
             {
                case    ID_VER_UPDATE_NONEED_NOTICE:
-                    WritePrivateProfileString("update", "new_version_notice", "no", APP_PROFILE_FILE);
-                    PostMessage(hwnd_frame, WM_COMMAND, IDM_NEW_VERSION_NOTICE,0);
+                    if (strcmp(new_version_notice, "yes")==0)
+                        PostMessage(hwnd_frame, WM_COMMAND, IDM_NEW_VERSION_NOTICE,0);
                     PostMessage(hwnd, WM_COMMAND, ID_VER_UPDATE_CLOSE_BUTTON, 0);
-        return 0 ;
+                    return 0 ;
                   
                 case    ID_VER_UPDATE_CLOSE_BUTTON:
+                    KillTimer (hwnd, TIMER_VER_UPDATE_1);
+                    KillTimer (hwnd, TIMER_VER_UPDATE_2);
                     DestroyWindow(hwnd);
-        return 0 ;
+                    return 0 ;
              }
             break;
 
@@ -237,14 +244,9 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
             return 0 ;
             
         case WM_PAINT :
-     
-
-
-    
             hdc = BeginPaint (hwnd, &ps) ;
 
-
-                      SetRect (&rect, 0, 0,
+            SetRect(&rect, 0, 0,
           fix_width - CLOSE_BUTTOM_SIZE, CLOSE_BUTTOM_SIZE) ;
         hBrush = CreateSolidBrush (
 RGB (rand () % 256, rand () % 256, rand () % 256));
@@ -269,7 +271,7 @@ RGB (rand () % 256, rand () % 256, rand () % 256));
             TextOutA(hdc, (COL_NUM-12)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 3*cyChar_2
                 , info, 12) ; 
 
-            sprintf(info, "点击下载 %d秒后关闭", life/2);
+            sprintf(info, "点击下载 %d秒后关闭", life);
             SetTextColor(hdc, RGB(0x00,0x00,0x00)) ;
             TextOutA(hdc, 0, CLOSE_BUTTOM_SIZE + 5*cyChar_2
                 , info, 18) ; 
