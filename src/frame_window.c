@@ -465,7 +465,7 @@ CreateStatusBar();
 
                 case    IDM_GET_SOURCE:
                 ShellExecute(NULL, "open"
-                    , "http://sourceforge.net/projects/xb-ether-tester/files/"
+                    , "http://sourceforge.net/p/xb-ether-tester/code/ci/master/tree/"
                     , NULL, NULL, SW_SHOWNORMAL);
 
                	return 0 ;
