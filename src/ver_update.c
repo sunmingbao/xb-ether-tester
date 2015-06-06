@@ -411,6 +411,8 @@ int version_a_newer_than_b(const char *a, const char *b)
     if (a[1]>b[1]) return 1;
     if (a[2]<b[2]) return 0;
     if (a[2]>b[2]) return 1;
+
+    return 0;
 }
 
 int version_a_same_with_b(const char *a, const char *b)
@@ -422,8 +424,10 @@ int  should_notice(const char *new_version)
 {
     char  cur_date[16];
     char  last_version[8], last_date[16];
-    if (!version_a_newer_than_b(new_version,version)) return 0;
 
+dbg_print("%s %s", new_version, version);
+    if (!version_a_newer_than_b(new_version,version)) return 0;
+dbg_print("==");
     get_date_str(cur_date, sizeof(cur_date));
 
 
@@ -433,8 +437,8 @@ int  should_notice(const char *new_version)
     GetPrivateProfileString("last_notice", "date", "        "
         , last_date, ARRAY_SIZE(last_date), VER_UPDATE_NOTICE_RCD);
 
-    if (strcmp(cur_date, last_date)==0 &&
-        version_a_newer_than_b(new_version,last_version))
+    if (memcmp(cur_date, last_date, 8)==0 &&
+        memcmp(new_version,last_version, 3)==0)
         return 0;
 
 WritePrivateProfileString("last_notice", "version", new_version, VER_UPDATE_NOTICE_RCD);

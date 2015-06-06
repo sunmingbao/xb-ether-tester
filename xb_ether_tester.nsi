@@ -13,7 +13,7 @@
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "小兵以太网测试仪"
 !define PRODUCT_NAME_EN "xb_ether_tester"
-!define PRODUCT_VERSION "3.1.4"
+!define PRODUCT_VERSION "3.1.5"
 !define PRODUCT_PUBLISHER "孙明保"
 !define MAIN_PROG_NAME "xb_ether_tester.exe"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_PROG_NAME}"
@@ -81,7 +81,6 @@ Section "主程序" SEC01
   SetOverwrite try
   File "obj\${MAIN_PROG_NAME}"
   File "release_notes.txt"
-  File "profile.ini"
   File "other_files\WinPcap_4_1_3.exe"
   
   ClearErrors
@@ -141,9 +140,7 @@ Section Uninstall
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\WinPcap_4_1_3.exe"
   Delete "$INSTDIR\${MAIN_PROG_NAME}"
-  Delete "$INSTDIR\profile.ini"
   Delete "$INSTDIR\release_notes.txt"
-  Delete "$INSTDIR\history"
 
   Delete "$SMPROGRAMS\$ICONS_GROUP\卸载 ${PRODUCT_NAME}.lnk"
   Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
