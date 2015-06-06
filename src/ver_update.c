@@ -10,6 +10,7 @@
 
 #include <windows.h>
 #include <sys/time.h>
+#include <time.h>
 #include <wininet.h>
 #include <mmsystem.h>
 #include "common.h"
@@ -83,7 +84,14 @@ err_exit:
    return ret;
 }
 
-
+int get_date_str(char *dst, int size)
+{
+    int len;
+    time_t log_time = time(NULL);
+    //len = strftime(dst, size, "[%Y%m%d %H:%M:%S]: ", localtime(&log_time));
+    len = strftime(dst, size, "%Y%m%d", localtime(&log_time));
+    return len;
+}
 
 
     static  int fix_width;
@@ -173,6 +181,7 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
 
                 if (hieght>=fix_height)
                 {
+                     refresh_window(hwnd);
                      SetTimer(hwnd, TIMER_VER_UPDATE_2, TIMER_VER_UPDATE_2_GAP, NULL);
                 }
                 return 0;
@@ -365,12 +374,17 @@ int  save_data_from_file(char *buf, const char *file, int len)
 }
 
 #define   TMP_VER_FILE    ".\\test.txt"
-int do_update_ver_file()
+int download_ver_file(const char *url)
 {
     char buf[1024];
+    int ret;
     char *p_hdr, *p_end;
-    int len = get_data_from_file(buf, TMP_VER_FILE, ARRAY_SIZE(buf));
+    int len;
 
+    ret = download_file(url, TMP_VER_FILE);
+    if (0!=ret) return -1;
+
+    len = get_data_from_file(buf, TMP_VER_FILE, ARRAY_SIZE(buf));
     if (len<=0) return -1;
 
     p_hdr = strstr(buf, "<xb_ver_info>");
@@ -383,9 +397,9 @@ int do_update_ver_file()
     if (save_data_from_file(p_hdr, VER_UPDATE_FILE, p_end-p_hdr)<=0)
         return -1;
 
+    delete_file_f(TMP_VER_FILE);
     return 0;
 }
-
 
 int update_ver_file()
 {
@@ -394,34 +408,68 @@ int update_ver_file()
     char file_data[1024];
     GetPrivateProfileString("url_list", "url_1", "http://sunmingbao.freevar.com/ver_update.html"
             , url, ARRAY_SIZE(url), VER_UPDATE_FILE);
-dbg_print("=%s", url);
-    ret = download_file(url, TMP_VER_FILE);
-    if (0==ret)
-        goto UPDATE_VER_UPDATE_FILE;
+
+    ret = download_ver_file(url);
+    if (0==ret)        goto EXIT;
 
     GetPrivateProfileString("url_list", "url_2", "http://sunmingbao.freevar.com/ver_update.html"
             , url, ARRAY_SIZE(url), VER_UPDATE_FILE);
-dbg_print("=%s", url);
-    ret = download_file(url, TMP_VER_FILE);
-    if (0==ret)
-        goto UPDATE_VER_UPDATE_FILE;
+
+    ret = download_ver_file(url);
+    if (0==ret)        goto EXIT;
 
     GetPrivateProfileString("url_list", "url_3", "http://sunmingbao.freevar.com/ver_update.html"
             , url, ARRAY_SIZE(url), VER_UPDATE_FILE);
-dbg_print("=%s", url);
-    ret = download_file(url, TMP_VER_FILE);
-    if (0==ret)
-        goto UPDATE_VER_UPDATE_FILE;
+
+    ret = download_ver_file(url);
+    if (0==ret)        goto EXIT;
 
     return -1;
     
-UPDATE_VER_UPDATE_FILE:
-    dbg_print("==");
-    do_update_ver_file();
-    delete_file_f(TMP_VER_FILE);
+EXIT:
+    
     return 0;
 }
 
+
+int version_a_newer_than_b(const char *a, const char *b)
+{
+    if (a[0]<b[0]) return 0;
+    if (a[0]>b[0]) return 1;
+    if (a[1]<b[1]) return 0;
+    if (a[1]>b[1]) return 1;
+    if (a[2]<b[2]) return 0;
+    if (a[2]>b[2]) return 1;
+}
+
+int version_a_same_with_b(const char *a, const char *b)
+{
+    return (a[0]==b[0]) && (a[1]==b[1]) && (a[2]==b[2]);
+}
+
+int  should_notice(const char *new_version)
+{
+    char  cur_date[16];
+    char  last_version[8], last_date[16];
+    if (!version_a_newer_than_b(new_version,version)) return 0;
+
+    get_date_str(cur_date, sizeof(cur_date));
+
+
+    GetPrivateProfileString("last_notice", "version", "   "
+        , last_version, ARRAY_SIZE(last_version), VER_UPDATE_NOTICE_RCD);
+
+    GetPrivateProfileString("last_notice", "date", "        "
+        , last_date, ARRAY_SIZE(last_date), VER_UPDATE_NOTICE_RCD);
+
+    if (strcmp(cur_date, last_date)==0 &&
+        version_a_newer_than_b(new_version,last_version))
+        return 0;
+
+WritePrivateProfileString("last_notice", "version", new_version, VER_UPDATE_NOTICE_RCD);
+WritePrivateProfileString("last_notice", "date", cur_date, VER_UPDATE_NOTICE_RCD);
+    return 1;
+}
 
 
 static int ver_update_running;
@@ -448,22 +496,13 @@ dbg_print("==");
 
 dbg_print("==");
     if (update_ver_file())  goto exit;
-dbg_print("==");
+
 GetPrivateProfileString("version", "latest_version", version
         , new_version, ARRAY_SIZE(new_version), VER_UPDATE_FILE);
-dbg_print("==%s", new_version);
-    if (new_version[0]<version[0]) goto exit;
-    if (new_version[0]>version[0]) goto NOTICE_NEW_VERSION;
 
-    if (new_version[1]<version[1]) goto exit;
-    if (new_version[1]>version[1]) goto NOTICE_NEW_VERSION;
+    if (!should_notice(new_version)) goto exit;
 
-    if (new_version[2]<version[2]) goto exit;
-    if (new_version[2]>version[2]) goto NOTICE_NEW_VERSION;
-dbg_print("==");
-    goto exit;
-dbg_print("==");
-NOTICE_NEW_VERSION:
+
 hWnd = CreateWindow ("ver_update", szAppName,
             WS_POPUP|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
             1000, 1000,

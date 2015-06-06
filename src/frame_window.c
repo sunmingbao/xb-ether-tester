@@ -626,6 +626,7 @@ CreateStatusBar();
                     {
                         strcpy(new_version_notice, "yes");
                         CheckMenuItem (hMenu, IDM_NEW_VERSION_NOTICE, MF_CHECKED) ;
+                        delete_file_f(VER_UPDATE_NOTICE_RCD);
                         launch_thread(ver_update, NULL);
                     }
                     else

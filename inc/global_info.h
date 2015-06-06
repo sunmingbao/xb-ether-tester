@@ -166,6 +166,8 @@ void stream_edit_data_change(HWND  hwnd, int offset);
 #define    APP_PROFILE_FILE    ".\\profile.ini"
 #define    VER_UPDATE_FILE    ".\\version_update.ini"
 
+#define    VER_UPDATE_NOTICE_RCD    ".\\ver_updt_notice_rcd.ini"
+
 extern HWND    hwnd_net_card_comb;
 extern HWND    hwnd_capture_checkbox;
 extern int need_capture;
