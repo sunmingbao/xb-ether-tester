@@ -374,60 +374,31 @@ int  save_data_from_file(char *buf, const char *file, int len)
 }
 
 #define   TMP_VER_FILE    ".\\test.txt"
-int download_ver_file(const char *url)
+int get_latest_version()
 {
-    char buf[1024];
+    char buf[64*1024];
     int ret;
     char *p_hdr, *p_end;
     int len;
 
-    ret = download_file(url, TMP_VER_FILE);
+    ret = download_file("http://sourceforge.net/projects/xb-ether-tester/files/", TMP_VER_FILE);
     if (0!=ret) return -1;
 
-    len = get_data_from_file(buf, TMP_VER_FILE, ARRAY_SIZE(buf));
+    len = get_data_from_file(buf, TMP_VER_FILE, sizeof(buf));
     if (len<=0) return -1;
 
-    p_hdr = strstr(buf, "<xb_ver_info>");
-    p_end = strstr(buf, "</xb_ver_info>");
+    p_hdr = strstr(buf, "xb_ether_tester_v");
+    p_end = strstr(buf, ".zip");
     
     if (p_hdr==NULL || p_end==NULL) return -1;
-    p_hdr+=strlen("<xb_ver_info>");
-    if (p_hdr >= p_end) return -1;
+    p_hdr+=strlen("xb_ether_tester_v");
+    if ((p_end - p_hdr) != 5) return -1;
 
-    if (save_data_from_file(p_hdr, VER_UPDATE_FILE, p_end-p_hdr)<=0)
-        return -1;
+    new_version[0] = p_hdr[0];
+    new_version[1] = p_hdr[2];
+    new_version[2] = p_hdr[4];
 
     delete_file_f(TMP_VER_FILE);
-    return 0;
-}
-
-int update_ver_file()
-{
-    int ret;
-    char url[256];
-    char file_data[1024];
-    GetPrivateProfileString("url_list", "url_1", "http://sunmingbao.freevar.com/ver_update.html"
-            , url, ARRAY_SIZE(url), VER_UPDATE_FILE);
-
-    ret = download_ver_file(url);
-    if (0==ret)        goto EXIT;
-
-    GetPrivateProfileString("url_list", "url_2", "http://sunmingbao.freevar.com/ver_update.html"
-            , url, ARRAY_SIZE(url), VER_UPDATE_FILE);
-
-    ret = download_ver_file(url);
-    if (0==ret)        goto EXIT;
-
-    GetPrivateProfileString("url_list", "url_3", "http://sunmingbao.freevar.com/ver_update.html"
-            , url, ARRAY_SIZE(url), VER_UPDATE_FILE);
-
-    ret = download_ver_file(url);
-    if (0==ret)        goto EXIT;
-
-    return -1;
-    
-EXIT:
-    
     return 0;
 }
 
@@ -494,11 +465,7 @@ dbg_print("==");
     fix_width = cxChar_2*COL_NUM;
     fix_height = cyChar_2*LINE_NUM+CLOSE_BUTTOM_SIZE;
 
-dbg_print("==");
-    if (update_ver_file())  goto exit;
-
-GetPrivateProfileString("version", "latest_version", version
-        , new_version, ARRAY_SIZE(new_version), VER_UPDATE_FILE);
+    if (get_latest_version())  goto exit;
 
     if (!should_notice(new_version)) goto exit;
 
