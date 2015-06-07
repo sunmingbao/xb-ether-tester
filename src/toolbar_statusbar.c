@@ -244,7 +244,7 @@ void update_statusbar()
     else if (gt_fc_cfg.speed_type==SPEED_TYPE_HIGH)
     _stprintf (	info, TEXT("流控: 每秒 %d 次"), gt_fc_cfg.speed_value) ;
     else
-        _stprintf (	info, TEXT("流控: 每 %d 秒1次"), gt_fc_cfg.speed_value) ;
+        _stprintf (	info, TEXT("流控: 每 %d 微秒1次"), gt_fc_cfg.speed_value) ;
     SendMessage(hwnd_statusbar, SB_SETTEXT,2, (LPARAM)info);
 
     if (!need_capture)
@@ -258,9 +258,9 @@ void update_statusbar()
 
 int CreateStatusBar()
 {
-    int d[] = {200*WIDTH_COEFFICIENT
-        , 400*WIDTH_COEFFICIENT
-        , 700*WIDTH_COEFFICIENT
+    int d[] = {150*WIDTH_COEFFICIENT
+        , 300*WIDTH_COEFFICIENT
+        , 650*WIDTH_COEFFICIENT
         ,-1};
     hwnd_statusbar = CreateWindow(STATUSCLASSNAME, NULL,
         SBARS_SIZEGRIP | WS_CHILD | WS_VISIBLE|WS_BORDER,0,0,0,0, hwnd_frame, NULL, g_hInstance, NULL);

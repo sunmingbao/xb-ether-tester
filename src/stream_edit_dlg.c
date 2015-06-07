@@ -3016,6 +3016,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
 
               		case 	IDCANCEL :
                             pcap_proc_exit = 1;
+                            ListView_DeleteAllItems(hlv);
                				EndDialog (hDlg, LOWORD(wParam));
                             is_read_only=0;
                				return TRUE ;
