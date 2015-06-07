@@ -99,17 +99,17 @@ int get_date_str(char *dst, int size)
 
 
 #define    COL_NUM    (18)
-#define    LINE_NUM    (8)
+#define    LINE_NUM    (7)
 #define    CLOSE_BUTTOM_SIZE    (25)
 
 
+static RECT rt_desktop;
 
 
 LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     HDC hdc ;
     PAINTSTRUCT ps ;
-    RECT rt ;
     HBRUSH hBrush;
     RECT rect ;
 
@@ -119,14 +119,19 @@ LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPA
     static TRACKMOUSEEVENT tme;
     ULONG   ulScrollLines ;
     TCHAR  info[64];
-SystemParametersInfo(SPI_GETWORKAREA,0,(PVOID)&rt,0);
-
-
-
+    
+    
 
     switch (message)
     {
         case WM_CREATE:
+            SystemParametersInfo(SPI_GETWORKAREA,0,(PVOID)&rt_desktop,0);
+            fix_width = cxChar_2*COL_NUM;
+            fix_height = cyChar_2*LINE_NUM+CLOSE_BUTTOM_SIZE;
+            MoveWindow(hwnd, rt_desktop.right - fix_width,
+                                    rt_desktop.bottom,
+                          fix_width, fix_height, TRUE) ;
+
             CreateWindow ( TEXT("button"),TEXT("X"),
    WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
     fix_width-CLOSE_BUTTOM_SIZE, 0, CLOSE_BUTTOM_SIZE, CLOSE_BUTTOM_SIZE,
@@ -134,9 +139,9 @@ SystemParametersInfo(SPI_GETWORKAREA,0,(PVOID)&rt,0);
                g_hInstance, NULL) ;
 
 
-CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
+            CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
    WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-    (fix_width-12*cxChar_2)/2, CLOSE_BUTTOM_SIZE + 6*cyChar_2+5, cxChar_2*12, cyChar_2+5,
+    (fix_width-12*cxChar_2)/2, fix_height - cyChar_2*3/2, cxChar_2*12, cyChar_2*3/2,
     hwnd, (HMENU)ID_VER_UPDATE_NONEED_NOTICE,
                g_hInstance, NULL) ;
 
@@ -175,8 +180,8 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
                 hieght += fix_height/(1000/TIMER_VER_UPDATE_1_GAP);
 
 
-                MoveWindow(hwnd, rt.right - fix_width,
-                            rt.bottom - hieght,
+                MoveWindow(hwnd, rt_desktop.right - fix_width,
+                            rt_desktop.bottom - hieght,
                   fix_width, fix_height, TRUE) ;
 
                 if (hieght>=fix_height)
@@ -298,12 +303,12 @@ CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
                 , new_version[1]
                 , new_version[2]);
             SetTextColor(hdc, RGB (0, 0, 255));
-            TextOutA(hdc, (COL_NUM-12)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 3*cyChar_2
+            TextOutA(hdc, (COL_NUM-12)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 5*cyChar_2/2
                 , info, 12) ; 
 
             sprintf(info, "点击下载", life);
             SetTextColor(hdc, RGB(0xff,0x00,0x00)) ;
-            TextOutA(hdc, (COL_NUM-8)*cxChar_2/2, CLOSE_BUTTOM_SIZE/2 + 5*cyChar_2
+            TextOutA(hdc, (COL_NUM-8)*cxChar_2/2, CLOSE_BUTTOM_SIZE/2 + 9*cyChar_2/2
                 , info, 8) ; 
 
 
@@ -425,9 +430,8 @@ int  should_notice(const char *new_version)
     char  cur_date[16];
     char  last_version[8], last_date[16];
 
-dbg_print("%s %s", new_version, version);
     if (!version_a_newer_than_b(new_version,version)) return 0;
-dbg_print("==");
+
     get_date_str(cur_date, sizeof(cur_date));
 
 
@@ -446,48 +450,44 @@ WritePrivateProfileString("last_notice", "date", cur_date, VER_UPDATE_NOTICE_RCD
     return 1;
 }
 
+int  today_have_noticed()
+{
+    char  cur_date[16], last_date[16];
+
+    get_date_str(cur_date, sizeof(cur_date));
+    GetPrivateProfileString("last_notice", "date", "        "
+        , last_date, ARRAY_SIZE(last_date), VER_UPDATE_NOTICE_RCD);
+
+    if (memcmp(cur_date, last_date, 8)==0)
+        return 1;
+
+    return 0;
+}
 
 static int ver_update_running;
 DWORD WINAPI  ver_update(LPVOID lpParameter)
 {
     MSG msg;
-    char  notice[16];
     HWND hWnd;
-    int ret;
 
-    HACCEL hAccelTable;
-    RECT rt;
-    HINSTANCE hInst;
-dbg_print("==");
     if (ver_update_running)  return;
     
     ver_update_running = 1;
-    Sleep(5000);
-dbg_print("==");
-    if (strcmp(new_version_notice, "no")==0) goto exit;
-dbg_print("==");
-    fix_width = cxChar_2*COL_NUM;
-    fix_height = cyChar_2*LINE_NUM+CLOSE_BUTTOM_SIZE;
+    //Sleep(5000);
 
+    if (memcmp(new_version_notice, "no", 2)==0) goto exit;
+    if (today_have_noticed())  goto exit;
     if (get_latest_version())  goto exit;
-
     if (!should_notice(new_version)) goto exit;
 
 
-hWnd = CreateWindow ("ver_update", szAppName,
+    hWnd = CreateWindow ("ver_update", szAppName,
             WS_POPUP|WS_CLIPSIBLINGS|WS_CLIPCHILDREN,
             1000, 1000,
             300, 300,
             hwnd_frame, NULL, g_hInstance, NULL) ;
-SystemParametersInfo(SPI_GETWORKAREA,0,(PVOID)&rt,0);
 
-
-MoveWindow(hWnd, rt.right - fix_width,
-                            rt.bottom,
-                  fix_width, fix_height, TRUE) ;
    ShowWindow(hWnd, SW_SHOWNOACTIVATE);
-
-
    UpdateWindow(hWnd);
  
 

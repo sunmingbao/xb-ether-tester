@@ -131,7 +131,7 @@ void init_net_card_combbox(HWND hwnd_comb)
 
 }
 
-int        nr_cur_stream;
+int32_t        nr_cur_stream;
 t_stream    *g_apt_streams[MAX_STREAM_NUM];
 int        copy_idx=-1;
 

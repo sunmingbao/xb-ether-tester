@@ -233,12 +233,12 @@ extern unsigned char sample_pkt[SAMPLE_PKT_LEN];
 #define    SND_MODE_BURST       1
 typedef struct
 {
-    int speed_type;
-    int speed_value;
-    int snd_mode;
-    int snd_times_cnt;
+    int32_t speed_type;
+    int32_t speed_value;
+    int32_t snd_mode;
+    int32_t snd_times_cnt;
     char rsv[32];
-} t_fc_cfg;
+} __attribute__((packed)) t_fc_cfg;
 extern t_fc_cfg  gt_fc_cfg;
 
 extern int snd_gap_s;
@@ -259,12 +259,12 @@ extern int snd_gap_us;
 #define    MAX_CAP_FILTER_STR_LEN    256
 typedef struct
 {
-    int need_save_capture;
-    int pkt_cap_cfg_mode;
-    int pkt_cap_pkt_type;
-    int pkt_cap_sip, pkt_cap_dip, pkt_cap_protocol;
-    int pkt_cap_sport, pkt_cap_dport;
-    int filter_str_len;
+    int32_t need_save_capture;
+    int32_t pkt_cap_cfg_mode;
+    int32_t pkt_cap_pkt_type;
+    int32_t pkt_cap_sip, pkt_cap_dip, pkt_cap_protocol;
+    int32_t pkt_cap_sport, pkt_cap_dport;
+    int32_t filter_str_len;
     char rsv[32];
     char filter_str_usr[MAX_CAP_FILTER_STR_LEN];
 } __attribute__((packed)) t_pkt_cap_cfg;

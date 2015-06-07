@@ -29,8 +29,8 @@ typedef struct
 {
     unsigned char dst[6];
     unsigned char src[6];
-    unsigned short type;
-} __attribute__ ((aligned (1))) t_ether_packet;
+    uint16_t      type;
+} __attribute__((packed)) t_ether_packet;
 
 #define ETH_P_VLAN	0x8100		/* Ethernet Loopback packet	*/
 #define ETH_P_LOOP	0x0060		/* Ethernet Loopback packet	*/
@@ -49,7 +49,7 @@ typedef struct
     unsigned char src[6];
     char     tag_802_1Q[4];
     unsigned short type;
-} __attribute__ ((aligned (1))) t_ether_vlan_packet;
+} __attribute__((packed)) t_ether_vlan_packet;
 
 static inline __u16 get_eth_type_from_addr(void *addr)
 {
@@ -401,7 +401,7 @@ typedef struct
 #define    MAX_FIELD_RULE_NUM    (10)
 typedef struct
 {
-    int  selected;
+    int32_t  selected;
     char snd_cnt;
     char rsv[7];
     char name[64];
@@ -409,7 +409,7 @@ typedef struct
     unsigned char    rule_num;
     unsigned char    rule_idx[MAX_FIELD_RULE_NUM];
     t_rule  at_rules[MAX_FIELD_RULE_NUM];
-    int len;
+    int32_t len;
     union
     {
         t_ether_packet eth_packet;

@@ -7,6 +7,7 @@
  * 作者: 孙明保
  * 邮箱: sunmingbao@126.com
  */
+
 #include <windows.h>
 #include <pcap.h>
 #include "common.h"
@@ -269,6 +270,7 @@ typedef struct
 #define    ETH_TYPE_FIELD     0x1<<24
 #define    IP_HDR_LEN_FIELD   0x1<<23
 #define    TCP_HDR_LEN_FIELD  0x1<<22
+#define    PROTOCOL_FIELD     0x1<<21
 
 void field_n2str(char *info, void *field_addr, int len, int bits_from, int bits_len, uint32_t flags)
 {
@@ -434,7 +436,7 @@ t_tvi_data gat_ip_hdr_tvis[]=
   {"mf",  6, 1, FLAG_REBUILD_TV, 2, 1},
  {"frag offset", 6, 2, FLAG_REBUILD_TV, 3, 13},
  {"ttl", 8, 1, SUPPORT_RULE},
- {"protocol", 9, 1, FLAG_REBUILD_TV},
+ {"protocol", 9, 1, FLAG_REBUILD_TV|PROTOCOL_FIELD},
  {"check sum", 10, 2, DISPLAY_HEX},
 
  {"src ip", 12, 4, SUPPORT_RULE|IS_IP},
@@ -447,7 +449,7 @@ t_tvi_data gat_ipv6_hdr_tvis[]=
  {"traffic class", 0, 4, SUPPORT_RULE, 4, 8},
   {"flow label", 0, 4, SUPPORT_RULE, 12, 20},
  {"payload Len", 4, 2},
- {"next hdr", 6, 1, FLAG_REBUILD_TV},
+ {"next hdr", 6, 1, FLAG_REBUILD_TV|PROTOCOL_FIELD},
  {"hop limit", 7, 1, SUPPORT_RULE},
 
  {"src ip", 8, 16, IS_IP6},
@@ -1382,7 +1384,7 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
 
     if ((ETH_P_IP==type)
         &&
-        (pt_tvi_data->data_offset==23))
+        (pt_tvi_data->flags&PROTOCOL_FIELD))
     {
         t_ip_hdr *iph=eth_data(gt_edit_stream.data);
         SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), CB_SETCURSEL, (WPARAM)iph->protocol, (LPARAM)0);
@@ -1398,7 +1400,7 @@ void show_edit_ui_for_tvi(HWND hDlg, HWND htv, HTREEITEM htvi)
     }
     else if ((ETH_P_IPV6==type)
         &&
-        (pt_tvi_data->data_offset==20))
+        (pt_tvi_data->flags&PROTOCOL_FIELD))
     {
         t_ipv6_hdr *ip6h=eth_data(gt_edit_stream.data);
         SendMessage(GetDlgItem(hDlg, ID_SED_DYNAMIC_COMB), CB_SETCURSEL, (WPARAM)ip6h->nexthdr, (LPARAM)0);
