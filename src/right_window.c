@@ -15,7 +15,7 @@
 #include "net.h"
 #include "gui.h"
 
-const char version[4]={'3','1','7',0};
+const char version[4]={'3','1','8',0};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -444,7 +444,7 @@ COLORREF colorShade (COLORREF c, float fPercent)
         (BYTE) ((float) GetBValue (c) * fPercent / 100.0));
 }
 
-char  dump_pkt_cache[2048];
+char  dump_pkt_cache[MAX_PACKET_LEN];
 int get_row_color_idx(HWND hWnd, int idx)
 {
     t_ether_packet *pt_eth_hdr;

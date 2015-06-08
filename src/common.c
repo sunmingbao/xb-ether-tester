@@ -669,9 +669,12 @@ void center_child_win(HWND hparent, HWND hchild)
 void center_child_win(HWND hwndParent, HWND hwndWindow)
 {
      RECT rectWindow, rectParent;
- 
+
+    if (NULL==hwndParent)
+        hwndParent = GetParent(hwndWindow);
+        
      // make the window relative to its parent
-     if ((hwndParent = GetParent(hwndWindow)) != NULL)
+     if (hwndParent != NULL)
      {
          GetWindowRect(hwndWindow, &rectWindow);
          GetWindowRect(hwndParent, &rectParent);

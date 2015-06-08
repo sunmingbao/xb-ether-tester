@@ -2752,7 +2752,7 @@ BOOL InsertItemFromPkt(HWND hWndListView, t_dump_pkt *pt_pkt, struct timeval *ba
     return TRUE;
 }
 
-char  g_dump_pkt_cache[2048];
+char  dump_pkt_focus_cache[MAX_PACKET_LEN];
 void get_pkt_by_idx(uint32_t idx, t_dump_pkt *pt_pkt)
 {
     FILE *f_seg_info=NULL, *f_seg=NULL;
@@ -2812,7 +2812,7 @@ struct timeval 	base={(time_t)0};
 
 f_seg_info = fopen(FILE_PCAP_CACHE_INFO, "wb");
 f_seg      = fopen(FILE_PCAP_CACHE_DATA, "wb");
-pt_pkt = malloc(2048);
+pt_pkt = malloc(MAX_PACKET_LEN);
         while (pcap_next_ex(fp, &header, &pkt_data)>0 && !pcap_proc_exit)
         {
             memcpy(pt_pkt, header, sizeof(struct pcap_pkthdr));
@@ -2859,7 +2859,7 @@ void *get_lvi_lparam(HWND hlv, int idx)
 void sel_pkt_to_stream(HWND hList)
 {
   int i, n;
-  t_dump_pkt    *pt_pkt=malloc(2048);
+  t_dump_pkt    *pt_pkt=malloc(MAX_PACKET_LEN);
   t_stream t_stream_tmp;
   n = ListView_GetItemCount(hList);
   for (i = 0; i < n; i++)
@@ -2883,7 +2883,7 @@ void sel_pkt_to_stream(HWND hList)
 void sel_pkt_to_pcap_dump(HWND hList, char *dump_file)
 {
     int i, n;
-    t_dump_pkt    *pt_pkt=malloc(2048);
+    t_dump_pkt    *pt_pkt=malloc(MAX_PACKET_LEN);
   
   	pcap_t *fp;
 	char errbuf[PCAP_ERRBUF_SIZE];
@@ -2983,6 +2983,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             hMenu = GetSubMenu (hMenu, 0) ;
             add_tip(hwndTip, hlv, TEXT("点击鼠标右键进行操作"));
             PostMessage(hDlg, WM_PROC_PCAP_FILE, 0, 0);
+            ShowWindow(hPktCapDlg, 0);
           		return FALSE;
 
         case 	WM_PROC_PCAP_FILE:
@@ -3017,6 +3018,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
               		case 	IDCANCEL :
                             pcap_proc_exit = 1;
                             ListView_DeleteAllItems(hlv);
+                            ShowWindow(hPktCapDlg, 1);
                				EndDialog (hDlg, LOWORD(wParam));
                             is_read_only=0;
                				return TRUE ;
@@ -3070,7 +3072,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
             if (iItem>=0 && iItem!=cur_view_pkt_idx) 
             {
                 cur_view_pkt_idx=iItem;
-                pt_pkt = (void *)g_dump_pkt_cache;
+                pt_pkt = (void *)dump_pkt_focus_cache;
                 get_pkt_by_idx((uint32_t)cur_view_pkt_idx, pt_pkt);
                 gt_edit_stream.len=pt_pkt->header.caplen;
                 memcpy(gt_edit_stream.data, pt_pkt->pkt_data, gt_edit_stream.len);
@@ -3315,9 +3317,7 @@ CLR_STAT:
                             }
 
                             strcpy(pcap_file_to_view, PKT_CAP_FILE_ONLY_CAP);
-                            ShowWindow(hDlg, 0);
                             DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hDlg, PktViewDlgProc);
-                            ShowWindow(hDlg, 1);
                				return TRUE ;
 
 
