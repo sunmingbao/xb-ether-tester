@@ -111,11 +111,17 @@ void init_net_card_combbox(HWND hwnd_comb)
     for(d= alldevs; d != NULL; d= d->next)
     {
        info[0]=0;
+       sprintf(info, "%-15s %s"
+                ,"no ipv4 addr"
+                ,get_nic_FriendlyName(strchr(d->name, '{')));
+                     
        for(a=d->addresses;a;a=a->next) 
        {
             if (a->addr->sa_family==AF_INET)
             {
-              sprintf(info, "%s",iptos(((struct sockaddr_in *)a->addr)->sin_addr.s_addr));
+              sprintf(info, "%-15s %s"
+                ,ip_n2str(NULL, &(((struct sockaddr_in *)a->addr)->sin_addr.s_addr))
+                ,get_nic_FriendlyName(strchr(d->name, '{')));
               break;
             }
         }

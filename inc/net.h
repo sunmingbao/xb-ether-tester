@@ -380,7 +380,7 @@ int get_eth_type_name(int type, char *info);
 
 
 void ip_str2n(void *field_addr, char *info);
-void ip_n2str(char *info, void * field_addr);
+void* ip_n2str(char *info, void * field_addr);
 void ip6_n2str(char *info, void * field_addr);
 void ip6_str2n(void *field_addr, char *info);
 

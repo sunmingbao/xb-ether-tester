@@ -12,6 +12,8 @@
 #include <tchar.h>     
 #include <stdio.h>
 #include <ctype.h>
+#include <winsock2.h>
+#include <iphlpapi.h>
 #include "net.h"
 #include "global_info.h"
 
@@ -20,15 +22,18 @@ void ip_str2n(void *field_addr, char *info)
     *(unsigned int *)field_addr=inet_addr(info);
 }
 
-void ip_n2str(char *info, void * field_addr)
+void* ip_n2str(char *info, void * field_addr)
 {
-    unsigned int addr = ntohl(*(unsigned int*)field_addr);
-            sprintf(info, "%d.%d.%d.%d"
+    static char ip_str[3*4+3+1];
+    uint32_t addr = ntohl(*(unsigned int*)field_addr);
+    char *output = info?info:ip_str;
+            sprintf(output, "%d.%d.%d.%d"
             , (addr>>24) & 0xff
             , (addr>>16) & 0xff
             , (addr>>8) & 0xff
             , (addr) & 0xff);
 
+    return output;
 }
 
 
@@ -1082,3 +1087,43 @@ int stream_fragable(t_stream *pt_stream)
     return 0;
 }
 
+
+void * get_nic_FriendlyName(const char *name)
+{
+    DWORD dwSize = 0;
+    DWORD dwRetVal = 0;
+    char buf[15000];
+    char FriendlyName[128]="获取网卡名失败";
+    unsigned int i = 0;
+
+    ULONG family = AF_UNSPEC;
+    PIP_ADAPTER_ADDRESSES pAddresses = (void *)buf;
+    ULONG outBufLen = sizeof(buf);
+    PIP_ADAPTER_ADDRESSES pCurrAddresses = NULL;
+
+    dwRetVal = GetAdaptersAddresses(family, 0, NULL, pAddresses, &outBufLen);
+
+
+    if (NULL==name || name[0]!='{') goto EXIT;
+    if (dwRetVal != NO_ERROR) goto EXIT;
+
+    pCurrAddresses = pAddresses;
+    while (pCurrAddresses) 
+    {
+        if (0==memcmp(pCurrAddresses->AdapterName, name, 38))
+        {
+            /* pCurrAddresses->FriendlyName为UNICODE编码，存储类型为WCHAR 
+               将他转换成GBK编码 */
+            WideCharToMultiByte(CP_ACP, 0, pCurrAddresses->FriendlyName,
+                -1,  FriendlyName, 128,  NULL,  NULL);
+
+            break;
+
+        }
+        
+        pCurrAddresses = pCurrAddresses->Next;
+    }
+
+EXIT:
+    return FriendlyName;
+}

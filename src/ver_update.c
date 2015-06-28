@@ -30,11 +30,9 @@ int download_file(const char *url, const char *save_file)
     DWORD byteread=0;
     char buffer[100];
     FILE *fp=NULL;
-    HINTERNET internetopen;
-    HINTERNET internetopenurl;
+    HINTERNET internetopen=NULL;
+    HINTERNET internetopenurl=NULL;
     BOOL hwrite;
-    DWORD written;
-    HANDLE createfile;
     BOOL internetreadfile;
     int ret = -1;
 
@@ -75,8 +73,6 @@ dbg_print("==");
 dbg_print("==");
 err_exit:
    if (internetopenurl) InternetCloseHandle(internetopenurl);
-
-
    if (internetopen) InternetCloseHandle(internetopen);
    if (fp) fclose(fp);
 
@@ -114,10 +110,8 @@ LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPA
     RECT rect ;
 
     static int timer_msg_cnt_1, timer_msg_cnt_2;
-    int cxClient, cyClient, line_num_cur_page, i;
     static int hieght, life;
     static TRACKMOUSEEVENT tme;
-    ULONG   ulScrollLines ;
     TCHAR  info[64];
     
     
@@ -306,7 +300,7 @@ LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPA
             TextOutA(hdc, (COL_NUM-12)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 5*cyChar_2/2
                 , info, 12) ; 
 
-            sprintf(info, "点击下载", life);
+            sprintf(info, "点击下载");
             SetTextColor(hdc, RGB(0xff,0x00,0x00)) ;
             TextOutA(hdc, (COL_NUM-8)*cxChar_2/2, CLOSE_BUTTOM_SIZE/2 + 9*cyChar_2/2
                 , info, 8) ; 
@@ -470,7 +464,7 @@ DWORD WINAPI  ver_update(LPVOID lpParameter)
     MSG msg;
     HWND hWnd;
 
-    if (ver_update_running)  return;
+    if (ver_update_running)  return 0;
     
     ver_update_running = 1;
     //Sleep(5000);

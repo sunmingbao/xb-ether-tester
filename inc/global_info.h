@@ -222,6 +222,8 @@ int get_history_pcap_file_by_idx(int idx, char *field_value);
 void update_pcap_file_history(char *file_name);
 void populate_recent_pcap_files(HMENU hMenu);
 
+void * get_nic_FriendlyName(const char *name);
+
 #define SAMPLE_PKT_LEN 74
 extern unsigned char sample_pkt[SAMPLE_PKT_LEN];
 
