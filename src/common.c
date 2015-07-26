@@ -165,32 +165,32 @@ HTREEITEM insertItem(HWND  hwnd_treeview, const TCHAR* str, HTREEITEM parent, HT
 
 int get_open_file_name(char *file_name, HWND hwnd, char *filter_str)
 {
-OPENFILENAME ofn;       // common dialog box structure
-TCHAR szFile[MAX_FILE_PATH_LEN]=TEXT("");       // buffer for file name
+    OPENFILENAME ofn;       // common dialog box structure
+    TCHAR szFile[MAX_FILE_PATH_LEN]=TEXT("");       // buffer for file name
 
-// Initialize OPENFILENAME
-ZeroMemory(&ofn, sizeof(ofn));
-ofn.lStructSize = sizeof(ofn);
-ofn.hwndOwner = hwnd;
-ofn.lpstrFile = szFile;
-// Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
-// use the contents of szFile to initialize itself.
-ofn.nMaxFile = MAX_FILE_PATH_LEN;
-ofn.lpstrFilter = filter_str;
-ofn.nFilterIndex = 2;
-ofn.lpstrFileTitle = NULL;
-ofn.nMaxFileTitle = 0;
-ofn.lpstrInitialDir = NULL;
-ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+    // Initialize OPENFILENAME
+    ZeroMemory(&ofn, sizeof(ofn));
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = hwnd;
+    ofn.lpstrFile = szFile;
+    // Set lpstrFile[0] to '\0' so that GetOpenFileName does not 
+    // use the contents of szFile to initialize itself.
+    ofn.nMaxFile = MAX_FILE_PATH_LEN;
+    ofn.lpstrFilter = filter_str;
+    ofn.nFilterIndex = 0;
+    ofn.lpstrFileTitle = NULL;
+    ofn.nMaxFileTitle = 0;
+    ofn.lpstrInitialDir = NULL;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 
-// Display the Open dialog box. 
+    // Display the Open dialog box. 
 
-if (GetOpenFileName(&ofn)) 
-{
-    strcpy(file_name, ofn.lpstrFile);
-    return 0;
-}
-    return 1;
+    if (GetOpenFileName(&ofn)) 
+    {
+        strcpy(file_name, ofn.lpstrFile);
+        return 0;
+    }
+        return 1;
 
 }
 
@@ -458,6 +458,21 @@ void move_child_a2b_right(HWND a, HWND b, int offset)
                 width, height, TRUE) ;
 }
 
+void move_child_a2b_up(HWND a, HWND b, int offset)
+{
+    HWND p=GetParent(a);
+    RECT rect0, rect1, rect2;
+    int width = win_width(a);
+    int height = win_height(a);
+    get_client_rect_scrn(p, &rect0);
+    GetWindowRect(a, &rect1);
+    GetWindowRect(b, &rect2);
+    rect1.top = rect2.top-offset-height;
+    get_relative_pos(&rect0, &rect1, &rect1);
+    MoveWindow	(a, 	rect1.left, rect1.top,
+                width, height, TRUE) ;
+}
+
 void move_child_a2b_bottom(HWND a, HWND b, int offset)
 {
     HWND p=GetParent(a);
@@ -561,6 +576,12 @@ void move_child_a2b_left_top(HWND a, HWND b, int offset)
 {
     move_child_a2b_left(a, b, offset);
     child_a2b_yalign(a, b);
+}
+
+void move_child_a2b_up_right(HWND a, HWND b, int offset)
+{
+    move_child_a2b_up(a, b, offset);
+    child_a2b_ralign(a, b);
 }
 
 void right_include_child(HWND child, int offset)

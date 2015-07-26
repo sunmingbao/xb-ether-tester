@@ -50,23 +50,21 @@ static inline int win_height(HWND hwnd)
 {
 
     RECT		rect;
-    GetWindowRect (hwnd, &rect);
+    GetWindowRect(hwnd, &rect);
     return rect.bottom - rect.top;
 }
 
 static inline int win_left(HWND hwnd)
 {
-
     RECT		rect;
-    GetWindowRect (hwnd, &rect);
+    GetWindowRect(hwnd, &rect);
     return rect.left;
 }
 
 static inline int win_top(HWND hwnd)
 {
-
     RECT		rect;
-    GetWindowRect (hwnd, &rect);
+    GetWindowRect(hwnd, &rect);
     return rect.top;
 }
 
@@ -74,7 +72,7 @@ static inline int win_bottom(HWND hwnd)
 {
 
     RECT		rect;
-    GetWindowRect (hwnd, &rect);
+    GetWindowRect(hwnd, &rect);
     return rect.bottom;
 }
 
@@ -214,6 +212,7 @@ void move_child_a2b_bottom_right(HWND a, HWND b, int offset);
 void move_child_a2b_right_top(HWND a, HWND b, int offset);
 void move_child_a2b_right_bottom(HWND a, HWND b, int offset);
 void move_child_a2b_left_top(HWND a, HWND b, int offset);
+void move_child_a2b_up_right(HWND a, HWND b, int offset);
 void right_include_child(HWND child, int offset);
 void bottom_include_child(HWND child, int offset);
 void h_arrange_win(HWND hleader, int nr_member, HWND hmembers[], int offset);

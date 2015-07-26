@@ -322,14 +322,14 @@ CreateStatusBar();
 
         case WM_SPLITTER_X:
         {
-            we_pos=wParam;
+            we_pos=wParam+SPLT_WIDTH/2;
             resize_window(hwnd);
             return 0 ;
         }
 
         case WM_SPLITTER_Y:
         {
-            ns_pos=wParam;
+            ns_pos=wParam+SPLT_WIDTH/2;
             resize_window(hwnd);
             return 0 ;
         }
@@ -773,7 +773,9 @@ CreateStatusBar();
                     
                 case    IDM_VIEW_PCAP_FILE:
                 {
-                    if (0==get_open_file_name(file_to_open, hwnd, "etherreal dump(*.pcap)\0*.pcap\0\0"))
+                    if (0==get_open_file_name(file_to_open, hwnd
+                        , "tcpdump arch(*.pcap, *.cap)\0*.pcap;*.cap\0"
+                        "All Files(*.*)\0*.*\0\0"))
                     {
                         strcpy(pcap_file_to_view, file_to_open);
                         update_pcap_file_history(pcap_file_to_view);

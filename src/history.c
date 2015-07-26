@@ -18,6 +18,8 @@
 
 #define    HISTORY_FILE_NAME_PCAP    ".\\history_pcap"
 
+#define MAX_RECENT_FILE_NUM     (10)
+
 int read_next_filed(FILE *the_file, char *field_name, char *field_value)
 {
     char line[MAX_FILE_PATH_LEN + 32];

@@ -49,7 +49,7 @@ BEGIN
     	        MENUITEM "新建(&N)\tCtrl+N", 				IDM_FILE_NEW
     	        MENUITEM SEPARATOR
     	        MENUITEM "打开(&O)...\tCtrl+O", 			IDM_FILE_OPEN
-    	        MENUITEM "打开 *.pcap (wireshark存档)", 	IDM_VIEW_PCAP_FILE
+    	        MENUITEM "打开 tcpdump/wireshark存档", 	IDM_VIEW_PCAP_FILE
     	        MENUITEM SEPARATOR
     	        MENUITEM "保存(&S)\tCtrl+S", 				IDM_FILE_SAVE
     	        MENUITEM "另存为(&A)...", 			IDM_FILE_SAVE_AS
@@ -142,7 +142,14 @@ BEGIN
     	END
 END
 
-
+pkt_edit_popup_menu MENU DISCARDABLE 
+BEGIN
+    	POPUP "&operations"
+    	BEGIN
+    	        MENUITEM "插入vlan头", 	IDM_INSERT_VLAN_HDR
+    	        MENUITEM "删除vlan头", 	IDM_DELETE_VLAN_HDR
+    	END
+END
 // Accelerator
 MY_ACCELER ACCELERATORS DISCARDABLE 
 BEGIN
@@ -184,8 +191,10 @@ BEGIN
 
     	CTEXT       "名称",IDC_STATIC,10,5,20,14
     	EDITTEXT    ID_SED_NAME,35, 5, 40, 11
-    	CTEXT       "包长(不含CRC)",IDC_STATIC,100,5,60,14
-    	EDITTEXT    ID_SED_LEN,160, 5, 30, 11, ES_NUMBER
+    	CTEXT       "包长(不含CRC)",IDC_STATIC,85,5,60,14
+    	EDITTEXT    ID_SED_LEN,150, 5, 30, 11, ES_NUMBER
+
+        PUSHBUTTON  "高级  ▼", ID_PKT_EDIT_MENU_BTN,190, 5, 40, 14
 
         GROUPBOX    "自动更新",  IDC_STATIC, 10,20, 190, 45
 

@@ -2276,6 +2276,7 @@ int make_frags(const t_stream *pt_stream, int frag_payload)
 
     return 0;
 }
+
 void init_ui_stream_edit(HWND hDlg)
 {
     HWND hwnd_tree=GetDlgItem(hDlg,ID_SED_TREE_VIEW);
@@ -2306,6 +2307,8 @@ move_child_a2b_left_top(GetDlgItem(hDlg,IDOK), GetDlgItem(hDlg,IDCANCEL), 10);
         right_include_child(GetDlgItem(hDlg,ID_SED_TCP_UDP_CHECKSUM), 10);
     bottom_include_child(GetDlgItem(hDlg,IDOK), 10);
 
+move_child_a2b_up_right(GetDlgItem(hDlg,ID_PKT_EDIT_MENU_BTN), hwnd_tree, 10);
+ShowWindow(GetDlgItem(hDlg,ID_PKT_EDIT_MENU_BTN), 0);
 }
 
 int update_data_from_edit(HWND hDlg, HWND htv, HTREEITEM htvi, HWND hedit, int edit_visible)
@@ -2369,6 +2372,7 @@ hide_edit_ui(hDlg);
 
 BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
+    static HMENU  hMenu;
     HTREEITEM htvi;
     HWND hwnd_tree=GetDlgItem(hDlg,ID_SED_TREE_VIEW);
     HWND hwnd_hex_edit=GetDlgItem(hDlg,ID_SED_HEX_EDIT);
@@ -2378,6 +2382,9 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
      	switch (message)
      	{
      	case 	WM_INITDIALOG :
+                hMenu = LoadMenu (g_hInstance, TEXT("pkt_edit_popup_menu"));
+                hMenu = GetSubMenu (hMenu, 0);
+                
                 init_ui_stream_edit(hDlg);
                 center_child_win(hwnd_frame, hDlg);
 
@@ -2542,6 +2549,27 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                        	return TRUE ;
                     }
 
+                    case    ID_PKT_EDIT_MENU_BTN:
+                    {
+                        POINT point;
+                        point.x = win_left(GetDlgItem(hDlg, ID_PKT_EDIT_MENU_BTN));
+                        point.y = win_bottom(GetDlgItem(hDlg, ID_PKT_EDIT_MENU_BTN));
+          	            TrackPopupMenu(hMenu, 0, point.x, point.y, 0, hDlg, NULL) ;
+                       	return TRUE ;
+                    }
+#if 0
+                    case    IDM_INSERT_VLAN_HDR:
+                    {
+                        err_msg_box("123");
+                       	return TRUE ;
+                    }
+
+                    case    IDM_DELETE_VLAN_HDR:
+                    {
+                        err_msg_box("456");
+                       	return TRUE ;
+                    }
+#endif
                     case    ID_SED_HEX_EDIT:
                     {
                    		if (HIWORD(wParam)==EN_KILLFOCUS && stream_changed)
@@ -2609,7 +2637,26 @@ break;
         SetFocus(hDlg);
         return TRUE;
     }
-    
+#if 0
+        case 	WM_INITMENUPOPUP:
+        {
+
+            if (eth_type(gt_edit_stream.data)!=ETH_P_VLAN)
+            {
+                EnableMenuItem ((HMENU)hMenu, IDM_INSERT_VLAN_HDR, MF_ENABLED);
+                EnableMenuItem ((HMENU)hMenu, IDM_DELETE_VLAN_HDR, MF_GRAYED);
+
+            }
+            else
+            {
+                EnableMenuItem ((HMENU)hMenu, IDM_INSERT_VLAN_HDR, MF_GRAYED);
+                EnableMenuItem ((HMENU)hMenu, IDM_DELETE_VLAN_HDR, MF_ENABLED);
+
+            }
+
+            return TRUE;
+        }
+#endif
     case WM_CTLCOLOREDIT:
     {
         if ((HWND)lParam==GetDlgItem(hDlg, ID_SED_DYNAMIC_EDIT))
@@ -2806,7 +2853,8 @@ struct timeval 	base={(time_t)0};
                          errbuf         // error buffer
                          ) ) == NULL)
     {
-        WinPrintf(GetParent(hlv), "打开文件 %s 失败\n", source);
+        WinPrintf(GetParent(hlv), "打开tcpdump/wireshark存档文件失败\n文件路径:%s", source);
+        PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
         return -1;
     }
 

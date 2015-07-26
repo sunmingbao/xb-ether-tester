@@ -22,169 +22,169 @@ int ns_sizing = 0;
 
 void WINAPI DrawXorBar(HDC hdc, int x1, int y1, int width, int height)
 {
-static WORD _dotPatternBmp[8] = 
-{ 
-0x00aa, 0x0055, 0x00aa, 0x0055, 
-0x00aa, 0x0055, 0x00aa, 0x0055
-};
+    static WORD _dotPatternBmp[8] = 
+    { 
+    0x00aa, 0x0055, 0x00aa, 0x0055, 
+    0x00aa, 0x0055, 0x00aa, 0x0055
+    };
 
-HBITMAP hbitmap;
-HBRUSH hbrush,hbrushOld;
+    HBITMAP hbitmap;
+    HBRUSH hbrush,hbrushOld;
 
-hbitmap = CreateBitmap(8,8,1,1,_dotPatternBmp);
-hbrush = CreatePatternBrush(hbitmap);
+    hbitmap = CreateBitmap(8,8,1,1,_dotPatternBmp);
+    hbrush = CreatePatternBrush(hbitmap);
 
-SetBrushOrgEx(hdc,x1,y1,0);
+    SetBrushOrgEx(hdc,x1,y1,0);
 
-hbrushOld = (HBRUSH)SelectObject(hdc,hbrush);
+    hbrushOld = (HBRUSH)SelectObject(hdc,hbrush);
 
-PatBlt(hdc,x1,y1,width,height,PATINVERT);
+    PatBlt(hdc,x1,y1,width,height,PATINVERT);
 
-SelectObject(hdc,hbrushOld);
+    SelectObject(hdc,hbrushOld);
 
-DeleteObject(hbrush);
-DeleteObject(hbitmap);
+    DeleteObject(hbrush);
+    DeleteObject(hbitmap);
 } 
 
 LRESULT CALLBACK SpltWe_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-static int  oldx;
-static int y;
-static int line_height;
-static int min_left;
-static int max_right;
-POINT pt;
-HDC hdc;
-RECT rect;
-HWND hp = GetParent(hwnd);
+    static int  oldx;
+    static int y;
+    static int line_height;
+    static int min_left;
+    static int max_right;
+    POINT pt;
+    HDC hdc;
+    RECT rect;
+    HWND hp = GetParent(hwnd);
 
 
 
-    
-    switch (message)
+        
+        switch (message)
+        {
+            case WM_CREATE:
+
+                return 0 ;
+
+    case WM_LBUTTONDOWN:
+        SetCapture(hwnd);
+        we_sizing = 1;
+        line_height = win_height(hwnd);
+        y = win_top(hwnd);;
+    pt.x = (short)LOWORD(lParam);  // horizontal position of cursor 
+    pt.y = (short)HIWORD(lParam);
+
+    GetWindowRect(hp,&rect);
+    min_left = rect.left + MIN_SPLT_SPACE;
+    max_right = rect.right - MIN_SPLT_SPACE;
+    //GetClientRect(hwnd,&splt_rect);
+    //SCreenToClient(rect);
+
+    //GetWindowRect(hwnd_frame, &rect_frame_scr);
+    //client_0_0.x = 0;
+    //client_0_0.y=0;
+    //ClientToScreen(hwnd_frame,&client_0_0);
+    //client_0_0.y-= rect_frame_scr.top;
+    //client_0_0.x-= rect_frame_scr.left;
+
+    ClientToScreen(hwnd,&pt);
+
+
+    //convert the mouse coordinates relative to the top-left of
+    //the window
+    //ScreenToClient(hwnd_frame,&pt);
+
+    if(pt.x < min_left) pt.x = min_left;
+    if(pt.x > max_right) 
     {
-        case WM_CREATE:
-
-            return 0 ;
-
-case WM_LBUTTONDOWN:
-    SetCapture(hwnd);
-    we_sizing = 1;
-    line_height = win_height(hwnd);
-    y = win_top(hwnd);;
-pt.x = (short)LOWORD(lParam);  // horizontal position of cursor 
-pt.y = (short)HIWORD(lParam);
-
-GetWindowRect(hp,&rect);
-min_left = rect.left + MIN_SPLT_SPACE;
-max_right = rect.right - MIN_SPLT_SPACE;
-//GetClientRect(hwnd,&splt_rect);
-//SCreenToClient(rect);
-
-//GetWindowRect(hwnd_frame, &rect_frame_scr);
-//client_0_0.x = 0;
-//client_0_0.y=0;
-//ClientToScreen(hwnd_frame,&client_0_0);
-//client_0_0.y-= rect_frame_scr.top;
-//client_0_0.x-= rect_frame_scr.left;
-
-ClientToScreen(hwnd,&pt);
+        pt.x = max_right;
+    }
 
 
-//convert the mouse coordinates relative to the top-left of
-//the window
-//ScreenToClient(hwnd_frame,&pt);
+    hdc = GetDC(NULL);
+    DrawXorBar(hdc, pt.x-SPLT_WIDTH/2, y, SPLT_WIDTH, line_height);
+    ReleaseDC(NULL, hdc);
 
-if(pt.x < min_left) pt.x = min_left;
-if(pt.x > max_right) 
-{
-    pt.x = max_right;
-}
+    oldx = pt.x;
 
+    break;
 
-hdc = GetDC(NULL);
-DrawXorBar(hdc, pt.x, y, SPLT_WIDTH, line_height);
-ReleaseDC(NULL, hdc);
+    case WM_LBUTTONUP:
+        ReleaseCapture();
 
-oldx = pt.x;
+    pt.x = (short)LOWORD(lParam);  // horizontal position of cursor 
+    pt.y = (short)HIWORD(lParam);
 
-break;
+    GetClientRect(hp,&rect);
+    //GetClientRect(hwnd,&splt_rect);
 
-case WM_LBUTTONUP:
-    ReleaseCapture();
+    //GetWindowRect(hwnd_frame, &rect_frame_scr);
+    //client_0_0.x = 0;
+    //client_0_0.y=0;
+    //ClientToScreen(hwnd_frame,&client_0_0);
+    //client_0_0.y-= rect_frame_scr.top;
+    //client_0_0.x-= rect_frame_scr.left;
 
-pt.x = (short)LOWORD(lParam);  // horizontal position of cursor 
-pt.y = (short)HIWORD(lParam);
-
-GetClientRect(hp,&rect);
-//GetClientRect(hwnd,&splt_rect);
-
-//GetWindowRect(hwnd_frame, &rect_frame_scr);
-//client_0_0.x = 0;
-//client_0_0.y=0;
-//ClientToScreen(hwnd_frame,&client_0_0);
-//client_0_0.y-= rect_frame_scr.top;
-//client_0_0.x-= rect_frame_scr.left;
-
-hdc = GetDC(NULL);
-DrawXorBar(hdc, oldx, y, SPLT_WIDTH, line_height);
-ReleaseDC(NULL, hdc);
+    hdc = GetDC(NULL);
+    DrawXorBar(hdc, oldx-SPLT_WIDTH/2, y, SPLT_WIDTH, line_height);
+    ReleaseDC(NULL, hdc);
 
 
-we_sizing = 0;
-pt.x = oldx;
-ScreenToClient(hp,&pt);
-send_splitter_x(hp, pt.x);
-break;
+    we_sizing = 0;
+    pt.x = oldx;
+    ScreenToClient(hp,&pt);
+    send_splitter_x(hp, pt.x);
+    break;
 
-case WM_MOUSEMOVE:
-if(0==we_sizing)  break;
+    case WM_MOUSEMOVE:
+    if(0==we_sizing)  break;
 
-pt.x = (short)LOWORD(lParam);  // horizontal position of cursor 
-pt.y = (short)HIWORD(lParam);
+    pt.x = (short)LOWORD(lParam);  // horizontal position of cursor 
+    pt.y = (short)HIWORD(lParam);
 
-//GetClientRect(hwnd_frame,&rect);
-//GetClientRect(hwnd,&splt_rect);
-//SCreenToClient(rect);
-ClientToScreen(hwnd,&pt);
+    //GetClientRect(hwnd_frame,&rect);
+    //GetClientRect(hwnd,&splt_rect);
+    //SCreenToClient(rect);
+    ClientToScreen(hwnd,&pt);
 
-//GetWindowRect(hwnd_frame, &rect_frame_scr);
-//client_0_0.x = 0;
-//client_0_0.y=0;
-//ClientToScreen(hwnd_frame,&client_0_0);
-//client_0_0.y-= rect_frame_scr.top;
-//client_0_0.x-= rect_frame_scr.left;
+    //GetWindowRect(hwnd_frame, &rect_frame_scr);
+    //client_0_0.x = 0;
+    //client_0_0.y=0;
+    //ClientToScreen(hwnd_frame,&client_0_0);
+    //client_0_0.y-= rect_frame_scr.top;
+    //client_0_0.x-= rect_frame_scr.left;
 
 
-//convert the mouse coordinates relative to the top-left of
-//the window
-//ScreenToClient(hwnd_frame,&pt);
+    //convert the mouse coordinates relative to the top-left of
+    //the window
+    //ScreenToClient(hwnd_frame,&pt);
 
-if(pt.x < min_left) pt.x = min_left;
-if(pt.x > max_right) 
-{
-    pt.x = max_right;
-}
+    if(pt.x < min_left) pt.x = min_left;
+    if(pt.x > max_right) 
+    {
+        pt.x = max_right;
+    }
 
 
 
 
-if(pt.x != oldx && wParam & MK_LBUTTON)
-{
-hdc = GetDC(NULL);
-DrawXorBar(hdc, oldx, y, SPLT_WIDTH, line_height);
-DrawXorBar(hdc, pt.x, y, SPLT_WIDTH, line_height);
-ReleaseDC(NULL, hdc);
+    if(pt.x != oldx && wParam & MK_LBUTTON)
+    {
+    hdc = GetDC(NULL);
+    DrawXorBar(hdc, oldx-SPLT_WIDTH/2, y, SPLT_WIDTH, line_height);
+    DrawXorBar(hdc, pt.x-SPLT_WIDTH/2, y, SPLT_WIDTH, line_height);
+    ReleaseDC(NULL, hdc);
 
-oldx = pt.x;
-}
+    oldx = pt.x;
+    }
 
-break;
+    break;
 
-}
-    
-    return DefWindowProc (hwnd, message, wParam, lParam) ;
-}
+    }
+        
+        return DefWindowProc (hwnd, message, wParam, lParam) ;
+    }
 
 LRESULT CALLBACK SpltNs_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -242,7 +242,7 @@ if(pt.y > max_bottom)
 
 
 hdc = GetDC(NULL);
-DrawXorBar(hdc, x, pt.y, line_width, SPLT_WIDTH);
+DrawXorBar(hdc, x, pt.y-SPLT_WIDTH/2, line_width, SPLT_WIDTH);
 ReleaseDC(NULL, hdc);
 
 oldy = pt.y;
@@ -266,7 +266,7 @@ GetClientRect(hp,&rect);
 //client_0_0.x-= rect_frame_scr.left;
 
 hdc = GetDC(NULL);
-DrawXorBar(hdc, x, oldy, line_width, SPLT_WIDTH);
+DrawXorBar(hdc, x, oldy-SPLT_WIDTH/2, line_width, SPLT_WIDTH);
 ReleaseDC(NULL, hdc);
 
 
@@ -311,8 +311,8 @@ if(pt.y > max_bottom)
 if(pt.y != oldy && wParam & MK_LBUTTON)
 {
 hdc = GetDC(NULL);
-DrawXorBar(hdc, x, oldy, line_width, SPLT_WIDTH);
-DrawXorBar(hdc, x, pt.y, line_width, SPLT_WIDTH);
+DrawXorBar(hdc, x, oldy-SPLT_WIDTH/2, line_width, SPLT_WIDTH);
+DrawXorBar(hdc, x, pt.y-SPLT_WIDTH/2, line_width, SPLT_WIDTH);
 ReleaseDC(NULL, hdc);
 
 oldy = pt.y;
