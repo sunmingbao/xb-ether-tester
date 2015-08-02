@@ -1,8 +1,8 @@
 
-	xb_ether_tester(linux) v1.0.0
+	xb_ether_tester(linux) v1.0.1
 
 发布日期：2015-08-02
 
 更新内容：
 
-小兵以太网测试仪Linux版首次发布。
+对部分细节做了完善。

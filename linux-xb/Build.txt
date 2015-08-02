@@ -1,5 +1,5 @@
 
-登陆Linux shell，进入源码包根目录，执行如下命令即可。
+登陆Linux shell，进入源码包的linux-xb目录，执行如下命令即可。
 (编译生成的可执行程序路径为 ./target/xb_ether_tester.exe)
 
 a) 编译pc版本

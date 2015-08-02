@@ -12,6 +12,8 @@
     本软件的编译方法见Build.txt。
 
     本软件的使用方法见 http://blog.csdn.net/crazycoder8848/article/details/47209427
+
+    源码获取地址 https://github.com/sunmingbao/xb-ether-tester/archive/master.zip
 ======================
 作者: 孙明保
 邮箱: sunmingbao@126.com

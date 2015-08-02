@@ -41,8 +41,9 @@ static int  fd;
 
 typedef struct
 {
-    uint64_t send_total, send_fail, rcv_total;
-    uint64_t send_total_bytes, send_fail_bytes, rcv_total_bytes;
+    uint64_t send_total, send_total_bytes;
+    uint64_t send_succ, send_succ_bytes;
+    uint64_t send_fail, send_fail_bytes;
 } t_pkt_stat;
 
 static t_pkt_stat gt_pkt_stat;
@@ -61,7 +62,7 @@ static int64_t   frequency = 1;
 
 
 
-
+#define    HELP                (999)
 #define    ENABLE_MAX_SPEED    (1000)
 #define    CONFIG_FILE          (1001)
 #define    BURST_NUM           (1002)
@@ -73,6 +74,7 @@ static int64_t   frequency = 1;
 
 struct option my_options[] =
     {
+        {"help",              no_argument,       NULL, HELP},
         {"config-file",       required_argument, NULL, CONFIG_FILE},
         {"interface",         required_argument, NULL, INTERFACE},
         {"bind-cpu",          required_argument, NULL, BIND_CPU},
@@ -86,6 +88,7 @@ struct option my_options[] =
 
 
 const char *opt_remark[][2] = {
+    {"(-h or -H for short)","print help info"}, 
     {"(-f or -F for short)","specify config file"}, 
     {"(-i or -I for short)","interface to use for sending packets"}, 
     {"","bind sending thread to a free cpu. based from 0"},
@@ -194,7 +197,7 @@ FAIL_EXIT:
 int parse_and_check_args(int argc, char *argv[])
 {
    int opt;
-    while ((opt = getopt_long(argc, argv, "mMi:I:f:F:", my_options, NULL)) != -1)
+    while ((opt = getopt_long(argc, argv, "hHmMi:I:f:F:", my_options, NULL)) != -1)
     {
        switch (opt)
        {
@@ -245,6 +248,9 @@ int parse_and_check_args(int argc, char *argv[])
                enable_max_speed = 1;
                break;
 
+           case 'h':
+           case 'H':
+           case HELP:
            default: /* '?' */
                print_usage();
        }
@@ -285,21 +291,26 @@ struct timeval time_a_between_b2(struct timeval a, struct timeval b)
 void report_snd_summary()
 {
     struct timeval  tmp = time_a_between_b2(first_snd_tv, last_snd_tv);
-    uint64_t pps = gt_pkt_stat.send_total*1000000/(tmp.tv_sec*1000000 + tmp.tv_usec);
-    uint64_t bps = gt_pkt_stat.send_total_bytes*1000000/(tmp.tv_sec*1000000 + tmp.tv_usec);;
+    uint64_t pps = gt_pkt_stat.send_succ*1000000/(tmp.tv_sec*1000000 + tmp.tv_usec);
+    uint64_t bps = gt_pkt_stat.send_succ_bytes*1000000/(tmp.tv_sec*1000000 + tmp.tv_usec);;
     
     printf("\n[packet send summary]\n"
         "%stime: %lu sec %lu us\n"
-        "%ssucc traffic : %"PRIu64" packets %"PRIu64" bytes\n"
+        "%ssend total : %"PRIu64" packets %"PRIu64" bytes\n"
+        "%ssend succ  : %"PRIu64" packets %"PRIu64" bytes\n"
         "%ssucc performence : pps %"PRIu64"; bps %"PRIu64"\n\n"
         ,LINE_HDR, tmp.tv_sec, tmp.tv_usec
         ,LINE_HDR, gt_pkt_stat.send_total, gt_pkt_stat.send_total_bytes
+        ,LINE_HDR, gt_pkt_stat.send_succ, gt_pkt_stat.send_succ_bytes
         ,LINE_HDR, pps, bps);
 
 
     if (gt_pkt_stat.send_fail)
-    printf("%sfail traffic : %"PRIu64" packets %"PRIu64" bytes\n"
-        ,LINE_HDR, gt_pkt_stat.send_fail, gt_pkt_stat.send_fail_bytes);
+        printf("[some packets sent fail]\n"
+        "%sfail traffic : %"PRIu64" packets %"PRIu64" bytes\n"
+            ,LINE_HDR, gt_pkt_stat.send_fail, gt_pkt_stat.send_fail_bytes);
+    else
+        printf("[no packets sent fail]\n");
 
 
 }
@@ -352,16 +363,18 @@ while (!need_stop)
                 i = (i+1)%nr_cur_stream;
             }
 
-           if (write(fd, g_apt_streams[i]->data, g_apt_streams[i]->len) != g_apt_streams[i]->len)
-           {
-            gt_pkt_stat.send_fail++;
-                gt_pkt_stat.send_fail_bytes+=g_apt_streams[i]->len;
-        //sys_log(TEXT("Error sending the packet: %s"), pcap_geterr(fp));
-            }
-            else
-            {
                 gt_pkt_stat.send_total++;
                 gt_pkt_stat.send_total_bytes+=g_apt_streams[i]->len;
+                
+           if (write(fd, g_apt_streams[i]->data, g_apt_streams[i]->len) != g_apt_streams[i]->len)
+           {
+                gt_pkt_stat.send_fail++;
+                gt_pkt_stat.send_fail_bytes+=g_apt_streams[i]->len;
+           }
+            else
+            {
+                gt_pkt_stat.send_succ++;
+                gt_pkt_stat.send_succ_bytes+=g_apt_streams[i]->len;
             }
             
 
@@ -453,7 +466,7 @@ int main(int argc, char *argv[])
         printf("\r                  ");
         printf("\rsending packet  %s  [%"PRIu64" packets, %"PRIu64" bytes] "
             , dots[dot_str_idx]
-            , gt_pkt_stat.send_total, gt_pkt_stat.send_total_bytes);
+            , gt_pkt_stat.send_succ, gt_pkt_stat.send_succ_bytes);
         fflush(stdout);
         nano_sleep(0, 330000000);
         dot_str_idx++;
@@ -468,5 +481,5 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-//./target/xb_ether_tester.exe  -i enp3s0f0 -f /home/sunmingbao/aaa.etc  -M
+//./target/xb_ether_tester.exe  -i eth0 -f /home/sunmingbao/aaa.etc  -M
 
