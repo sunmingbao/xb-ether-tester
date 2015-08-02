@@ -3364,6 +3364,12 @@ CLR_STAT:
                                 return 0;
                             }
 
+                            if (!gt_pkt_cap_cfg.need_save_capture)
+                            {
+                                WinPrintf(hDlg, TEXT("当前抓包配置为不保存报文"));
+                                return 0;
+                            }
+                            
                             strcpy(pcap_file_to_view, PKT_CAP_FILE_ONLY_CAP);
                             DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hDlg, PktViewDlgProc);
                				return TRUE ;

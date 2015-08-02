@@ -272,7 +272,7 @@ int send_pkt(char *dev_name, int cnt)
 {
 	pcap_t *fp;
 	char errbuf[PCAP_ERRBUF_SIZE];
-	int i;
+	int i=0;
 	struct timeval cur_tv, next_snd_tv={(time_t)0};
     
 	/* Open the adapter */
@@ -302,28 +302,29 @@ int send_pkt(char *dev_name, int cnt)
 
         if (need_stop) break;
 
-SND_PKT:
-    	for(i=0;i<nr_cur_stream;i++)
-        {   
-            if (g_apt_streams[i]->selected==0) continue;
+
+        SND_PKT:
+            while (g_apt_streams[i]->selected==0)
+            {
+                i = (i+1)%nr_cur_stream;
+            }
             gt_pkt_stat.send_total++;
             gt_pkt_stat.send_total_bytes+=g_apt_streams[i]->len;
-	    if (pcap_sendpacket(fp,	g_apt_streams[i]->data,	g_apt_streams[i]->len) != 0)
-	    {
+    	    if (pcap_sendpacket(fp,	g_apt_streams[i]->data,	g_apt_streams[i]->len) != 0)
+    	    {
             	gt_pkt_stat.send_fail++;
                 gt_pkt_stat.send_fail_bytes+=g_apt_streams[i]->len;
-        	//sys_log(TEXT("Error sending the packet: %s"), pcap_geterr(fp));
             }
             
             if (g_apt_streams[i]->rule_num) rule_fileds_update(g_apt_streams[i]);
-       }
 
-        send_times_cnt++;
-        if (SND_MODE_BURST==gt_fc_cfg.snd_mode && send_times_cnt>=gt_fc_cfg.snd_times_cnt)
-        {
-            PostMessage(hwnd_frame, WM_COMMAND, IDT_TOOLBAR_STOP, 0);
-            goto exit;
-        }
+            send_times_cnt++;
+            if (SND_MODE_BURST==gt_fc_cfg.snd_mode && send_times_cnt>=gt_fc_cfg.snd_times_cnt)
+            {
+                PostMessage(hwnd_frame, WM_COMMAND, IDT_TOOLBAR_STOP, 0);
+                goto exit;
+            }
+            i = (i+1)%nr_cur_stream;
 
         if (gt_fc_cfg.speed_type==SPEED_TYPE_FASTEST)  continue;
 

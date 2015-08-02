@@ -1,0 +1,16 @@
+
+登陆Linux shell，进入源码包根目录，执行如下命令即可。
+(编译生成的可执行程序路径为 ./target/xb_ether_tester.exe)
+
+a) 编译pc版本
+make
+
+
+b) 交叉编译
+例如编译arm版本，带上如下CROSS_COMPILE参数即可
+make  CROSS_COMPILE=arm-linux-
+
+
+c) 清空目标文件
+make clean
+
