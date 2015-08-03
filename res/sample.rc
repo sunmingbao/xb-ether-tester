@@ -102,6 +102,8 @@ BEGIN
     	BEGIN
     	        MENUITEM "使用教程",            IDM_USER_MANUAL
         	    MENUITEM SEPARATOR
+        	    MENUITEM "Linux用户指引",       IDM_USER_MANUAL_LINUX
+        	    MENUITEM SEPARATOR
         	    MENUITEM "获取最新版本...",	    IDM_GET_NEW_VERSION
         	    MENUITEM "获取源代码...",	    IDM_GET_SOURCE
         	    MENUITEM "访问官方站点...",	    IDM_OPEN_OFFICIAL_SITE
@@ -168,6 +170,7 @@ BEGIN
     	PUSHBUTTON  "源码", ID_AB_SOURCE,5, 50, 35, 14
     	PUSHBUTTON  "官网", ID_AB_SITE,  5, 70, 35, 14
     	PUSHBUTTON  "升级", ID_AB_UPDATE,5, 90, 35, 14
+    	PUSHBUTTON  "Linux版", ID_AB_LINUX,5, 130, 35, 14
     	CONTROL "", ID_ABOUT_INFO, "edit"
     	, WS_BORDER|WS_VSCROLL | ES_MULTILINE|ES_AUTOVSCROLL|ES_WANTRETURN|ES_READONLY
     	, 45, 10, 190, 166

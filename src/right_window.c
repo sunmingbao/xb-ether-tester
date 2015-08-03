@@ -15,7 +15,7 @@
 #include "net.h"
 #include "gui.h"
 
-const char version[4]={'3','2','1',0};
+const char version[4]={'3','2','2',0};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;

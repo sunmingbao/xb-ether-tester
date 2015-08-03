@@ -455,6 +455,13 @@ CreateStatusBar();
                     , NULL, NULL, SW_SHOWNORMAL);
 
                	return 0 ;
+
+                case    IDM_USER_MANUAL_LINUX:
+                ShellExecute(NULL, "open"
+                    , "http://blog.csdn.net/crazycoder8848/article/details/47209427"
+                    , NULL, NULL, SW_SHOWNORMAL);
+
+               	return 0 ;
                 
                 case    IDM_GET_NEW_VERSION:
                 ShellExecute(NULL, "open"
@@ -970,7 +977,11 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
                	case 	ID_AB_UPDATE:
                		SendMessage(hwnd_frame, WM_COMMAND, IDM_GET_NEW_VERSION, 0);
                		return TRUE ;
-        
+                    
+               	case 	ID_AB_LINUX:
+               		SendMessage(hwnd_frame, WM_COMMAND, IDM_USER_MANUAL_LINUX, 0);
+               		return TRUE ;
+                    
           		case 	IDOK :
           		case 	IDCANCEL :
                				EndDialog (hDlg, 0) ;

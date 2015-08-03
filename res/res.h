@@ -35,7 +35,7 @@
 #define IDM_APP_ABOUT              40044
 #define IDM_NEW_VERSION_NOTICE     40045
 #define IDM_USER_MANUAL            40046
-
+#define IDM_USER_MANUAL_LINUX      40047
 #define ID_FILE_RECENT_CFG_FILE_BEGIN     40050
 #define ID_FILE_RECENT_PCAP_FILE_BEGIN    40060
 
@@ -158,7 +158,7 @@
 #define  ID_AB_SOURCE           40901
 #define  ID_AB_SITE             40902
 #define  ID_AB_UPDATE           40903
-
+#define  ID_AB_LINUX            40904
 // rule cfg dlg ids
 #define ID_RULE_CFG_BASE        41000
 #define ID_RULE_CFG_MAX         41001
