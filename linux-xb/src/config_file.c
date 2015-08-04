@@ -408,6 +408,7 @@ int load_bin_packet_file(char *file_path, unsigned char *src_mac, unsigned char 
             memcpy(g_apt_streams[0]->data+6, src_mac, 6);
 
     g_apt_streams[0]->len = ret;
+    g_apt_streams[0]->selected=1;
     g_apt_streams[0]->err_flags = build_err_flags((void *)(g_apt_streams[0]->data), g_apt_streams[0]->len);
 
     report_pkt_load_info(not_loaded_all);
