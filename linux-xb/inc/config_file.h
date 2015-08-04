@@ -111,6 +111,7 @@ extern int        nr_cur_stream;
 
 extern const char *app_name;
 extern const char version[4];
-int load_config_file(char *file_path);
+int load_config_file(char *file_path, unsigned char *src_mac, unsigned char *dst_mac);
+int load_bin_packet_file(char *file_path, unsigned char *src_mac, unsigned char *dst_mac);
 #endif
 

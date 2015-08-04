@@ -19,5 +19,7 @@ int set_thread_cpu_affinity(pthread_t thread, int cpu_begin, int cpu_end);
 
 uint64_t rdtsc();
 uint64_t get_cpu_freq();
+int  get_data_from_file(unsigned char *buf, const char *file, int len);
+void mac_str2n(unsigned char *mac, char *info_usr);
 #endif
 

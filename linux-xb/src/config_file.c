@@ -12,6 +12,7 @@
 #include "common.h"
 #include "debug.h"
 #include "config_file.h"
+#include "misc_utils.h"
 
 t_fc_cfg  gt_fc_cfg;
 t_pkt_cap_cfg  gt_pkt_cap_cfg;
@@ -20,7 +21,7 @@ t_stream    *g_apt_streams[MAX_STREAM_NUM];
 int        nr_cur_stream;
 
 const char *app_name = "xb_ether_tester";
-const char version[4]={'1','0','1',0};
+const char version[4]={'1','1','0',0};
 
 void *alloc_stream()
 {
@@ -339,7 +340,7 @@ void report_pkt_load_info(int not_loaded_all)
 
 }
 
-int load_config_file(char *file_path)
+int load_config_file(char *file_path, unsigned char *src_mac, unsigned char *dst_mac)
 {
     FILE *file=fopen(file_path, "rb");
     int i, ret = 0;
@@ -376,6 +377,10 @@ int load_config_file(char *file_path)
         g_apt_streams[i] = alloc_stream();
         fread(g_apt_streams[i], 1, STREAM_HDR_LEN, file);
         fread(g_apt_streams[i]->data, 1, g_apt_streams[i]->len, file);
+        if (dst_mac)
+            memcpy(g_apt_streams[i]->data, dst_mac, 6);
+        if (src_mac)
+            memcpy(g_apt_streams[i]->data+6, src_mac, 6);
         g_apt_streams[i]->err_flags = build_err_flags((void *)(g_apt_streams[i]->data), g_apt_streams[i]->len);
         DBG_PRINT("%s", g_apt_streams[i]->name);
     }
@@ -385,6 +390,30 @@ int load_config_file(char *file_path)
 
 EXIT:
     fclose(file);
+    return ret;
+}
+
+int load_bin_packet_file(char *file_path, unsigned char *src_mac, unsigned char *dst_mac)
+{
+    FILE *file=fopen(file_path, "rb");
+    int ret = 0;
+    int not_loaded_all = 0;
+
+    nr_cur_stream = 1;
+    g_apt_streams[0] = alloc_stream();
+    ret=get_data_from_file(g_apt_streams[0]->data, file_path, 65535);
+    if (dst_mac)
+            memcpy(g_apt_streams[0]->data, dst_mac, 6);
+    if (src_mac)
+            memcpy(g_apt_streams[0]->data+6, src_mac, 6);
+
+    g_apt_streams[0]->len = ret;
+    g_apt_streams[0]->err_flags = build_err_flags((void *)(g_apt_streams[0]->data), g_apt_streams[0]->len);
+
+    report_pkt_load_info(not_loaded_all);
+
+    fclose(file);
+    ret=ret>0?0:ret;
     return ret;
 }
 

@@ -68,4 +68,33 @@ uint64_t get_cpu_freq()
         return 1000000*((end - begin)/1000000);
 }
 
+int  get_data_from_file(unsigned char *buf, const char *file, int len)
+{
+    FILE *fp = fopen(file, "rb");
+    int ret;
+    if (NULL==fp)  return -1;
+    
+    ret = fread(buf, 1, len, fp);
+    fclose(fp);
+    
+    return ret;
+}
+
+void mac_str2n(unsigned char *mac, char *info_usr)
+{
+    char info[32];
+    strcpy(info, info_usr);
+            info[2]=0;
+            mac[0]=strtol(info+0,NULL,16);
+            info[5]=0;
+            mac[1]=strtol(info+3,NULL,16);
+            info[8]=0;
+            mac[2]=strtol(info+6,NULL,16);
+            info[11]=0;
+            mac[3]=strtol(info+9,NULL,16);
+            info[14]=0;
+            mac[4]=strtol(info+12,NULL,16);
+            info[17]=0;
+            mac[5]=strtol(info+15,NULL,16);
+}
 

@@ -36,6 +36,8 @@
 uint64_t cpu_freq;
 static struct timeval intvl = {0};
 static int send_all;
+static unsigned char src_mac[6], dst_mac[6];
+static int  has_src_mac, has_dst_mac;
 static int be_sending, need_stop;
 static int  fd;
 
@@ -52,6 +54,7 @@ static struct timeval first_snd_tv, last_snd_tv;
 
 
 static int   enable_max_speed;
+static int  pkt_file_type = -1;
 static char *config_file;
 static int   burst_num;
 static char  *if_name;
@@ -71,17 +74,26 @@ static int64_t   frequency = 1;
 #define    INTERFACE           (1005)
 #define    BIND_CPU            (1006)
 #define    SEND_ALL            (1007)
-
+#define    VERSION             (1008)
+#define    SINGLE_BIN_PKT      (1009)
+#define    CAP_PKT_FILE        (1010)
+#define    SET_SRC_MAC         (1011)
+#define    SET_DST_MAC         (1012)
 struct option my_options[] =
     {
         {"help",              no_argument,       NULL, HELP},
+        {"version",           no_argument,       NULL, VERSION},
         {"config-file",       required_argument, NULL, CONFIG_FILE},
+        {"bin-pkt-file",      required_argument, NULL, SINGLE_BIN_PKT},
+        //{"cap-file",          required_argument, NULL, CAP_PKT_FILE},
         {"interface",         required_argument, NULL, INTERFACE},
         {"bind-cpu",          required_argument, NULL, BIND_CPU},
         {"enable-max-speed",  no_argument,       NULL, ENABLE_MAX_SPEED},
         {"burst-num",         required_argument, NULL, BURST_NUM},
         {"interval",          required_argument, NULL, INTERVAL},
         {"pps",               required_argument, NULL, PPS},
+        {"set-src-mac",       required_argument, NULL, SET_SRC_MAC},
+        {"set-dst-mac",       required_argument, NULL, SET_DST_MAC},
         {"send-all",          no_argument,       NULL, SEND_ALL},
         {0},
     };
@@ -89,13 +101,18 @@ struct option my_options[] =
 
 const char *opt_remark[][2] = {
     {"(-h or -H for short)","print help info"}, 
+    {"(-v or -V for short)","show version"}, 
     {"(-f or -F for short)","specify config file"}, 
+    {"","specify raw binary packet file contains one packet"}, 
+    //{"","specify capture file contains packets"}, 
     {"(-i or -I for short)","interface to use for sending packets"}, 
     {"","bind sending thread to a free cpu. based from 0"},
     {"(-m or -M for short)", "send packet with max speed"}, 
     {"", "how many packet to send. If not specified, always sending until press CTRL+C"}, 
     {"", "how long to delay (in us) between two sending"},
     {"", "how many packets to send in one second"},
+    {"", "set src mac of each packet"},
+    {"", "set dst mac of each packet"},
     {"", "send all packets in config file, including packets not selected"},
 };
 
@@ -107,7 +124,7 @@ void print_usage()
     printf("%s(v%s) \n"
         "for usage detail, visit http://blog.csdn.net/crazycoder8848/article/details/47209427\n"
         "Usage example:\n"
-        "  ./%s --config-file=my_cfg.etc -i eth0 --enable-max-speed --pps=3\n",
+        "  ./%s --config-file=my_cfg.etc -i eth0  --pps=3\n",
                        app_name, version, app_name);
 
 
@@ -207,8 +224,19 @@ int parse_and_check_args(int argc, char *argv[])
            case 'F':
            case CONFIG_FILE: 
                config_file = optarg;
+               pkt_file_type = 0;
                break;
-
+               
+           case SINGLE_BIN_PKT: 
+               config_file = optarg;
+               pkt_file_type = 1;
+               break;
+#if 0
+           case CAP_PKT_FILE: 
+               config_file = optarg;
+               pkt_file_type = 2;
+               break;
+#endif
 
            case 'i':
            case 'I':
@@ -238,9 +266,31 @@ int parse_and_check_args(int argc, char *argv[])
                    snd_interval = 0;
                break;
 
+           case SET_SRC_MAC:
+               mac_str2n(src_mac, optarg);
+               has_src_mac = 1;
+               break;
+
+           case SET_DST_MAC:
+               mac_str2n(dst_mac, optarg);
+               has_dst_mac = 1;
+               break;
+               
            case SEND_ALL:
                send_all = 1;
                break;
+
+           case 'v':
+           case 'V':
+           case VERSION:
+               printf("v%c.%c.%c\n", version[0], version[1], version[2]);
+               exit(0);
+
+           case 'h':
+           case 'H':
+           case HELP:
+                print_usage();
+                exit(0);
 
            case 'm':
            case 'M':
@@ -248,9 +298,6 @@ int parse_and_check_args(int argc, char *argv[])
                enable_max_speed = 1;
                break;
 
-           case 'h':
-           case 'H':
-           case HELP:
            default: /* '?' */
                print_usage();
        }
@@ -428,6 +475,21 @@ static void  my_sig_handler(int sig_no, siginfo_t *pt_siginfo, void *p_ucontext)
 }
 
 
+int load_packets()
+{
+    if (0==pkt_file_type)
+        return load_config_file(config_file
+        ,has_src_mac?src_mac:NULL
+        ,has_src_mac?src_mac:NULL);
+
+    if (1==pkt_file_type)
+        return load_bin_packet_file(config_file
+        ,has_src_mac?src_mac:NULL
+        ,has_src_mac?src_mac:NULL);
+
+    return 0;
+}
+
 int main(int argc, char *argv[])
 {
     int ret;
@@ -445,7 +507,7 @@ int main(int argc, char *argv[])
     fd  = create_l2_raw_socket(if_name);
     if (fd<0) return 0;
     
-    ret=load_config_file(config_file);
+    ret=load_packets();
     if (ret<0) return 0;
 
 
@@ -455,9 +517,9 @@ int main(int argc, char *argv[])
 
     need_stop = 0;
     be_sending = 1;
-    register_sig_act(SIGINT, my_sig_handler);
+
     create_thread(&the_thread, send_pkt, NULL);
-    
+    register_sig_act(SIGINT, my_sig_handler);
 
 
     printf("\n\n\n");
