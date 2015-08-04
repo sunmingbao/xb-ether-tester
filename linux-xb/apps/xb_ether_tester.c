@@ -38,6 +38,7 @@ static struct timeval intvl = {0};
 static int send_all;
 static unsigned char src_mac[6], dst_mac[6];
 static int  has_src_mac, has_dst_mac;
+static int  no_wait = 0;
 static int be_sending, need_stop;
 static int  fd;
 
@@ -79,6 +80,7 @@ static int64_t   frequency = 1;
 #define    CAP_PKT_FILE        (1010)
 #define    SET_SRC_MAC         (1011)
 #define    SET_DST_MAC         (1012)
+#define    NO_WAIT             (1013)
 struct option my_options[] =
     {
         {"help",              no_argument,       NULL, HELP},
@@ -95,6 +97,7 @@ struct option my_options[] =
         {"set-src-mac",       required_argument, NULL, SET_SRC_MAC},
         {"set-dst-mac",       required_argument, NULL, SET_DST_MAC},
         {"send-all",          no_argument,       NULL, SEND_ALL},
+        {"no-wait",           no_argument,       NULL, NO_WAIT},
         {0},
     };
 
@@ -114,6 +117,7 @@ const char *opt_remark[][2] = {
     {"", "set src mac of each packet"},
     {"", "set dst mac of each packet"},
     {"", "send all packets in config file, including packets not selected"},
+    {"", "no wait before sending and finish sending"},
 };
 
 
@@ -280,6 +284,10 @@ int parse_and_check_args(int argc, char *argv[])
                send_all = 1;
                break;
 
+           case NO_WAIT:
+               no_wait = 1;
+               break;
+               
            case 'v':
            case 'V':
            case VERSION:
@@ -510,9 +518,11 @@ int main(int argc, char *argv[])
     ret=load_packets();
     if (ret<0) return 0;
 
-
-    printf("\n====press s begin sending packet====\n");
-    while (getchar()!='s');
+    if (!no_wait)
+    {
+        printf("\n====press s begin sending packet====\n");
+        while (getchar()!='s');
+    }
 
 
     need_stop = 0;
@@ -535,9 +545,11 @@ int main(int argc, char *argv[])
         dot_str_idx = (dot_str_idx %4);
     }
 
-
-    printf("\n====press q to exit====\n");
-    while (getchar()!='q');
+    if (!no_wait)
+    {
+        printf("\n====press q to exit====\n");
+        while (getchar()!='q');
+    }
 
 
     return 0;
