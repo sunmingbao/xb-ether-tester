@@ -340,6 +340,43 @@ void report_pkt_load_info(int not_loaded_all)
 
 }
 
+const char * err_text(uint32_t err_flags)
+{
+    if (err_flags==0) return "";
+    
+    if (err_flags&ERR_IP_CHECKSUM)
+    {
+        return "ip check sum";
+    }
+
+    if (err_flags&ERR_ICMP_CHECKSUM)
+    {
+        return "icmp check sum";
+    }
+
+    if (err_flags&ERR_IGMP_CHECKSUM)
+    {
+        return "igmp check sum";
+    }
+
+    if (err_flags&ERR_TCP_CHECKSUM)
+    {
+        return "tcp check sum";
+    }
+
+    if (err_flags&ERR_UDP_CHECKSUM)
+    {
+        return "udp check sum";
+    }
+
+    if (err_flags&ERR_PKT_LEN)
+    {
+        return "packet length";
+    }
+
+    return " ";
+    
+}
 int load_config_file(char *file_path, unsigned char *src_mac, unsigned char *dst_mac)
 {
     FILE *file=fopen(file_path, "rb");
@@ -382,7 +419,8 @@ int load_config_file(char *file_path, unsigned char *src_mac, unsigned char *dst
         if (src_mac)
             memcpy(g_apt_streams[i]->data+6, src_mac, 6);
         g_apt_streams[i]->err_flags = build_err_flags((void *)(g_apt_streams[i]->data), g_apt_streams[i]->len);
-        DBG_PRINT("%s", g_apt_streams[i]->name);
+        if (g_apt_streams[i]->err_flags)
+            printf("stream %s has errors: %s\n", g_apt_streams[i]->name, err_text(g_apt_streams[i]->err_flags));
     }
 
     report_pkt_load_info(not_loaded_all);
@@ -410,7 +448,8 @@ int load_bin_packet_file(char *file_path, unsigned char *src_mac, unsigned char 
     g_apt_streams[0]->len = ret;
     g_apt_streams[0]->selected=1;
     g_apt_streams[0]->err_flags = build_err_flags((void *)(g_apt_streams[0]->data), g_apt_streams[0]->len);
-
+    if (g_apt_streams[0]->err_flags)
+            printf("input packet has errors: %s\n", err_text(g_apt_streams[0]->err_flags));
     report_pkt_load_info(not_loaded_all);
 
     fclose(file);
