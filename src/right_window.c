@@ -854,6 +854,8 @@ case   WM_KEYDOWN:
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_SEL_RVS, item_cnt ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_MAKE_FRAGS, idx>=0&&stream_fragable(pt_stream) ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_SEL2PCAP, sel_cnt ? MF_ENABLED : MF_GRAYED);
+                EnableMenuItem ((HMENU) wParam, IDM_STREAM_2_BIN, idx>=0 ? MF_ENABLED : MF_GRAYED);
+                EnableMenuItem ((HMENU) wParam, IDM_STREAM_2_TEXT, idx>=0 ? MF_ENABLED : MF_GRAYED);
 
                 return 0;
 

@@ -484,12 +484,9 @@ int stream_2_bin(char *file_path)
     int i;
     
 
-        for (i=0; i<nr_cur_stream; i++)
-    {
-        if (!(g_apt_streams[i]->selected)) continue;
+     t_stream *pt_stream = g_apt_streams[GetIndex(hwnd_lv)];
 
-        fwrite(g_apt_streams[i]->data, g_apt_streams[i]->len, 1, file);
-    }
+     fwrite(pt_stream->data, pt_stream->len, 1, file);
 
     fclose(file);
     return 0;
@@ -504,11 +501,10 @@ int stream_2_text(char *file_path)
     int i,j;
     
 
-        for (i=0; i<nr_cur_stream; i++)
+     t_stream *pt_stream = g_apt_streams[GetIndex(hwnd_lv)];
     {
-        if (!(g_apt_streams[i]->selected)) continue;
-        left = g_apt_streams[i]->len;
-        cur_pos = g_apt_streams[i]->data;
+        left = pt_stream->len;
+        cur_pos = pt_stream->data;
         while (left>=16)
        {
           for (j=0;j<16;j++)

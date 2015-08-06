@@ -122,9 +122,10 @@ BEGIN
         		MENUITEM "编辑当前流(&E)", 			IDM_STREAM_EDIT
         		MENUITEM SEPARATOR
         		MENUITEM "用当前流构造分片(&F)", 	 IDM_STREAM_MAKE_FRAGS
+        		MENUITEM "当前流另存为二进制文件",     IDM_STREAM_2_BIN
+        		MENUITEM "当前流另存为16进制文本文件", IDM_STREAM_2_TEXT
+
         		MENUITEM "选中的条目另存为pcap文件", IDM_STREAM_SEL2PCAP
-        		MENUITEM "选中的条目另存为二进制文件",     IDM_STREAM_2_BIN
-        		MENUITEM "选中的条目另存为16进制文本文件", IDM_STREAM_2_TEXT
         		MENUITEM SEPARATOR
         		MENUITEM "复制", 			        IDM_STREAM_COPY, GRAYED
         		MENUITEM "粘贴", 			        IDM_STREAM_PASTE, GRAYED
