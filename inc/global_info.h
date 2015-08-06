@@ -163,6 +163,12 @@ void stream_edit_data_change(HWND  hwnd, int offset);
 #define    PCAP_FILE_FILTER    "tcpdump/pcap file(*.pcap)\0*.pcap\0\0"
 #define    PCAP_FILE_SUFFIX    "pcap"
 
+#define    TEXT_FILE_FILTER    "text file(*.txt)\0*.txt\0\0"
+#define    TEXT_FILE_SUFFIX    "txt"
+
+#define    BIN_FILE_FILTER    "binary file(*.bin)\0*.bin\0\0"
+#define    BIN_FILE_SUFFIX    "bin"
+
 #define    APP_PROFILE_FILE    ".\\profile.ini"
 #define    VER_UPDATE_FILE    ".\\version_update.ini"
 
@@ -187,6 +193,8 @@ LRESULT CALLBACK my_lv_proc (HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPa
 extern WNDPROC old_lv_proc;
 
 int stream2dump(char *file_name);
+int stream_2_bin(char *file_path);
+int stream_2_text(char *file_path);
 int save_stream(char *file_path);
 int load_stream(char *file_path);
 int load_stream_from_dump_file(char *file_path);

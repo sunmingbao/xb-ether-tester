@@ -478,6 +478,60 @@ dumpfile = pcap_dump_open(fp, file_name);
 	return 0;
 }
 
+int stream_2_bin(char *file_path)
+{
+    FILE *file=fopen(file_path, "wb");
+    int i;
+    
+
+        for (i=0; i<nr_cur_stream; i++)
+    {
+        if (!(g_apt_streams[i]->selected)) continue;
+
+        fwrite(g_apt_streams[i]->data, g_apt_streams[i]->len, 1, file);
+    }
+
+    fclose(file);
+    return 0;
+}
+
+int stream_2_text(char *file_path)
+{
+    FILE *file=fopen(file_path, "wb");
+    char file_data_d[512];
+    unsigned char *cur_pos;
+    int left;
+    int i,j;
+    
+
+        for (i=0; i<nr_cur_stream; i++)
+    {
+        if (!(g_apt_streams[i]->selected)) continue;
+        left = g_apt_streams[i]->len;
+        cur_pos = g_apt_streams[i]->data;
+        while (left>=16)
+       {
+          for (j=0;j<16;j++)
+             sprintf(file_data_d + j*6, "0x%02x, ", (int)cur_pos[j]);
+        fwrite(file_data_d, 16*6, 1, file);
+        fwrite("\n", 1, 1, file);
+        left-=16;
+        cur_pos+=16;
+       }
+       if (left>0)
+       {
+          for (j=0;j<left;j++)
+             sprintf(file_data_d + j*6, "0x%02x, ", (int)cur_pos[j]);
+        fwrite(file_data_d, left*6, 1, file);
+
+       }
+
+    }
+
+    fclose(file);
+    return 0;
+}
+
 int save_stream(char *file_path)
 {
     FILE *file=fopen(file_path, "wb");

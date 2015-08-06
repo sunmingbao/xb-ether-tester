@@ -429,7 +429,7 @@ CreateStatusBar();
                           file_to_open,
                           sizeof(file_to_open));
             DragFinish((HDROP)wParam);
-            if (strstr(file_to_open, "."PCAP_FILE_SUFFIX)!=NULL)
+            if (strstr(file_to_open, ".cap")!=NULL)
             {
                 strcpy(pcap_file_to_view, file_to_open);
                 DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hwnd, PktViewDlgProc);

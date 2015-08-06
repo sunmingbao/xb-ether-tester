@@ -15,7 +15,7 @@
 #include "net.h"
 #include "gui.h"
 
-const char version[4]={'3','2','2',0};
+const char version[4]={'3','2','3',0};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -792,6 +792,26 @@ case WM_NOTIFY:
        				return 0 ;
                 }
 
+                case    IDM_STREAM_2_BIN:
+                {
+                    char file_name[MAX_FILE_PATH_LEN];
+                    ret=get_save_file_name(file_name, hwnd, BIN_FILE_FILTER, BIN_FILE_SUFFIX);
+                    if (ret) return 0 ;
+
+       				stream_2_bin(file_name);
+       				return 0 ;
+                }
+
+                case    IDM_STREAM_2_TEXT:
+                {
+                    char file_name[MAX_FILE_PATH_LEN];
+                    ret=get_save_file_name(file_name, hwnd, TEXT_FILE_FILTER, TEXT_FILE_SUFFIX);
+                    if (ret) return 0 ;
+
+       				stream_2_text(file_name);
+       				return 0 ;
+                }
+                
                 case    ID_DYNAMIC_EDIT:
        				if (HIWORD(wParam)==EN_KILLFOCUS)
                     {

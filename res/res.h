@@ -55,6 +55,9 @@
 #define IDM_STREAM_SEL_ALL         40109
 #define IDM_STREAM_SEL_RVS         40110
 
+#define IDM_STREAM_2_BIN           40111
+#define IDM_STREAM_2_TEXT          40112
+
 // stats window menu && pkt edit menu ids
 #define IDM_STATS_WIN_COPY2CLIP_BOARD        40201
 #define IDM_STATS_WIN_CLR                    40202
