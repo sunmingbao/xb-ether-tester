@@ -416,6 +416,7 @@ while (!need_stop)
             while (g_apt_streams[i]->selected==0 && !send_all)
             {
                 i = (i+1)%nr_cur_stream;
+                if (need_stop) goto exit;
             }
 
                 gt_pkt_stat.send_total++;
