@@ -2853,7 +2853,7 @@ struct timeval 	base={(time_t)0};
                          errbuf         // error buffer
                          ) ) == NULL)
     {
-        WinPrintf(GetParent(hlv), "打开tcpdump/wireshark存档文件失败\n文件路径:%s", source);
+        WinPrintf(GetParent(hlv), "打开文件失败:\n%s\n可能是抓包存档文件损坏或格式不支持", source);
         PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
         return -1;
     }
