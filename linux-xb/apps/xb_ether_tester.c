@@ -489,12 +489,12 @@ int load_packets()
     if (0==pkt_file_type)
         return load_config_file(config_file
         ,has_src_mac?src_mac:NULL
-        ,has_src_mac?src_mac:NULL);
+        ,has_dst_mac?dst_mac:NULL);
 
     if (1==pkt_file_type)
         return load_bin_packet_file(config_file
         ,has_src_mac?src_mac:NULL
-        ,has_src_mac?src_mac:NULL);
+        ,has_dst_mac?dst_mac:NULL);
 
     return 0;
 }
