@@ -38,7 +38,7 @@ static struct timeval intvl = {0};
 static int send_all;
 static unsigned char src_mac[6], dst_mac[6];
 static int  has_src_mac, has_dst_mac;
-static int  no_wait = 0;
+static int  no_wait, write_tap;
 static int be_sending, need_stop;
 static int  fd;
 
@@ -81,6 +81,7 @@ static int64_t   frequency = 1;
 #define    SET_SRC_MAC         (1011)
 #define    SET_DST_MAC         (1012)
 #define    NO_WAIT             (1013)
+#define    WRITE_TAP           (1014)
 struct option my_options[] =
     {
         {"help",              no_argument,       NULL, HELP},
@@ -98,6 +99,7 @@ struct option my_options[] =
         {"set-dst-mac",       required_argument, NULL, SET_DST_MAC},
         {"send-all",          no_argument,       NULL, SEND_ALL},
         {"no-wait",           no_argument,       NULL, NO_WAIT},
+        {"write-tap",         no_argument,       NULL, WRITE_TAP},
         {0},
     };
 
@@ -117,6 +119,7 @@ const char *opt_remark[][2] = {
     {"", "set src mac of each packet"},
     {"", "set dst mac of each packet"},
     {"", "send all packets in config file, including packets not selected"},
+    {"", "create tap interface whose name is given in -i option, and write packets to tap interface."},
     {"", "no wait before sending and finish sending"},
 };
 
@@ -286,6 +289,10 @@ int parse_and_check_args(int argc, char *argv[])
 
            case NO_WAIT:
                no_wait = 1;
+               break;
+
+           case WRITE_TAP:
+               write_tap = 1;
                break;
                
            case 'v':
@@ -499,6 +506,69 @@ int load_packets()
     return 0;
 }
 
+int start_up_tap_if(const char *tap)
+{
+    char cmd_str[128];
+
+
+    sprintf(cmd_str, "ifconfig %s up", tap);
+    if (0!=system(cmd_str))
+    {
+        ERR_DBG_PRINT("exec cmd %s failed", cmd_str);
+        return -1;
+    }
+
+
+    return 0;
+}
+
+int prepare_tap_if(const char *tap_name)
+{
+    struct ifreq ifr;
+    int fd, ret;
+    unsigned int features;
+    
+    fd = open("/dev/net/tun", O_RDWR);
+    if (fd < 0) {
+        ERR_DBG_PRINT("could not open %s", "/dev/net/tun");
+        return -1;
+    }
+    memset(&ifr, 0, sizeof(ifr));
+    ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+
+
+    if (ioctl(fd, TUNGETFEATURES, &features) == -1) {
+        ERR_DBG_PRINT("warning: TUNGETFEATURES failed:");
+        features = 0;
+    }
+
+
+//    if (features & IFF_ONE_QUEUE) {
+//        ifr.ifr_flags |= IFF_ONE_QUEUE;
+//    }
+
+
+
+
+    strcpy(ifr.ifr_name, tap_name);
+    
+    ret = ioctl(fd, TUNSETIFF, (void *) &ifr);
+    if (ret != 0) 
+    {
+
+
+        ERR_DBG_PRINT("could not configure tap interface %s", tap_name);
+        close(fd);
+        return -1;
+    }
+    
+    strcpy(tap_name, ifr.ifr_name);
+    start_up_tap_if(tap_name);
+
+
+    fcntl(fd, F_SETFL, O_NONBLOCK);
+    return fd;
+}
 int main(int argc, char *argv[])
 {
     int ret;
@@ -512,8 +582,11 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-
-    fd  = create_l2_raw_socket(if_name);
+    if (write_tap)
+        fd  = prepare_tap_if(if_name);
+    else
+        fd  = create_l2_raw_socket(if_name);
+    
     if (fd<0) return 0;
     
     ret=load_packets();
