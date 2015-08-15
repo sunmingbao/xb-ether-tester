@@ -522,7 +522,7 @@ int start_up_tap_if(const char *tap)
     return 0;
 }
 
-int prepare_tap_if(const char *tap_name)
+int prepare_tap_if(char *tap_name)
 {
     struct ifreq ifr;
     int fd, ret;
