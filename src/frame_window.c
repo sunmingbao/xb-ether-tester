@@ -654,7 +654,7 @@ CreateStatusBar();
                         return 0 ;
                     }
 
-                    if (GetSelCnt(hwnd_lv)<=0)
+                    if ((nr_stream2snd = GetSelCnt(hwnd_lv))<=0)
                     {
                         WinPrintf(hwnd, TEXT("请选择要发送的流"));
                         //SendMessage(hwnd_toolbar, TB_CHECKBUTTON, IDT_TOOLBAR_START, 0);
@@ -671,7 +671,10 @@ CreateStatusBar();
                     snd_started=rcv_started=0;
 
                     ui_switch(1);
-                    
+                    cp_stream2sndbuf();
+                    rule_fileds_init_all_pkt();
+                    update_fc_gap();
+
                     gettimeofday(&last_timer_tv, NULL);
                     last_stat_tv_snd=last_timer_tv;
                     last_stat_tv_rcv=last_timer_tv;

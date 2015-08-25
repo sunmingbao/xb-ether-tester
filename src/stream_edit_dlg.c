@@ -404,9 +404,9 @@ t_tvi_data gat_arp_tvis[]=
     {"opcode", 6, 2, DISPLAY_HEX},
 
     {"sender mac", 8, 6, IS_MAC},
-    {"sender ip", 14, 4, IS_IP},
+    {"sender ip", 14, 4, SUPPORT_RULE|IS_IP},
     {"target mac", 18, 6, IS_MAC},
-    {"target ip", 24, 4, IS_IP},
+    {"target ip", 24, 4, SUPPORT_RULE|IS_IP},
 };
 
 t_tvi_data gat_arp6_tvis[]=
@@ -1877,10 +1877,9 @@ void rule_fileds_init_all_pkt()
 {
     int i;
     t_stream *pt_stream;
-    for (i=0; i<nr_cur_stream; i++)
+    for (i=0; i<nr_stream2snd; i++)
     {
-        pt_stream = g_apt_streams[i];
-        if (!pt_stream->selected) continue;
+        pt_stream = &(g_apt_streams2snd[i]);
         if (pt_stream->rule_num) rule_fileds_init(pt_stream);
     }
 }

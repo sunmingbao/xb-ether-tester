@@ -104,6 +104,7 @@ extern uint64_t cap_save_cnt, cap_save_bytes_cnt;
 
 DWORD WINAPI  wpcap_snd_test(LPVOID lpParameter);
 DWORD WINAPI  wpcap_rcv_test(LPVOID lpParameter);
+void cp_stream2sndbuf();
 
 extern int cap_stopped;
 extern int need_cap_stop;

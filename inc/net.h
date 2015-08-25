@@ -448,6 +448,8 @@ typedef struct
 extern int  nr_cur_stream;
 extern int  copy_idx;
 extern t_stream    *g_apt_streams[MAX_STREAM_NUM];
+extern int32_t        nr_stream2snd;
+extern t_stream    *g_apt_streams2snd;
 void init_stream(t_stream    *pt_streams);
 int make_frags(const t_stream *pt_stream, int frag_payload);
 void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags);

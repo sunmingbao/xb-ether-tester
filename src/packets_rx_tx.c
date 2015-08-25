@@ -141,6 +141,9 @@ int32_t        nr_cur_stream;
 t_stream    *g_apt_streams[MAX_STREAM_NUM];
 int        copy_idx=-1;
 
+int32_t        nr_stream2snd;
+t_stream    *g_apt_streams2snd;
+
 void del_all_streams()
 {
     int i;
@@ -272,7 +275,7 @@ int send_pkt(char *dev_name, int cnt)
 {
 	pcap_t *fp;
 	char errbuf[PCAP_ERRBUF_SIZE];
-	int i=0;
+	int i=nr_stream2snd-1;
 	struct timeval cur_tv, next_snd_tv={(time_t)0};
     
 	/* Open the adapter */
@@ -304,19 +307,17 @@ int send_pkt(char *dev_name, int cnt)
 
 
         SND_PKT:
-            while (g_apt_streams[i]->selected==0)
-            {
-                i = (i+1)%nr_cur_stream;
-            }
+            i = (i+1)%nr_stream2snd;
+
             gt_pkt_stat.send_total++;
-            gt_pkt_stat.send_total_bytes+=g_apt_streams[i]->len;
-    	    if (pcap_sendpacket(fp,	g_apt_streams[i]->data,	g_apt_streams[i]->len) != 0)
+            gt_pkt_stat.send_total_bytes+=g_apt_streams2snd[i].len;
+    	    if (pcap_sendpacket(fp,	g_apt_streams2snd[i].data,	g_apt_streams2snd[i].len) != 0)
     	    {
             	gt_pkt_stat.send_fail++;
-                gt_pkt_stat.send_fail_bytes+=g_apt_streams[i]->len;
+                gt_pkt_stat.send_fail_bytes+=g_apt_streams2snd[i].len;
             }
             
-            if (g_apt_streams[i]->rule_num) rule_fileds_update(g_apt_streams[i]);
+            if (g_apt_streams2snd[i].rule_num) rule_fileds_update(&(g_apt_streams2snd[i]));
 
             send_times_cnt++;
             if (SND_MODE_BURST==gt_fc_cfg.snd_mode && send_times_cnt>=gt_fc_cfg.snd_times_cnt)
@@ -324,7 +325,7 @@ int send_pkt(char *dev_name, int cnt)
                 PostMessage(hwnd_frame, WM_COMMAND, IDT_TOOLBAR_STOP, 0);
                 goto exit;
             }
-            i = (i+1)%nr_cur_stream;
+
 
         if (gt_fc_cfg.speed_type==SPEED_TYPE_FASTEST)  continue;
 
@@ -411,14 +412,31 @@ int select_if(int idx)
     return 1;
 }
 
+void cp_stream2sndbuf()
+{
+    int i, cnt=0;
+    t_stream *pt_stream;
+
+    g_apt_streams2snd = malloc(nr_stream2snd*sizeof(t_stream));
+
+    for (i=0; i<nr_cur_stream; i++)
+    {
+        pt_stream = g_apt_streams[i];
+        if (pt_stream->selected)
+        {
+            g_apt_streams2snd[cnt] = *pt_stream;
+            cnt++;
+        }
+    }
+}
+
 DWORD WINAPI  wpcap_snd_test(LPVOID lpParameter)
 {
-    rule_fileds_init_all_pkt();
-    update_fc_gap();
     snd_started=1;
     send_times_cnt=0;
     while (!rcv_started) Sleep(1);
     send_pkt(cur_dev_name, 3);
+    free(g_apt_streams2snd);
 
     snd_stopped=1;
 
