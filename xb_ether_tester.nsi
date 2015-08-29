@@ -13,7 +13,7 @@
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "小兵以太网测试仪"
 !define PRODUCT_NAME_EN "xb_ether_tester"
-!define PRODUCT_VERSION "3.2.4"
+!define PRODUCT_VERSION "3.2.5"
 !define PRODUCT_PUBLISHER "孙明保"
 !define MAIN_PROG_NAME "xb_ether_tester.exe"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_PROG_NAME}"
@@ -167,7 +167,7 @@ Function .onInit
   MessageBox MB_YESNOCANCEL|MB_ICONQUESTION \
     "检测到本机已经安装了 ${PRODUCT_NAME} $OLD_VER。\
     $\n$\n是否先卸载已安装的版本？ \
-    $\n$\n[若选择No，则进行覆盖安装]" \
+    $\n$\n$\n[若选择No，则进行覆盖安装]" \
       /SD IDYES \
       IDYES uninstall \
       IDNO done

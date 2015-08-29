@@ -471,7 +471,7 @@ CreateStatusBar();
 
                 case    IDM_GET_SOURCE:
                 ShellExecute(NULL, "open"
-                    , "http://sourceforge.net/p/xb-ether-tester/code/ci/master/tree/"
+                    , "https://github.com/sunmingbao/xb-ether-tester/archive/master.zip"
                     , NULL, NULL, SW_SHOWNORMAL);
 
                	return 0 ;
@@ -935,7 +935,7 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
     sprintf(info
         , "%s    V%c.%c.%c\r\n"
         "(编译时间: %s) \r\n\r\n"
-        "作者：孙明保 (来自 ZTE中兴) \r\n\r\n"
+        "作者：孙明保 (来自  南京 · ZTE中兴) \r\n\r\n"
         "======================\r\n"
         "本软件为免费、开源软件。\r\n"
         "本软件的版权(包括源码及二进制发布版本)归一切公众所有。\r\n"

@@ -382,6 +382,41 @@ t_tvi_data gat_eth_hdr_vlan_tvis[]=
     {"eth type", 16, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
 };
 
+t_tvi_data gat_eth_hdr_vlan2_tvis[]=
+{
+    {"dst mac", 0, 6, IS_MAC},
+    {"src mac", 6, 6, IS_MAC},
+    {"TPID", 12, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
+    {"PCP", 14, 2, DISPLAY_HEX, 0, 3},
+    {"CFI", 14, 2, DISPLAY_HEX, 3, 1},
+    {"VID", 14, 2, DISPLAY_HEX, 4, 12},
+    {"TPID", 16, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
+    {"PCP", 18, 2, DISPLAY_HEX, 0, 3},
+    {"CFI", 18, 2, DISPLAY_HEX, 3, 1},
+    {"VID", 18, 2, DISPLAY_HEX, 4, 12},
+    {"eth type", 20, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
+};
+
+
+t_tvi_data gat_eth_hdr_vlan3_tvis[]=
+{
+    {"dst mac", 0, 6, IS_MAC},
+    {"src mac", 6, 6, IS_MAC},
+    {"TPID", 12, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
+    {"PCP", 14, 2, DISPLAY_HEX, 0, 3},
+    {"CFI", 14, 2, DISPLAY_HEX, 3, 1},
+    {"VID", 14, 2, DISPLAY_HEX, 4, 12},
+    {"TPID", 16, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
+    {"PCP", 18, 2, DISPLAY_HEX, 0, 3},
+    {"CFI", 18, 2, DISPLAY_HEX, 3, 1},
+    {"VID", 18, 2, DISPLAY_HEX, 4, 12},
+    {"TPID", 20, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
+    {"PCP", 22, 2, DISPLAY_HEX, 0, 3},
+    {"CFI", 22, 2, DISPLAY_HEX, 3, 1},
+    {"VID", 22, 2, DISPLAY_HEX, 4, 12},
+    {"eth type", 24, 2, FLAG_REBUILD_TV|DISPLAY_HEX|ETH_TYPE_FIELD},
+};
+
 t_tvi_data gat_arp_base_tvis[]=
 {
     {"hdwr type", 0, 2, DISPLAY_HEX},
@@ -951,7 +986,31 @@ void tvi_update_options_ip(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream)
 }
 
 
+int build_eth_hdr(HWND hwnd_tree, int offset)
+{
+    int vlan_nr = get_vlan_tag_nr(gt_edit_stream.data);
+    HTREEITEM treeItem1=insertItem(hwnd_tree, "ethernet", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_eth_hdr);
+    update_tvi_proto_hdr(hwnd_tree, treeItem1);
 
+
+    if (vlan_nr==1)
+        build_tvis(hwnd_tree, treeItem1
+        , offset, gat_eth_hdr_vlan_tvis, ARRAY_SIZE(gat_eth_hdr_vlan_tvis));
+    else if (vlan_nr==2)
+        build_tvis(hwnd_tree, treeItem1
+        , offset, gat_eth_hdr_vlan2_tvis, ARRAY_SIZE(gat_eth_hdr_vlan2_tvis));
+    else if (vlan_nr==3)
+        build_tvis(hwnd_tree, treeItem1
+        , offset, gat_eth_hdr_vlan3_tvis, ARRAY_SIZE(gat_eth_hdr_vlan3_tvis));
+    else
+        build_tvis(hwnd_tree, treeItem1
+        , offset, gat_eth_hdr_tvis, ARRAY_SIZE(gat_eth_hdr_tvis));
+
+
+    return eth_hdr_len(gt_edit_stream.data);
+
+
+}
 
 void build_tv(HWND hwnd_tree)
 {
@@ -960,22 +1019,14 @@ void build_tv(HWND hwnd_tree)
     char info[64];
     int type = eth_type(gt_edit_stream.data);
 
+
     need_rebuild_tv=0;
     Selected=NULL;
 
+
     TreeView_DeleteAllItems(hwnd_tree);
 
-    treeItem1=insertItem(hwnd_tree, "ethernet", TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_eth_hdr);
-    update_tvi_proto_hdr(hwnd_tree, treeItem1);
-
-    if (eth_is_vlan(gt_edit_stream.data))
-        build_tvis(hwnd_tree, treeItem1
-        , adjust, gat_eth_hdr_vlan_tvis, ARRAY_SIZE(gat_eth_hdr_vlan_tvis));
-    else
-        build_tvis(hwnd_tree, treeItem1
-        , adjust, gat_eth_hdr_tvis, ARRAY_SIZE(gat_eth_hdr_tvis));
-
-    adjust += eth_hdr_len(gt_edit_stream.data);
+    adjust += build_eth_hdr(hwnd_tree, adjust);
     
     if (type==ETH_P_ARP)
     {
@@ -2440,21 +2491,21 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                     if (type==get_eth_type_from_addr(cur_field_addr))
                         return TRUE ;
                     
-                    if (cur_field_offset==12)
+                    if (type==ETH_P_VLAN)
                     {
-                        if (type==ETH_P_VLAN)
-                        {
-                            insert_bytes(hDlg, cur_field_offset, ETHERNET_TAG_LEN);
+                        insert_bytes(hDlg, cur_field_offset, ETHERNET_TAG_LEN);
 
-                        }
-                        else if (get_eth_type_from_addr(cur_field_addr)==ETH_P_VLAN)
-                        {
-                            del_bytes(hDlg, cur_field_offset, ETHERNET_TAG_LEN);
-                        }
+
+                    }
+                    else if (get_eth_type_from_addr(cur_field_addr)==ETH_P_VLAN)
+                    {
+                        del_bytes(hDlg, cur_field_offset, ETHERNET_TAG_LEN);
                     }
                     
                     set_eth_type_to_addr(type, cur_field_addr);
                     goto PROTO_CHNG_PROC;
+
+
 
 
                 }

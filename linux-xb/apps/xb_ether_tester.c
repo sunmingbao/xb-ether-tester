@@ -377,6 +377,244 @@ void report_snd_summary()
 
 }
 
+void init_bits(void *field_addr, t_rule *pt_rule)
+{
+    unsigned whole_value1, whole_value2;
+    unsigned shift_len=pt_rule->width*8 - pt_rule->bits_from - pt_rule->bits_len;
+
+    if (1==pt_rule->width)
+    {
+        whole_value1 = *(unsigned char *)field_addr;
+        whole_value2 = *(unsigned char *)(pt_rule->base_value);
+    }
+    else
+    {
+        whole_value1 = ntohs(*(unsigned short *)field_addr);
+        whole_value2 = ntohs(*(unsigned short *)(pt_rule->base_value));
+    }
+    
+        whole_value1 &= ~(((1<<pt_rule->bits_len)-1)<<shift_len);
+        whole_value1 |= whole_value2;
+        
+    if (1==pt_rule->width)
+        *(unsigned char *)field_addr = whole_value1;
+    else
+        *(unsigned short *)field_addr = htons(whole_value1);
+
+}
+
+void init_u8_n(void *data, t_rule *pt_rule)
+{
+    *(uint8_t *)data=pt_rule->base_value[0];
+}
+
+void init_u16_n(void *data, t_rule *pt_rule)
+{
+    *(uint16_t *)data=*(uint16_t *)(pt_rule->base_value);
+}
+
+void init_u32_n(void *data, t_rule *pt_rule)
+{
+    *(uint32_t *)data=*(uint32_t *)(pt_rule->base_value);
+}
+
+void init_rule_field(t_stream *pt_stream, t_rule *pt_rule)
+{
+    if (pt_rule->bits_len)
+    {
+        init_bits(pt_stream->data + pt_rule->offset, pt_rule);
+        return;
+    }
+    
+    switch (pt_rule->width)
+    {
+        case 1:
+            init_u8_n(pt_stream->data + pt_rule->offset, pt_rule);
+            return;
+
+        case 2:
+            init_u16_n(pt_stream->data + pt_rule->offset, pt_rule);
+            return;
+
+        case 4:
+            init_u32_n(pt_stream->data + pt_rule->offset, pt_rule);
+            return;
+
+    }
+}
+
+void update_u8_n(void *data, t_rule *pt_rule)
+{
+    (*(uint8_t *)data)+=pt_rule->step_size;
+    if ((*(uint8_t *)data) > *(uint8_t *)(pt_rule->max_value))
+        init_u8_n(data, pt_rule);
+}
+
+void update_u16_n(void *data, t_rule *pt_rule)
+{
+    uint16_t host_data=ntohs(*(uint16_t *)data);
+    uint16_t max_data=ntohs(*(uint16_t *)(pt_rule->max_value));
+    host_data+=pt_rule->step_size;
+    *(uint16_t *)data=htons(host_data);
+    if (host_data > max_data)
+        init_u16_n(data, pt_rule);
+
+}
+
+void update_u32_n(void *data, t_rule *pt_rule)
+{
+    uint32_t host_data=ntohl(*(uint32_t *)data);
+    uint32_t max_data=ntohl(*(uint32_t *)(pt_rule->max_value));
+    host_data+=pt_rule->step_size;
+    *(uint32_t *)data=htonl(host_data);
+    if (host_data > max_data)
+        init_u32_n(data, pt_rule);
+
+}
+
+void check_sum_proc(t_stream *pt_stream)
+{
+    t_ip_hdr *iph=eth_data(pt_stream->data);
+    int type = eth_type(pt_stream->data);
+    if (type!=ETH_P_IP) return;
+    if ((pt_stream->flags & CHECK_SUM_IP))
+    {
+        ip_update_check(iph);
+    }
+
+    if ((iph->protocol == IPPROTO_ICMP) &&
+        (pt_stream->flags & CHECK_SUM_ICMP))
+    {
+        icmp_igmp_update_check(iph);
+        return;
+    }
+
+    if ((iph->protocol == IPPROTO_IGMP) &&
+        (pt_stream->flags & CHECK_SUM_IGMP))
+    {
+        icmp_igmp_update_check(iph);
+        return;
+    }
+
+    if ((iph->protocol == IPPROTO_UDP) &&
+        (pt_stream->flags & CHECK_SUM_UDP))
+    {
+        udp_update_check(iph);
+        return;
+    }
+
+    if ((iph->protocol == IPPROTO_TCP) &&
+        (pt_stream->flags & CHECK_SUM_TCP))
+    {
+        tcp_update_check(iph);
+        return;
+    }
+
+}
+
+void update_bits(void *field_addr, t_rule *pt_rule)
+{
+    unsigned whole_value1, whole_value2, filed_value1, filed_value2;
+    unsigned shift_len=pt_rule->width*8 - pt_rule->bits_from - pt_rule->bits_len;
+
+    if (1==pt_rule->width)
+    {
+        whole_value1 = *(unsigned char *)field_addr;
+        whole_value2 = *(unsigned char *)(pt_rule->max_value);
+    }
+    else
+    {
+        whole_value1 = ntohs(*(unsigned short *)field_addr);
+        whole_value2 = ntohs(*(unsigned short *)(pt_rule->max_value));
+    }
+
+    filed_value1 = (whole_value1>>shift_len);
+    filed_value1 &=((1<<pt_rule->bits_len)-1);
+
+    filed_value1 += pt_rule->step_size;
+
+    filed_value2 = (whole_value2>>shift_len);
+    filed_value2 &=((1<<pt_rule->bits_len)-1);
+
+
+    if (filed_value1>filed_value2)
+    {
+        init_bits(field_addr, pt_rule);
+        return;
+    }
+    
+    whole_value1 &= ~(((1<<pt_rule->bits_len)-1)<<shift_len);
+    whole_value1 |= (filed_value1<<shift_len);
+
+    if (1==pt_rule->width)
+        *(unsigned char *)field_addr = whole_value1;
+    else
+        *(unsigned short *)field_addr = htons(whole_value1);
+
+}
+
+void update_rule_field(t_stream *pt_stream, t_rule *pt_rule)
+{
+    if (pt_rule->bits_len)
+    {
+        update_bits(pt_stream->data + pt_rule->offset, pt_rule);
+        return;
+    }
+
+    switch (pt_rule->width)
+    {
+        case 1:
+            update_u8_n(pt_stream->data + pt_rule->offset, pt_rule);
+            return;
+
+        case 2:
+            update_u16_n(pt_stream->data + pt_rule->offset, pt_rule);
+            return;
+
+        case 4:
+            update_u32_n(pt_stream->data + pt_rule->offset, pt_rule);
+            return;
+
+    }
+}
+
+void rule_fileds_init(t_stream *pt_stream)
+{
+    int i;
+    t_rule *pt_rule;
+    for (i=0; i<pt_stream->rule_num; i++)
+    {
+        pt_rule = &(pt_stream->at_rules[pt_stream->rule_idx[i]]);
+        init_rule_field(pt_stream, pt_rule);
+        check_sum_proc(pt_stream);
+    }
+}
+
+void rule_fileds_update(t_stream *pt_stream)
+{
+    int i;
+    t_rule *pt_rule;
+    for (i=0; i<pt_stream->rule_num; i++)
+    {
+        pt_rule = &(pt_stream->at_rules[pt_stream->rule_idx[i]]);
+        update_rule_field(pt_stream, pt_rule);
+
+        check_sum_proc(pt_stream);
+
+    }
+}
+
+void rule_fileds_init_all_pkt()
+{
+    int i;
+    t_stream *pt_stream;
+    for (i=0; i<nr_cur_stream; i++)
+    {
+        pt_stream = g_apt_streams[i];
+        if (pt_stream->rule_num) rule_fileds_init(pt_stream);
+    }
+}
+
 
 int send_pkt(void *arg)
 {
@@ -439,6 +677,8 @@ while (!need_stop)
                 gt_pkt_stat.send_succ++;
                 gt_pkt_stat.send_succ_bytes+=g_apt_streams[i]->len;
             }
+
+            if (g_apt_streams[i]->rule_num) rule_fileds_update(g_apt_streams[i]);
             
 
 
@@ -601,6 +841,7 @@ int main(int argc, char *argv[])
 
     need_stop = 0;
     be_sending = 1;
+    rule_fileds_init_all_pkt();
 
     create_thread(&the_thread, send_pkt, NULL);
     register_sig_act(SIGINT, my_sig_handler);

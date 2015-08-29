@@ -21,12 +21,12 @@ t_stream    *g_apt_streams[MAX_STREAM_NUM];
 int        nr_cur_stream;
 
 const char *app_name = "xb_ether_tester";
-const char version[4]={'1','1','3',0};
+const char version[4]={'1','1','4',0};
 
 void *alloc_stream()
 {
     t_stream *pt_stream = malloc(sizeof(t_stream));
-    pt_stream->err_flags=0;
+    memset(pt_stream, 0, sizeof(t_stream));
     return pt_stream;
 }
 

@@ -17,7 +17,7 @@ export is_linux:=no
 endif
 
 export CC:=$(CROSS_COMPILE)gcc
-export CFLAGS:=-c -O2 -Wall -fno-omit-frame-pointer -fno-inline-functions -fno-inline-functions-called-once
+export CFLAGS:=-c -O2 -Wall -fno-strict-aliasing -fno-omit-frame-pointer -fno-inline-functions -fno-inline-functions-called-once
 export LD:=$(CROSS_COMPILE)ld
 export AR:=$(CROSS_COMPILE)ar
 

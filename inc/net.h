@@ -51,17 +51,48 @@ typedef struct
     unsigned short type;
 } __attribute__((packed)) t_ether_vlan_packet;
 
+static inline uint16_t get_u16_from_pkt(const void *p_eth_hdr, int offset)
+{
+    uint16_t *var_addr =  p_eth_hdr + offset;
+    return ntohs(*var_addr);
+}
+
+
+static inline uint16_t get_u32_from_pkt(const void *p_eth_hdr, int offset)
+{
+    uint32_t *var_addr =  p_eth_hdr + offset;
+    return ntohl(*var_addr);
+}
+
+
 static inline __u16 get_eth_type_from_addr(void *addr)
 {
     __u16 *p_type = addr;
     return ntohs(*p_type);
 }
 
+
 static inline __u16 set_eth_type_to_addr(__u16 type, void *addr)
 {
     __u16 *p_type = addr;
     return *p_type = htons(type);
 }
+
+
+static inline int get_vlan_tag_nr(const void *p_eth_hdr)
+{
+    int ret = 0;
+    int offset = 12;
+    while (get_u16_from_pkt(p_eth_hdr, offset)==ETH_P_VLAN)
+    {
+         ret++;
+         offset += 4;
+    }
+
+
+    return ret;
+}
+
 
 static inline int eth_is_vlan(const void *p_eth_hdr)
 {
@@ -70,19 +101,28 @@ static inline int eth_is_vlan(const void *p_eth_hdr)
     return (type == ETH_P_VLAN);
 }
 
+
 static inline __u16 eth_type(const void *p_eth_hdr)
 {
-    const t_ether_packet *pt_eth           = p_eth_hdr;
-    const t_ether_vlan_packet *pt_eth_vlan = p_eth_hdr;
-    __u16 type = ntohs(pt_eth->type);
-    if (type != ETH_P_VLAN) return type;
-    return ntohs(pt_eth_vlan->type);
+    __u16 ret = 0;
+    int offset = 12;
+    while ((ret=get_u16_from_pkt(p_eth_hdr, offset))==ETH_P_VLAN)
+    {
+         offset += 4;
+    }
+
+
+    return ret;
 }
+
 
 static inline int eth_hdr_len(const void *p_eth_hdr)
 {
-    if (eth_is_vlan(p_eth_hdr))     return sizeof(t_ether_vlan_packet);
-    return sizeof(t_ether_packet);
+    int ret = sizeof(t_ether_packet);
+    if (!eth_is_vlan(p_eth_hdr))
+        return ret;
+
+    return ret + get_vlan_tag_nr(p_eth_hdr)*4;
 }
 
 static inline void * eth_data(const void *p_eth_hdr)
