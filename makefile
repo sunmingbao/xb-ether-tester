@@ -12,7 +12,7 @@ BUILD_TIME:=$(shell echo %date:~0,10%) $(shell echo %time:~0,8%)
 
 CC := gcc
 
-CFLAG := -Wall -O2  -DBUILD_TIME='"$(BUILD_TIME)"' -D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0502 -DWINVER=0x0501 -DHAVE_REMOTE -DWPCAP 
+CFLAG := -Wall -O2 -fno-strict-overflow -fno-strict-aliasing -DBUILD_TIME='"$(BUILD_TIME)"' -D_WIN32_IE=0x0501 -D_WIN32_WINNT=0x0502 -DWINVER=0x0501 -DHAVE_REMOTE -DWPCAP 
 LDFLAG := -mwindows  -s  -lkernel32 -luser32 -lgdi32 -lcomctl32 -lws2_32 -lwininet -liphlpapi -lWinmm -lwpcap 
 
 #CFLAG := $(CFLAG) -D_DEBUG
