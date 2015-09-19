@@ -61,8 +61,13 @@
 // stats window menu && pkt edit menu ids
 #define IDM_STATS_WIN_COPY2CLIP_BOARD        40201
 #define IDM_STATS_WIN_CLR                    40202
-#define IDM_INSERT_VLAN_HDR                  40203
-#define IDM_DELETE_VLAN_HDR                  40204
+
+#define IDM_PKT_PING_REQ                    40203
+#define IDM_PKT_PING_REPLY                  40204
+#define IDM_PKT_ARP_REQ                     40205
+#define IDM_PKT_ARP_REPLY                   40206
+#define IDM_PKT_TCP_SYN                     40207
+#define IDM_PKT_UDP                         40208
 // toolbar ids
 #define IDT_TOOLBAR_STOP           40301
 #define IDT_TOOLBAR_START          40302

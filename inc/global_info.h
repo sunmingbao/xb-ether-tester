@@ -234,7 +234,7 @@ void populate_recent_pcap_files(HMENU hMenu);
 void * get_nic_FriendlyName(const char *name);
 
 #define SAMPLE_PKT_LEN 74
-extern unsigned char sample_pkt[SAMPLE_PKT_LEN];
+extern unsigned char ping_req[SAMPLE_PKT_LEN];
 
 #define    SPEED_TYPE_HIGH      0
 #define    SPEED_TYPE_LOW       1
