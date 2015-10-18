@@ -102,7 +102,7 @@ void mac_str2n(unsigned char *mac, char *info_usr)
 void mac_n2str(char *info, void *field_addr)
 {
 unsigned char *mac = field_addr;
-sprintf(info, "%02x %02x %02x %02x %02x %02x"
+sprintf(info, "%02x-%02x-%02x-%02x-%02x-%02x"
             , (unsigned)mac[0]
             , (unsigned)mac[1]
             , (unsigned)mac[2]
@@ -213,65 +213,6 @@ void update_u32_n(void *data, t_rule *pt_rule)
 
 }
 
-unsigned char ping_req[SAMPLE_PKT_LEN]={
-0x00, 0x23, 0xcd, 0x76, 0x63, 0x1a, 0x00 ,0x21 ,0x85 ,0xc5 ,0x2b ,0x8f ,0x08 ,0x00 ,0x45 ,0x00,
-0x00, 0x3c, 0x79, 0x19, 0x00, 0x00, 0x40 ,0x01 ,0x7f ,0xf2 ,0xc0 ,0xa8 ,0x01 ,0x64 ,0xc0 ,0xa8,
-0x01, 0x01, 0x08, 0x00, 0x44, 0x5c, 0x04 ,0x00 ,0x05 ,0x00 ,0x61 ,0x62 ,0x63 ,0x64 ,0x65 ,0x66,
-0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d ,0x6e ,0x6f ,0x70 ,0x71 ,0x72 ,0x73 ,0x74 ,0x75 ,0x76,
-0x77, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66 ,0x67 ,0x68 ,0x69  
-		
-	};
-
-static unsigned char ping_reply[ ]={
-0x00, 0x21, 0x85, 0xc5, 0x2b, 0x8f, 0x00, 0x23, 0xcd, 0x76, 0x63, 0x1a, 0x08, 0x00, 0x45, 0x00, 
-0x00, 0x3c, 0x00, 0x91, 0x00, 0x00, 0x40, 0x01, 0xf6, 0x7a, 0xc0, 0xa8, 0x01, 0x01, 0xc0, 0xa8, 
-0x01, 0x64, 0x00, 0x00, 0x4c, 0x5c, 0x04, 0x00, 0x05, 0x00, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 
-0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 
-0x77, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 
-};
-static unsigned char arp_req[ ]={
-0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x00, 0x21, 0x85, 0xc5, 0x2b, 0x8f, 0x08, 0x06, 0x00, 0x01, 
-0x08, 0x00, 0x06, 0x04, 0x00, 0x01, 0x00, 0x21, 0x85, 0xc5, 0x2b, 0x8f, 0xc0, 0xa8, 0x01, 0x64, 
-0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0xa8, 0x01, 0x01, 
-};
-
-static unsigned char arp_reply[ ]={
-0x00, 0x21, 0x85, 0xc5, 0x2b, 0x8f, 0x00, 0x23, 0xcd, 0x76, 0x63, 0x1a, 0x08, 0x06, 0x00, 0x01, 
-0x08, 0x00, 0x06, 0x04, 0x00, 0x02, 0x00, 0x23, 0xcd, 0x76, 0x63, 0x1a, 0xc0, 0xa8, 0x01, 0x01, 
-0x00, 0x21, 0x85, 0xc5, 0x2b, 0x8f, 0xc0, 0xa8, 0x01, 0x64, 0x00, 0x00, 0xff, 0xff, 0xff, 0xff, 
-0xff, 0xff, 0x00, 0x23, 0xcd, 0x76, 0x63, 0x1a, 0x08, 0x06, 0x00, 0x01, 
-};
-
-static unsigned char tcp_syn[ ]={
-0x00, 0x23, 0xcd, 0x76, 0x63, 0x1a, 0x00, 0x21, 0x85, 0xc5, 0x2b, 0x8f, 0x08, 0x00, 0x45, 0x00, 
-0x00, 0x34, 0x0a, 0x27, 0x40, 0x00, 0x40, 0x06, 0xd2, 0xca, 0xc0, 0xa8, 0x01, 0x64, 0x71, 0x6b, 
-0x2a, 0x5b, 0x05, 0x05, 0x00, 0x50, 0x7a, 0x77, 0xff, 0x4b, 0x00, 0x00, 0x00, 0x00, 0x80, 0x02, 
-0xff, 0xff, 0x80, 0x16, 0x00, 0x00, 0x02, 0x04, 0x17, 0xca, 0x01, 0x03, 0x03, 0x01, 0x01, 0x01, 
-0x04, 0x02, 
-};
-
-static unsigned char udp[ ]={
-0x00, 0x23, 0xcd, 0x76, 0x63, 0x1a, 0x00, 0x21, 0x85, 0xc5, 0x2b, 0x8f, 0x08, 0x00, 0x45, 0x00, 
-0x00, 0x30, 0x21, 0xb3, 0x00, 0x00, 0x40, 0x11, 0x9d, 0x6f, 0xc0, 0xa8, 0x01, 0x64, 0xde, 0x49, 
-0x1b, 0x45, 0x05, 0x21, 0x27, 0x15, 0x00, 0x1c, 0x12, 0x8b, 0xef, 0xec, 0x3d, 0xd6, 0xc5, 0x36, 
-0x44, 0x67, 0x39, 0x21, 0xbc, 0x64, 0x6d, 0xb3, 0x97, 0xc8, 0x82, 0xb5, 0x50, 0x41, 
-};
-typedef struct
-{
-    void *pkt_data;
-    int len;
-
-} t_sample_pkt;
-
-static t_sample_pkt gat_sample_pkts[] = 
-{
-    {ping_req, sizeof(ping_req)},
-    {ping_reply, sizeof(ping_reply)},
-    {arp_req, sizeof(arp_req)},
-    {arp_reply, sizeof(arp_reply)},
-    {tcp_syn, sizeof(tcp_syn)},
-    {udp, sizeof(udp)},
-};
 void init_stream(t_stream    *pt_streams)
 {
     memset(pt_streams, 0, STREAM_HDR_LEN);
@@ -570,6 +511,24 @@ t_tvi_data gat_icmp_echo_hdr_tvis[]=
 {
   {"id", 4, 2, SUPPORT_RULE},
   {"sequence", 6, 2, SUPPORT_RULE},
+};
+
+t_tvi_data gat_icmpv6_nd_req_hdr_tvis[]=
+{
+  {"reserved", 4, 4},
+  {"target_ip", 8, 16, IS_IP6},
+  {"option type", 24, 1},
+  {"len", 25, 1},
+  {"mac address", 26, 6, IS_MAC},
+};
+
+t_tvi_data gat_icmpv6_nd_reply_hdr_tvis[]=
+{
+  {"flags", 4, 4},
+  {"target_ip", 8, 16, IS_IP6},
+  {"option type", 24, 1},
+  {"len", 25, 1},
+  {"mac address", 26, 6, IS_MAC},
 };
 
 t_tvi_data gat_igmp_hdr_tvis[]=
@@ -873,7 +832,7 @@ void tvi_update_ip6_upper_hdr(HWND htv, HTREEITEM htvi, t_stream *pt_edit_stream
     t_ipv6_hdr *ip6h=eth_data(pt_edit_stream->data);
     
     if (ip6h->nexthdr==IPPROTO_ICMPV6)
-        build_hdr_info(info, TEXT("icmp"),  eth_len+IPV6_HDR_LEN, icmp6_hdr_len(ip6_data(ip6h)));
+        build_hdr_info(info, TEXT("icmpv6"),  eth_len+IPV6_HDR_LEN, icmp6_hdr_len(ip6_data(ip6h)));
    else if (ip6h->nexthdr==IPPROTO_TCP)
        build_hdr_info(info, TEXT("tcp"),  eth_len+IPV6_HDR_LEN, tcp_hdr_len(ip6_data(ip6h)));
    else if (ip6h->nexthdr==IPPROTO_UDP)
@@ -1244,16 +1203,30 @@ treeItem2=insertItem(hwnd_tree, TEXT("flags"), treeItem1, TVI_LAST, -1, -1, 0);
 
             build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_icmp_hdr_tvis, ARRAY_SIZE(gat_icmp_hdr_tvis));
-            
-            if ((pt_icmp_hdr->type==128 || pt_icmp_hdr->type==129)
+
+            if ((pt_icmp_hdr->type==135))
+            {
+                build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_icmpv6_nd_req_hdr_tvis, ARRAY_SIZE(gat_icmpv6_nd_req_hdr_tvis));
+
+            }
+            else if ((pt_icmp_hdr->type==136))
+            {
+                build_tvis(hwnd_tree, treeItem1
+                , adjust, gat_icmpv6_nd_reply_hdr_tvis, ARRAY_SIZE(gat_icmpv6_nd_reply_hdr_tvis));
+
+            }
+                        
+            else if ((pt_icmp_hdr->type==128 || pt_icmp_hdr->type==129)
                 && pt_icmp_hdr->code==0 )
             {
                 build_tvis(hwnd_tree, treeItem1
                 , adjust, gat_icmp_echo_hdr_tvis, ARRAY_SIZE(gat_icmp_echo_hdr_tvis));
+                treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
+                tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
+
             }
 
-            treeItem1=insertItem(hwnd_tree, TEXT("data"), TVI_ROOT, TVI_LAST, -1, -1, (LPARAM)tvi_update_data);
-            tvi_update_data(hwnd_tree, treeItem1, &gt_edit_stream);
 
         }
 
@@ -2415,7 +2388,7 @@ move_child_a2b_left_top(GetDlgItem(hDlg,IDOK), GetDlgItem(hDlg,IDCANCEL), 10);
         right_include_child(GetDlgItem(hDlg,ID_SED_TCP_UDP_CHECKSUM), 10);
     bottom_include_child(GetDlgItem(hDlg,IDOK), 10);
 
-move_child_a2b_up_right(GetDlgItem(hDlg,ID_PKT_EDIT_MENU_BTN), hwnd_tree, 15);
+//move_child_a2b_up_right(GetDlgItem(hDlg,ID_PKT_EDIT_MENU_BTN), hwnd_tree, 15);
 ShowWindow(GetDlgItem(hDlg,ID_PKT_EDIT_MENU_BTN), 1);
 }
 
@@ -2594,7 +2567,16 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                     }
 
                 }
-                
+
+                if (LOWORD(wParam)>=IDM_PKT_PING_REQ && LOWORD(wParam)<=IDM_PKT_MAX)
+                {
+                    pkt_idx=LOWORD(wParam)-IDM_PKT_PING_REQ;
+                    gt_edit_stream.len=gat_sample_pkts[pkt_idx].len;
+                    memcpy(gt_edit_stream.data, gat_sample_pkts[pkt_idx].pkt_data, gt_edit_stream.len);
+                    set_int_text(GetDlgItem(hDlg, ID_SED_LEN), gt_edit_stream.len);
+                   	goto PROTO_CHNG_PROC;
+                }
+                                    
           		switch (LOWORD(wParam))
           		{
               		case 	IDOK :
@@ -2667,19 +2649,6 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                        	return TRUE ;
                     }
 
-                    case    IDM_PKT_PING_REQ:
-                    case    IDM_PKT_PING_REPLY:
-                    case    IDM_PKT_ARP_REQ:
-                    case    IDM_PKT_ARP_REPLY:
-                    case    IDM_PKT_TCP_SYN:
-                    case    IDM_PKT_UDP:
-                    {
-                        pkt_idx=LOWORD(wParam)-IDM_PKT_PING_REQ;
-                        gt_edit_stream.len=gat_sample_pkts[pkt_idx].len;
-                        memcpy(gt_edit_stream.data, gat_sample_pkts[pkt_idx].pkt_data, gt_edit_stream.len);
-                        set_int_text(GetDlgItem(hDlg, ID_SED_LEN), gt_edit_stream.len);
-                       	goto PROTO_CHNG_PROC;
-                    }
 
 
                     case    ID_SED_HEX_EDIT:

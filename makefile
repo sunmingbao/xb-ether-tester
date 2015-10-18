@@ -52,6 +52,7 @@ OBJECTS :=  \
 	$(OBJ_DIR)\common.o \
 	$(OBJ_DIR)\gui.o \
 	$(OBJ_DIR)\ver_update.o \
+	$(OBJ_DIR)\sample_pkts.o \
 	$(OBJ_DIR)\debug.o \
 	$(OBJ_DIR)\res.orc
 
@@ -118,6 +119,9 @@ $(OBJ_DIR)\ver_update.o: $(PRJ_DIR)\src\ver_update.c
 	$(CC) -c $(CFLAG) -o $@  $<
 
 $(OBJ_DIR)\debug.o: $(PRJ_DIR)\src\debug.c
+	$(CC) -c $(CFLAG) -o $@  $<
+
+$(OBJ_DIR)\sample_pkts.o: $(PRJ_DIR)\src\sample_pkts.c
 	$(CC) -c $(CFLAG) -o $@  $<
 
 installer:

@@ -15,7 +15,7 @@
 #include "net.h"
 #include "gui.h"
 
-const char version[4]={'3','2','6',0};
+const char version[4]={'3','2','7',0};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -719,8 +719,8 @@ case WM_NOTIFY:
                   
                 case    IDM_STREAM_NEW:
                     init_stream(&gt_edit_stream);
-                    gt_edit_stream.len=sizeof(ping_req);
-                    memcpy(gt_edit_stream.data, ping_req, sizeof(ping_req));
+                    gt_edit_stream.len=gat_sample_pkts[0].len;
+                    memcpy(gt_edit_stream.data, gat_sample_pkts[0].pkt_data, gt_edit_stream.len);
 
                     ret=DialogBox(g_hInstance, TEXT("STREAM_EDIT_DLG"), hwnd, StreamEditDlgProc);
                     if (IDOK==ret)

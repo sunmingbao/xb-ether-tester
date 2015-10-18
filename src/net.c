@@ -755,7 +755,11 @@ void get_pkt_desc_info_v6(char *info, void* p_eth_hdr)
             return;
 
         case IPPROTO_ICMPV6:
-            if ((pt_icmp_hdr->type==128)  && (pt_icmp_hdr->code==0) )
+            if ((pt_icmp_hdr->type==135))
+                strcpy(info, "Neighbor Solicitation");
+            else if ((pt_icmp_hdr->type==136))
+                strcpy(info, "Neighbor Advertisement");
+            else if ((pt_icmp_hdr->type==128)  && (pt_icmp_hdr->code==0) )
                 strcpy(info, "ping request");
             else if ((pt_icmp_hdr->type==129)  && (pt_icmp_hdr->code==0) )
                 strcpy(info, "ping reply");
@@ -799,10 +803,20 @@ void get_pkt_desc_info(char *info, void* p_eth_hdr, uint32_t err_flags)
             }
             else if (ntohs(arp_hdr->ar_op)==2)
             {
-                ip_n2str(info_2, arp_hdr->ar_sip);
-                sprintf(info, "%s is at ", info_2);
-                mac_n2str(info_2, arp_hdr->ar_sha);
-                strcat(info, info_2);
+                if (4==arp_hdr->ar_pln)
+                {
+                    ip_n2str(info_2, arp_hdr->ar_sip);
+                    sprintf(info, "%s is at ", info_2);
+                    mac_n2str(info_2, arp_hdr->ar_sha);
+                    strcat(info, info_2);
+                }
+                else if (16==arp_hdr->ar_pln)
+                {
+                    ip6_n2str(info_2, arp_hdr->ar_sip);
+                    sprintf(info, "%s is at ", info_2);
+                    mac_n2str(info_2, arp_hdr->ar_sha);
+                    strcat(info, info_2);
+                }
             }
             
             goto append_err_info;

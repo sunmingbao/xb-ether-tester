@@ -357,6 +357,7 @@ void ui_switch_CAP_CFG_MODE(HWND hDlg, int is_to_normal)
     ShowWindow(GetDlgItem(hDlg, i),is_to_normal);
     
     ShowWindow(GetDlgItem(hDlg, ID_PKT_CAP_FILTER_STR),!is_to_normal);
+    ShowWindow(GetDlgItem(hDlg, ID_PKT_CAP_CFG_FILTERS_MENU_BTN),!is_to_normal);
     if (!is_to_normal)
         SetFocus(GetDlgItem(hDlg, ID_PKT_CAP_FILTER_STR));
     else
@@ -573,13 +574,32 @@ void init_protocol_comb(HWND comb, int add_all)
 
 }
 
+static const char *pcap_filters[] = 
+{
+"port 80",
+"tcp",
+"tcp port 80",
+"src 192.168.1.1",
+"dst 192.168.1.1",
+"host 192.168.1.1",
+"src 192.168.1.1 and (udp port 80 or icmp)",
+"ether proto 0x86dd",
+"ether src 01:02:00:55:55:55",
+"ether dst  01:02:00:55:55:55",
+"ether host 01:02:00:55:55:55",
+"ether src 01:02:00:55:55:55 and  ether proto 0x86dd",
+};
+
 BOOL CALLBACK PktCapCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
 {
     TCHAR    info[MAX_FILE_PATH_LEN];
-
+    static HMENU hMenu;
+    int filter_idx;
  	switch (message)
  	{
      	case 	WM_INITDIALOG :
+                hMenu = LoadMenu (g_hInstance, TEXT("pcap_filters_menu"));
+                hMenu = GetSubMenu (hMenu, 0);
                 center_child_win(hwnd_frame, hDlg);
 
                 if (0==gt_pkt_cap_cfg.need_save_capture)
@@ -647,6 +667,14 @@ BOOL CALLBACK PktCapCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
    				return TRUE ;
 
      	case 	WM_COMMAND :
+
+        if (LOWORD(wParam)>=IDM_PCAP_FILTER_PORT && LOWORD(wParam)<=IDM_PCAP_FILTER_MAX)
+        {
+            filter_idx=LOWORD(wParam)-IDM_PCAP_FILTER_PORT;
+            SetWindowText(GetDlgItem(hDlg, ID_PKT_CAP_FILTER_STR), pcap_filters[filter_idx]);
+           	return TRUE ;
+        }
+                    
 		switch (LOWORD(wParam))
 		{
 			case    IDOK :
@@ -675,7 +703,17 @@ BOOL CALLBACK PktCapCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
     		ui_switch_CAP_CFG_MODE(hDlg, 0);
     		return TRUE ;
 		}
-
+        
+        case    ID_PKT_CAP_CFG_FILTERS_MENU_BTN:
+        {
+            POINT point;
+            point.x = win_left(GetDlgItem(hDlg, ID_PKT_CAP_CFG_FILTERS_MENU_BTN));
+            point.y = win_bottom(GetDlgItem(hDlg, ID_PKT_CAP_CFG_FILTERS_MENU_BTN));
+	        TrackPopupMenu(hMenu, 0, point.x, point.y, 0, hDlg, NULL) ;
+           	return TRUE ;
+        }
+        
+                    
 		case 	ID_PKT_CAP_PKT_TYPE:
 		case    ID_PKT_CAP_PROTOCOL:
 		{

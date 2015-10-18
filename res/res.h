@@ -68,6 +68,14 @@
 #define IDM_PKT_ARP_REPLY                   40206
 #define IDM_PKT_TCP_SYN                     40207
 #define IDM_PKT_UDP                         40208
+
+#define IDM_PKT_ARP_REQ_IPV6                     40209
+#define IDM_PKT_ARP_REPLY_IPV6                   40210
+#define IDM_PKT_ND_REQ_IPV6                      40211
+#define IDM_PKT_ND_REPLY_IPV6                    40212
+#define IDM_PKT_PING_REQ_IPV6                    40213
+#define IDM_PKT_PING_REPLY_IPV6                  40214
+#define IDM_PKT_MAX                              40214
 // toolbar ids
 #define IDT_TOOLBAR_STOP           40301
 #define IDT_TOOLBAR_START          40302
@@ -160,7 +168,20 @@
 #define ID_PKT_CAP_UDP6          40864
 #define ID_PKT_CAP_TCP6          40865
 #define ID_PKT_CAP_OTHER6        40866
-
+#define ID_PKT_CAP_CFG_FILTERS_MENU_BTN   40867
+#define IDM_PCAP_FILTER_PORT              40868
+#define IDM_PCAP_FILTER_TCP               40869
+#define IDM_PCAP_FILTER_TCP_PORT          40870
+#define IDM_PCAP_FILTER_SRC_IP            40871
+#define IDM_PCAP_FILTER_DST_IP            40872
+#define IDM_PCAP_FILTER_HOST              40873
+#define IDM_PCAP_FILTER_SRC_IP_UDP_PORT   40874
+#define IDM_PCAP_FILTER_ETHER_PROTO       40875
+#define IDM_PCAP_FILTER_ETHER_SRC         40876
+#define IDM_PCAP_FILTER_ETHER_DST         40877
+#define IDM_PCAP_FILTER_ETHER_HOST        40878
+#define IDM_PCAP_FILTER_ETHER_SRC_PROTO   40879
+#define IDM_PCAP_FILTER_MAX               40879
 // about dlg ids
 #define  ID_ABOUT_INFO          40900
 #define  ID_AB_SOURCE           40901

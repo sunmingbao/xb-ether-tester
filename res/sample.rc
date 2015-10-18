@@ -157,8 +157,35 @@ BEGIN
     	        MENUITEM "arp应答", 	    IDM_PKT_ARP_REPLY
     	        MENUITEM "TCP建链", 	    IDM_PKT_TCP_SYN
     	        MENUITEM "UDP", 	        IDM_PKT_UDP
-
+			    POPUP "ipv6"
+			    BEGIN
+    	        MENUITEM "arp请求", 	    IDM_PKT_ARP_REQ_IPV6 
+    	        MENUITEM "arp应答", 	    IDM_PKT_ARP_REPLY_IPV6 
+    	        MENUITEM "ND(领居发现)请求", 	    IDM_PKT_ND_REQ_IPV6 
+    	        MENUITEM "ND(领居发现)应答", 	    IDM_PKT_ND_REPLY_IPV6 
+    	        MENUITEM "ping(echo request)", 	    IDM_PKT_PING_REQ_IPV6 
+    	        MENUITEM "ping应答(echo reply)", 	IDM_PKT_PING_REPLY_IPV6 
+			    END
     	END
+END
+
+pcap_filters_menu MENU DISCARDABLE 
+BEGIN
+    	POPUP "&operations"
+    	BEGIN
+		MENUITEM "port 80",  IDM_PCAP_FILTER_PORT              
+		MENUITEM "tcp",  IDM_PCAP_FILTER_TCP               
+		MENUITEM "tcp port 80",  IDM_PCAP_FILTER_TCP_PORT          
+		MENUITEM "src 192.168.1.1",  IDM_PCAP_FILTER_SRC_IP            
+		MENUITEM "dst 192.168.1.1",  IDM_PCAP_FILTER_DST_IP            
+		MENUITEM "host 192.168.1.1",  IDM_PCAP_FILTER_HOST              
+		MENUITEM "src 192.168.1.1 and (udp port 80 or icmp)",  IDM_PCAP_FILTER_SRC_IP_UDP_PORT   
+		MENUITEM "ether proto 0x86dd",  IDM_PCAP_FILTER_ETHER_PROTO       
+		MENUITEM "ether src 01:02:00:55:55:55",  IDM_PCAP_FILTER_ETHER_SRC         
+		MENUITEM "ether dst  01:02:00:55:55:55",  IDM_PCAP_FILTER_ETHER_DST         
+		MENUITEM "ether host 01:02:00:55:55:55",  IDM_PCAP_FILTER_ETHER_HOST        
+		MENUITEM "ether src 01:02:00:55:55:55 and  ether proto 0x86dd",  IDM_PCAP_FILTER_ETHER_SRC_PROTO
+		END
 END
 // Accelerator
 MY_ACCELER ACCELERATORS DISCARDABLE 
@@ -292,8 +319,9 @@ BEGIN
 
     	CONTROL "", ID_PKT_CAP_FILTER_STR, "edit"
     	, WS_VSCROLL | ES_MULTILINE|ES_AUTOVSCROLL|ES_WANTRETURN
-    	, 15, 90, 210, 80
+    	, 15, 90, 160, 70
 
+        PUSHBUTTON  "常用语法 ▼", ID_PKT_CAP_CFG_FILTERS_MENU_BTN,180, 90, 50, 14
 //    	CTEXT       "抓取哪个方向的报文",IDC_STATIC,10,30,40,14
 //		COMBOBOX    ID_PKT_CAP_DIRECTION,65, 30, 100, 50,CBS_DROPDOWNLIST | WS_VSCROLL
 

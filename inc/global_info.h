@@ -233,8 +233,6 @@ void populate_recent_pcap_files(HMENU hMenu);
 
 void * get_nic_FriendlyName(const char *name);
 
-#define SAMPLE_PKT_LEN 74
-extern unsigned char ping_req[SAMPLE_PKT_LEN];
 
 #define    SPEED_TYPE_HIGH      0
 #define    SPEED_TYPE_LOW       1
@@ -303,5 +301,16 @@ typedef struct
     uint32_t len;
 
 } __attribute__((packed)) t_data_seg_info;
+
+
+typedef struct
+{
+    void *pkt_data;
+    int len;
+
+} t_sample_pkt;
+
+extern t_sample_pkt gat_sample_pkts[];
+
 #endif
 
