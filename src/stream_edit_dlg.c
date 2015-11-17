@@ -2983,11 +2983,11 @@ void sel_pkt_to_stream(HWND hList)
             memcpy(t_stream_tmp.data, pt_pkt->pkt_data, pt_pkt->header.caplen);
             t_stream_tmp.err_flags = pt_pkt->err_flags;
             add_stream(&t_stream_tmp);
-            re_populate_items();
         }
     }
 
     free(pt_pkt);
+    re_populate_items();
 }
 
 void sel_pkt_to_pcap_dump(HWND hList, char *dump_file)
