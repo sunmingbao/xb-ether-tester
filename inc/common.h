@@ -222,6 +222,7 @@ int a_include_b_right(HWND a, HWND b);
 
 void clear_comb(HWND hwndCtl);
 int str2int(char *info);
+int read_file_to_buf(char *buf, int buflen, const char *file);
 
 static inline void refresh_window(HWND hwnd)
 {

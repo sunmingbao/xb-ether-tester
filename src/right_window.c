@@ -15,7 +15,7 @@
 #include "net.h"
 #include "gui.h"
 
-const char version[4]={'3','2','7',0};
+const char version[4]={'3','2','8',0};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -592,6 +592,128 @@ LRESULT CALLBACK my_lv_proc (HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPa
    return  CallWindowProc (old_lv_proc, hWnd, iMessage, wParam, lParam);
 }
 
+void add_stream_from_raw_data(void *buf, int len)
+{
+
+
+  t_stream t_stream_tmp;
+
+  if (nr_cur_stream>=MAX_STREAM_NUM)
+  {
+      err_msg_box("已达最大流数目 %d", MAX_STREAM_NUM);
+      return;
+  }
+
+
+    init_stream(&t_stream_tmp);
+    t_stream_tmp.len=len;
+    memcpy(t_stream_tmp.data, buf, len);
+    t_stream_tmp.err_flags = build_err_flags((void *)(t_stream_tmp.data), len);
+    add_stream(&t_stream_tmp);
+
+    re_populate_items();
+}
+
+int add_stream_from_pcap(char *file_path)
+{
+    pcap_t *fp;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    char source[PCAP_BUF_SIZE];
+    struct pcap_pkthdr *header;
+    const u_char *pkt_data;
+    t_stream t_stream_tmp;
+    
+    /* Create the source string according to the new WinPcap syntax */
+    if ( pcap_createsrcstr( source,         // variable that will keep the source string
+                            PCAP_SRC_FILE,  // we want to open a file
+                            NULL,           // remote host
+                            NULL,           // port on the remote host
+                            file_path,        // name of the file we want to open
+                            errbuf          // error buffer
+                            ) != 0)
+    {
+        WinPrintf(hwnd_frame, "Error creating a source string");
+        return -1;
+    }
+    
+    /* Open the capture file */
+    if ( (fp= pcap_open(source,         // name of the device
+                        65536,          // portion of the packet to capture
+                                        // 65536 guarantees that the whole packet will be captured on all the link layers
+                         PCAP_OPENFLAG_PROMISCUOUS,     // promiscuous mode
+                         1000,              // read timeout
+                         NULL,              // authentication on the remote machine
+                         errbuf         // error buffer
+                         ) ) == NULL)
+    {
+        WinPrintf(hwnd_frame, "打开文件失败:\n%s\n可能是抓包存档文件损坏或格式不支持", source);
+        return -1;
+    }
+
+    while (pcap_next_ex(fp, &header, &pkt_data)>0)
+    {
+        if (nr_cur_stream>=MAX_STREAM_NUM)
+        {
+             err_msg_box("已达最大流数目 %d", MAX_STREAM_NUM);
+             break;
+        }
+
+
+        init_stream(&t_stream_tmp);
+        t_stream_tmp.len=header->caplen;
+        memcpy(t_stream_tmp.data, pkt_data, t_stream_tmp.len);
+        t_stream_tmp.err_flags = build_err_flags((void *)(t_stream_tmp.data), t_stream_tmp.len);
+        add_stream(&t_stream_tmp);
+
+
+    }
+
+    pcap_close(fp);	
+    re_populate_items();
+    return 0;
+}
+
+
+int is_hex_char(char *c)
+{
+    if (isdigit(c)) return 1;
+    if (c=='X' || c=='x') return 1;
+    if (c>='a' && c<='f') return 1;
+    if (c>='A' && c<='F') return 1;
+    return 0;
+}
+
+int hex2bin(void *buf_dst, char *buf_src, int len)
+{
+    int new_len = 0;
+    uint8_t *output=buf_dst;
+    char *src_end=buf_src+len;
+    char *num_begin=buf_src, *num_end;
+
+    while (num_begin<src_end)
+    {
+        while (num_begin<src_end && !is_hex_char(*num_begin))
+            num_begin++;
+        if (num_begin>=src_end) break;
+
+        num_end=num_begin+2;
+        if (*num_begin=='0' && (*(num_begin+1)=='x' || *(num_begin+1)=='X'))
+            num_end+=2;
+        
+        *num_end = 0;
+        output[new_len++] =(uint8_t) strtoul(num_begin, NULL, 16);
+        num_begin = num_end+1;
+    }
+
+    return new_len;
+}
+
+void add_stream_from_hex_text(void *buf, int len)
+{
+    int len_new=hex2bin(buf, buf, len);
+    add_stream_from_raw_data(buf, len_new);
+}
+
 LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     RECT		rect ;
@@ -600,6 +722,7 @@ LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
     POINT point ;
     int ret, idx;
     TCHAR  buf[64];
+    char file_name[MAX_FILE_PATH_LEN];
 
     static int edit_iItem=-1 ;
     static int edit_iSubItem;
@@ -730,6 +853,44 @@ case WM_NOTIFY:
                     }
                	return 0 ;
 
+                case    IDM_STREAM_NEW_HEX:
+                {
+                    int len;
+                    char buf[MAX_PACKET_LEN];
+                    if (get_open_file_name(file_name, hwnd, ALL_FILE_FILTER))
+                        return 0;
+
+                    len = read_file_to_buf(buf, sizeof(buf)-1, file_name);
+                    if (len>0)
+                        add_stream_from_hex_text(buf, len);
+                    else
+                        err_msg_box("读取文件内容失败");
+                   	return 0 ;
+                }
+
+                case    IDM_STREAM_NEW_BIN:
+                {
+                    int len;
+                    char buf[MAX_PACKET_LEN];
+                    if (get_open_file_name(file_name, hwnd, ALL_FILE_FILTER))
+                        return 0;
+
+                    len = read_file_to_buf(buf, sizeof(buf)-1, file_name);
+                    if (len>0)
+                        add_stream_from_raw_data(buf, len);
+                    else
+                        err_msg_box("读取文件内容失败");
+                   	return 0 ;
+                }
+
+                case    IDM_STREAM_NEW_PCAP:
+                {
+                    if (get_open_file_name(file_name, hwnd, PCAP_FILE_FILTER))
+                        return 0;
+                    add_stream_from_pcap(file_name);
+                   	return 0 ;
+                }
+                                
                 case    IDM_STREAM_DEL:
                     idx=GetIndex(hwnd_lv);
        				//ListView_DeleteItem(hwnd_lv, idx);
@@ -783,7 +944,6 @@ case WM_NOTIFY:
 
                 case    IDM_STREAM_SEL2PCAP:
                 {
-                    char file_name[MAX_FILE_PATH_LEN];
                     ret=get_save_file_name(file_name, hwnd, PCAP_FILE_FILTER, PCAP_FILE_SUFFIX);
                     if (ret) return 0 ;
 
@@ -794,7 +954,6 @@ case WM_NOTIFY:
 
                 case    IDM_STREAM_2_BIN:
                 {
-                    char file_name[MAX_FILE_PATH_LEN];
                     ret=get_save_file_name(file_name, hwnd, BIN_FILE_FILTER, BIN_FILE_SUFFIX);
                     if (ret) return 0 ;
 
@@ -804,7 +963,6 @@ case WM_NOTIFY:
 
                 case    IDM_STREAM_2_TEXT:
                 {
-                    char file_name[MAX_FILE_PATH_LEN];
                     ret=get_save_file_name(file_name, hwnd, TEXT_FILE_FILTER, TEXT_FILE_SUFFIX);
                     if (ret) return 0 ;
 
@@ -844,7 +1002,11 @@ case   WM_KEYDOWN:
             int item_cnt=ListView_GetItemCount(hwnd_lv);
             if (lParam == 0)
             {
-                EnableMenuItem ((HMENU) wParam, IDM_STREAM_NEW, nr_cur_stream<MAX_STREAM_NUM ? MF_ENABLED : MF_GRAYED);
+                UINT add_stream_menu_state = nr_cur_stream<MAX_STREAM_NUM ? MF_ENABLED : MF_GRAYED;
+                EnableMenuItem ((HMENU) wParam, IDM_STREAM_NEW, add_stream_menu_state);
+                EnableMenuItem ((HMENU) wParam, IDM_STREAM_NEW_HEX, add_stream_menu_state);
+                EnableMenuItem ((HMENU) wParam, IDM_STREAM_NEW_BIN, add_stream_menu_state);
+                EnableMenuItem ((HMENU) wParam, IDM_STREAM_NEW_PCAP, add_stream_menu_state);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_EDIT, idx>=0 ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_DEL, idx>=0 ? MF_ENABLED : MF_GRAYED);
                 EnableMenuItem ((HMENU) wParam, IDM_STREAM_COPY, idx>=0 ? MF_ENABLED : MF_GRAYED);

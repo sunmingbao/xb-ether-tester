@@ -119,9 +119,19 @@ BEGIN
     	POPUP "&Streams"
     	BEGIN
         		MENUITEM "新建流(&N)", 				IDM_STREAM_NEW
-        		MENUITEM "编辑当前流(&E)", 			IDM_STREAM_EDIT
         		MENUITEM SEPARATOR
+        		
+
+        		MENUITEM "编辑当前流(&E)", 			IDM_STREAM_EDIT
         		MENUITEM "用当前流构造分片(&F)", 	 IDM_STREAM_MAKE_FRAGS
+        		MENUITEM SEPARATOR
+        		
+				MENUITEM "导入单个流 - 从16进制文本文件", 	 IDM_STREAM_NEW_HEX
+				MENUITEM "导入单个流 - 从二进制文件", 	 IDM_STREAM_NEW_BIN
+				MENUITEM "导入流 - 从wireshark/tcpdump存档", 	 IDM_STREAM_NEW_PCAP
+
+
+        		MENUITEM SEPARATOR
         		MENUITEM "当前流另存为二进制文件",     IDM_STREAM_2_BIN
         		MENUITEM "当前流另存为16进制文本文件", IDM_STREAM_2_TEXT
 

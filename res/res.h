@@ -42,6 +42,10 @@
 
 // stream window menu ids
 #define IDM_STREAM_NEW             40101
+#define IDM_STREAM_NEW_HEX         40121
+#define IDM_STREAM_NEW_BIN         40122
+#define IDM_STREAM_NEW_PCAP        40123
+
 #define IDM_STREAM_EDIT            40102
 
 #define IDM_STREAM_MAKE_FRAGS      40103

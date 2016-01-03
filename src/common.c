@@ -737,3 +737,23 @@ int str2int(char *info)
     else        
         return strtol(info+0,NULL,10);
 }
+
+int read_file_to_buf(char *buf, int buflen, const char *file)
+{
+    int ret;
+    FILE *fp=fopen(file, "rb");
+    if (fp == NULL )
+    {
+        return -1;
+    }
+
+    ret=fread(buf, 1, buflen, fp);
+    fclose(fp);
+    if (ret>0)
+    {
+        buf[ret] = 0;
+        return ret;
+    }
+    
+    return -1;
+}

@@ -158,10 +158,12 @@ void init_stats_ui();
 void stream_edit_data_change(HWND  hwnd, int offset);
 
 
+#define    ALL_FILE_FILTER    "all(*.*)\0*.*\0\0"
+
 #define    CFG_FILE_FILTER    "ethernet test config(*.etc)\0*.etc\0\0"
 #define    CFG_FILE_SUFFIX    "etc"
 
-#define    PCAP_FILE_FILTER    "tcpdump/pcap file(*.pcap)\0*.pcap\0\0"
+#define    PCAP_FILE_FILTER    "wireshark/tcpdump(*.pcap)\0*.pcap\0\0"
 #define    PCAP_FILE_SUFFIX    "pcap"
 
 #define    TEXT_FILE_FILTER    "text file(*.txt)\0*.txt\0\0"
