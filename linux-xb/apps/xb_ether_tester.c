@@ -809,6 +809,32 @@ int prepare_tap_if(char *tap_name)
     fcntl(fd, F_SETFL, O_NONBLOCK);
     return fd;
 }
+
+int has_sendable_pkt(void)
+{
+    int i;
+    t_stream *pt_stream;
+
+    if (send_all) goto HAS_SENDABLE_PKT;
+
+    for (i=0; i<nr_cur_stream; i++)
+    {
+        pt_stream = g_apt_streams[i];
+        if (pt_stream->selected)
+            goto HAS_SENDABLE_PKT;
+    }
+
+    printf("\n\n\n"
+		"**** Error: No sendable packet found. It can be solved by one of the following way. ****\n"
+        "        use --send-all option.\n"
+        "        select at least 1 packet in file %s under windows version of xb_ether_tester ^_^\n"
+        ,config_file);
+    return 0;
+
+HAS_SENDABLE_PKT:
+    return 1;
+}
+
 int main(int argc, char *argv[])
 {
     int ret;
@@ -831,6 +857,8 @@ int main(int argc, char *argv[])
     
     ret=load_packets();
     if (ret<0) return 0;
+
+	if (!has_sendable_pkt()) return 0;
 
     if (!no_wait)
     {
