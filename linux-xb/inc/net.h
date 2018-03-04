@@ -50,14 +50,14 @@ typedef struct
 
 static inline uint16_t get_u16_from_pkt(const void *p_eth_hdr, int offset)
 {
-    uint16_t *var_addr =  p_eth_hdr + offset;
+    const uint16_t *var_addr =  p_eth_hdr + offset;
     return ntohs(*var_addr);
 }
 
 
 static inline uint16_t get_u32_from_pkt(const void *p_eth_hdr, int offset)
 {
-    uint32_t *var_addr =  p_eth_hdr + offset;
+    const uint32_t *var_addr =  p_eth_hdr + offset;
     return ntohl(*var_addr);
 }
 

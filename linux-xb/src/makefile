@@ -8,36 +8,36 @@
 # ” œ‰: sunmingbao@126.com
 # 
 
+
 SRC_PATH=$(shell pwd)
-OBJ_PATH=$(LIB_OBJ_PATH)
-DEP_PATH=$(LIB_DEP_PATH)
 SRC_FILES=$(wildcard $(SRC_PATH)/*.c)
 SRC_FILES_BASE_NAMES=$(basename $(notdir $(SRC_FILES)))
 OBJ_FILES=$(addprefix $(OBJ_PATH)/, $(addsuffix .o, $(SRC_FILES_BASE_NAMES)))
-SOBJ_FILES=$(addprefix $(OBJ_PATH)/, $(addsuffix .sobj, $(SRC_FILES_BASE_NAMES)))
 DEP_FILES=$(addprefix $(DEP_PATH)/, $(addsuffix .d, $(SRC_FILES_BASE_NAMES)))
 
-all: $(LIB_FILE_STATIC)
+
+
+all:$(target)
+
 
 .PHONY:all
+.PRECIOUS: $(OBJ_FILES)  $(DEP_FILES)
 
-$(LIB_FILE_STATIC): $(OBJ_FILES)
+$(target): $(OBJ_FILES)
 	@echo -n Building $@ ...
-	@$(AR) -rcs $@ $^
+	@$(CC)  $(LDFLAGS) -o $@  $^  $(C_LIBS)
 	@echo done!
-
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.c $(DEP_PATH)/%.d
 	@echo -n Building $@ ...
-	@$(CC) $(CFLAGS) $(INC_DIRS) $< -o $@ 
+	@$(CC) -c  $(CFLAGS) $(INC_DIRS) $< -o $@ 
 	@echo done!
 
 $(DEP_PATH)/%.d: $(SRC_PATH)/%.c
 	@echo -n Building $@ ...
 	@$(CC) -MM  $(CFLAGS) $(INC_DIRS) $< | \
-        sed "s|$*\.o[ :]*|$(DEP_PATH)/$*.d : |g"> $@
+        sed "s/$*\.o[ :]*/$(subst /,\/, $(DEP_PATH))\/$*.d : /g"> $@
 	@echo done!
-
 
 -include $(DEP_FILES)
 
