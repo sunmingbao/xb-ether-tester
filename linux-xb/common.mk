@@ -8,9 +8,14 @@
 # ” œ‰: sunmingbao@126.com
 # 
 
-# CROSS_COMPILE=arm-linux-
+#e.g. arm-linux-gnueabihf-
+CROSS_COMPILE ?=
+	
+#e.g. /opt/gcc-linaro-5.4.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/libc
+SYS_ROOT ?= /
+
 export CC:=$(CROSS_COMPILE)gcc
-export CFLAGS:=-c -O2 -Wall -fno-strict-overflow -fno-strict-aliasing
+export CFLAGS:=--sysroot=$(SYS_ROOT) -c -O2 -Wall -fno-strict-overflow -fno-strict-aliasing
 export LD:=$(CROSS_COMPILE)ld
 export AR:=$(CROSS_COMPILE)ar
 

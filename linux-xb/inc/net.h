@@ -132,8 +132,20 @@ static inline void * eth_data(const void *p_eth_hdr)
 
 typedef struct 
 {
-	__u8	ihl:4,
-		version:4;
+#if __BYTE_ORDER == __BIG_ENDIAN
+		__u8	version :4,
+		ihl	:4;
+
+		
+#elif __BYTE_ORDER == __LITTLE_ENDIAN
+		__u8	ihl:4,
+			version:4;
+
+#else
+#error "unknown endian"
+#endif
+
+
 	__u8	tos;
 	__u16	tot_len;
 	__u16	id;

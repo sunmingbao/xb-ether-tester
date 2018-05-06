@@ -21,7 +21,7 @@ t_stream    *g_apt_streams[MAX_STREAM_NUM];
 int        nr_cur_stream;
 
 const char *app_name = "xb_ether_tester";
-const char version[4]={'1','1','7',0};
+const char version[4]={'1','1','8',0};
 
 void *alloc_stream()
 {
@@ -399,10 +399,12 @@ int load_config_file(char *file_path, unsigned char *src_mac, unsigned char *dst
 
 
     fread(&gt_pkt_cap_cfg, PKT_CAP_CFG_FIX_LEN, 1, file);
+	le2host_32(&gt_pkt_cap_cfg.filter_str_len);
     fread(gt_pkt_cap_cfg.filter_str_usr, gt_pkt_cap_cfg.filter_str_len, 1, file);
     gt_pkt_cap_cfg.filter_str_usr[gt_pkt_cap_cfg.filter_str_len]=0;
 
     fread(&nr_cur_stream, sizeof(nr_cur_stream), 1, file);
+	le2host_32(&nr_cur_stream);
     if (nr_cur_stream > MAX_STREAM_NUM)
     {
         nr_cur_stream = MAX_STREAM_NUM;
@@ -413,6 +415,9 @@ int load_config_file(char *file_path, unsigned char *src_mac, unsigned char *dst
     {
         g_apt_streams[i] = alloc_stream();
         fread(g_apt_streams[i], 1, STREAM_HDR_LEN, file);
+		le2host_32(&(g_apt_streams[i]->selected));
+		le2host_32(&(g_apt_streams[i]->flags));
+		le2host_32(&(g_apt_streams[i]->len));
         fread(g_apt_streams[i]->data, 1, g_apt_streams[i]->len, file);
         if (dst_mac)
             memcpy(g_apt_streams[i]->data, dst_mac, 6);

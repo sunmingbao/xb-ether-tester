@@ -7,8 +7,10 @@ make
 
 
 b) 交叉编译
-例如编译arm版本，带上如下CROSS_COMPILE参数即可
-make  CROSS_COMPILE=arm-linux-
+在命令行中加上相关参数即可。
+例如编译arm版本，使用linaro工具链
+make  CROSS_COMPILE=arm-linux-gnueabihf- SYS_ROOT=/opt/gcc-linaro-5.4.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/libc
+也可以直接修改common.mk中的CROSS_COMPILE和SYS_ROOT来实现交叉编译。
 
 
 c) 清空目标文件

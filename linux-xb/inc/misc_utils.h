@@ -21,5 +21,9 @@ uint64_t rdtsc();
 uint64_t get_cpu_freq();
 int  get_data_from_file(unsigned char *buf, const char *file, int len);
 void mac_str2n(unsigned char *mac, char *info_usr);
+int set_fd_nonblock(int fd);
+void le2host_32(void *p);
+void le2host_16(void *p);
+
 #endif
 

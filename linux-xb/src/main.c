@@ -62,6 +62,7 @@ typedef struct
 {
     uint64_t send_total, send_total_bytes;
     uint64_t send_succ, send_succ_bytes;
+	uint64_t send_partly, send_partly_bytes;
     uint64_t send_fail, send_fail_bytes;
 } t_pkt_stat;
 
@@ -381,11 +382,15 @@ static void report_snd_summary()
 
 
     if (gt_pkt_stat.send_fail)
-        printf("[some packets sent fail]\n"
+	{
+        printf("[failure stats]\n"
         "%sfail traffic : %"PRIu64" packets %"PRIu64" bytes\n"
             ,LINE_HDR, gt_pkt_stat.send_fail, gt_pkt_stat.send_fail_bytes);
-    else
-        printf("[no packets sent fail]\n");
+
+		if (gt_pkt_stat.send_partly)
+		    printf("%spartly traffic : %"PRIu64" packets %"PRIu64" bytes\n"
+            ,LINE_HDR, gt_pkt_stat.send_partly, gt_pkt_stat.send_partly_bytes);
+	}
 
 
 }
@@ -598,6 +603,9 @@ static void rule_fileds_init(t_stream *pt_stream)
     for (i=0; i<pt_stream->rule_num; i++)
     {
         pt_rule = &(pt_stream->at_rules[pt_stream->rule_idx[i]]);
+		le2host_32(&(pt_rule->flags));
+		le2host_16(&(pt_rule->offset));
+		le2host_32(&(pt_rule->step_size));
         init_rule_field(pt_stream, pt_rule);
         check_sum_proc(pt_stream);
     }
@@ -679,11 +687,18 @@ while (!gt_run_info.need_stop)
 
                 gt_pkt_stat.send_total++;
                 gt_pkt_stat.send_total_bytes+=g_apt_streams[i]->len;
-                
-           if (write(gt_run_info.fd, g_apt_streams[i]->data, g_apt_streams[i]->len) != g_apt_streams[i]->len)
+
+		   ret=write(gt_run_info.fd, g_apt_streams[i]->data, g_apt_streams[i]->len);
+           if (ret != g_apt_streams[i]->len)
            {
                 gt_pkt_stat.send_fail++;
                 gt_pkt_stat.send_fail_bytes+=g_apt_streams[i]->len;
+				if (ret>0)
+				{
+					gt_pkt_stat.send_partly++;
+					gt_pkt_stat.send_partly_bytes += ret;
+
+				}
            }
             else
             {

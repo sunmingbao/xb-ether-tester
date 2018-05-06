@@ -20,6 +20,10 @@
 #include <string.h>
 #include <time.h>
 #include <stdint.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <endian.h>
+
 #include "debug.h"
 #include "defs.h"
 
@@ -48,25 +52,19 @@ int set_thread_cpu_affinity(pthread_t thread, int cpu_begin, int cpu_end)
            return pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpuset);
 }
 
-uint64_t rdtsc()
-{
-        uint32_t lo,hi;
 
-        __asm__ __volatile__
-        (
-         "rdtsc":"=a"(lo),"=d"(hi)
-        );
-        return (uint64_t)hi<<32|lo;
+int set_fd_nonblock(int fd)
+{
+    int ret;
+    if((ret = fcntl(fd, F_GETFL,0))==-1)
+    {   
+        return ret;
+    }
+
+    ret |= O_NONBLOCK;
+    return fcntl(fd, F_SETFL, ret);
 }
 
-uint64_t get_cpu_freq()
-{
-        uint64_t begin = rdtsc();
-        sleep(1);
-        uint64_t end = rdtsc();
-
-        return 1000000*((end - begin)/1000000);
-}
 
 int  get_data_from_file(unsigned char *buf, const char *file, int len)
 {
@@ -96,5 +94,43 @@ void mac_str2n(unsigned char *mac, char *info_usr)
             mac[4]=strtol(info+12,NULL,16);
             info[17]=0;
             mac[5]=strtol(info+15,NULL,16);
+}
+
+void le2host_32(void *p)
+{
+#if __BYTE_ORDER == __BIG_ENDIAN
+	uint8_t tmp[4];
+	uint8_t *pdest = p;
+	uint32_t *p1 = (void *)tmp;
+	*p1 = *(uint32_t *)p;
+	pdest[0] = tmp[3];
+	pdest[1] = tmp[2];
+	pdest[2] = tmp[1];
+	pdest[3] = tmp[0];
+	
+#elif __BYTE_ORDER == __LITTLE_ENDIAN
+	;
+#else
+#error "unknown endian"
+#endif
+
+}
+
+void le2host_16(void *p)
+{
+#if __BYTE_ORDER == __BIG_ENDIAN
+	uint8_t tmp[2];
+	uint8_t *pdest = p;
+	uint16_t *p1 = (void *)tmp;
+	*p1 = *(uint16_t *)p;
+	pdest[0] = tmp[1];
+	pdest[1] = tmp[0];
+	
+#elif __BYTE_ORDER == __LITTLE_ENDIAN
+	;
+#else
+#error "unknown endian"
+#endif
+
 }
 

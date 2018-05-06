@@ -21,7 +21,7 @@ typedef struct
     int snd_mode;
     int snd_times_cnt;
     char rsv[32];
-} t_fc_cfg;
+} __attribute__((packed)) t_fc_cfg;
 
 
 

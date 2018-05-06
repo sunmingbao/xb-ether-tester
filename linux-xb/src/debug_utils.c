@@ -57,34 +57,4 @@ void print_mem(void *start_addr, uint32_t length)
 
 }
 
-int get_call_links(unsigned long *records, int nr, unsigned long *usr_provide_bp)
-{
-    unsigned long *bp;
-    int depth=0;
-    if (usr_provide_bp!=NULL)
-    {
-        bp=usr_provide_bp;
-    }
-    else
-    {
-#if defined(__i386)
-        asm ("movl %%ebp, %0":"=qm"(bp));
-#elif defined( __x86_64)
-        asm ("movq %%rbp, %0":"=qm"(bp));
-#else
-#error unsupported arch
-#endif
-    }
-
-
-    while (depth<nr && (*bp)!=0)
-    {
-        records[depth]=*(bp+1);
-        bp=(void*)(*bp);
-        depth++;
-    }
-
-
-    return depth;
-}
 

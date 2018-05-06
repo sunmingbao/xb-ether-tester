@@ -25,6 +25,7 @@
 
 #include "debug.h"
 #include "socket.h"
+#include "misc_utils.h"
 
 char * get_ipstr(struct sockaddr_in *sock_addr, char *ip)
 {
@@ -137,6 +138,8 @@ int create_l2_raw_socket(const char *if_name)
     ret = bind(fd, (struct sockaddr *)&sock_addr, sizeof(struct sockaddr_ll));
     if (ret<0)
         ERR_DBG_PRINT_QUIT("bind socket failed");
+
+	set_fd_nonblock(fd);
 
     return fd;
 }
