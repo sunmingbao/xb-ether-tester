@@ -935,7 +935,7 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
     sprintf(info
         , "%s    V%c.%c.%c\r\n"
         "(编译时间: %s) \r\n\r\n"
-        "作者：孙明保 (来自  南京 · ZTE中兴) \r\n\r\n"
+        "作者：孙明保 (来自  上海诺基亚贝尔) \r\n\r\n"
         "======================\r\n"
         "本软件为免费、开源软件。\r\n"
         "本软件的版权(包括源码及二进制发布版本)归一切公众所有。\r\n"
@@ -947,11 +947,13 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
         "本软件通过winpcap进行报文收发。 \r\n\r\n"
         "======================\r\n"
         "关于本软件，您有任何问题或建议，欢迎联系作者。\r\n"
-        "邮箱:sunmingbao@126.com\r\n"
-        "QQ:7743896"
+        "sunmingbao@126.com\r\n"
+	"mingbao.sun@nokia-sbell.com\r\n"
+
         , szAppName
         , version[0] , version[1] , version[2]
         , BUILD_TIME);
+
      	switch (message)
      	{
      	case 	WM_INITDIALOG :
