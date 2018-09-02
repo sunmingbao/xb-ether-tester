@@ -51,6 +51,9 @@ typedef struct
 	char *config_file;
 	int   burst_num;
 	char  *if_name;
+	int   sock_fd_misc;
+	uint8_t nic_mac[6];
+	int copy_src_mac_from_nic;
 	int   cpu_idx;
 	int64_t   snd_interval;
 	int64_t   frequency;
@@ -80,22 +83,31 @@ static t_pkt_stat gt_pkt_stat;
 
 
 
-#define    HELP                (999)
-#define    ENABLE_MAX_SPEED    (1000)
-#define    CONFIG_FILE          (1001)
-#define    BURST_NUM           (1002)
-#define    INTERVAL            (1003)
-#define    PPS                 (1004)
-#define    INTERFACE           (1005)
-#define    BIND_CPU            (1006)
-#define    SEND_ALL            (1007)
-#define    VERSION             (1008)
-#define    SINGLE_BIN_PKT      (1009)
-#define    CAP_PKT_FILE        (1010)
-#define    SET_SRC_MAC         (1011)
-#define    SET_DST_MAC         (1012)
-#define    NO_WAIT             (1013)
-#define    WRITE_TAP           (1014)
+#define    HELP                (900)
+#define    VERSION             (901)
+
+#define    CONFIG_FILE         (1001)
+#define    SINGLE_BIN_PKT      (1002)
+#define    CAP_PKT_FILE        (1003)
+
+#define    INTERFACE           (1010)
+#define    WRITE_TAP           (1011)
+
+
+#define    BIND_CPU            (1020)
+
+#define    SEND_ALL              (1031)
+#define    SET_SRC_MAC           (1032)
+#define    COPY_SRC_MAC_FROM_NIC (1033)
+#define    SET_DST_MAC           (1034)
+
+#define    ENABLE_MAX_SPEED    (1041)
+#define    BURST_NUM           (1042)
+#define    INTERVAL            (1043)
+#define    PPS                 (1044)
+
+#define    NO_WAIT             (1051)
+
 static struct option my_options[] =
     {
         {"help",              no_argument,       NULL, HELP},
@@ -112,6 +124,7 @@ static struct option my_options[] =
         {"set-src-mac",       required_argument, NULL, SET_SRC_MAC},
         {"set-dst-mac",       required_argument, NULL, SET_DST_MAC},
         {"send-all",          no_argument,       NULL, SEND_ALL},
+        {"copy-src-mac-from-nic", no_argument,       NULL, COPY_SRC_MAC_FROM_NIC},
         {"no-wait",           no_argument,       NULL, NO_WAIT},
         {"write-tap",         no_argument,       NULL, WRITE_TAP},
         {0},
@@ -133,6 +146,7 @@ static const char *opt_remark[][2] = {
     {"", "set src mac of each packet"},
     {"", "set dst mac of each packet"},
     {"", "send all packets in config file, including packets not selected"},
+    {"", "set mac of NIC as src mac of the packet(s)"},
     {"", "create tap interface whose name is given in -i option, and write packets to tap interface."},
     {"", "no wait before sending and finish sending"},
 };
@@ -301,6 +315,10 @@ static int parse_and_check_args(int argc, char *argv[])
                gt_run_info.send_all = 1;
                break;
 
+           case COPY_SRC_MAC_FROM_NIC:
+               gt_run_info.copy_src_mac_from_nic= 1;
+               break;
+
            case NO_WAIT:
                gt_run_info.no_wait = 1;
                break;
@@ -368,7 +386,9 @@ static void report_snd_summary()
 {
     struct timeval  tmp = time_a_between_b2(gt_run_info.first_snd_tv, gt_run_info.last_snd_tv);
     uint64_t pps = gt_pkt_stat.send_succ*1000000/(tmp.tv_sec*1000000 + tmp.tv_usec);
-    uint64_t bps = gt_pkt_stat.send_succ_bytes*1000000/(tmp.tv_sec*1000000 + tmp.tv_usec);;
+    uint64_t Bps = gt_pkt_stat.send_succ_bytes*1000000/(tmp.tv_sec*1000000 + tmp.tv_usec);
+    uint64_t bps = Bps*8;
+
     
     printf("\n[packet send summary]\n"
         "%stime: %lu sec %lu us\n"
@@ -870,6 +890,51 @@ HAS_SENDABLE_PKT:
     return 1;
 }
 
+void run_info_init_common(void)
+{
+	int fd = socket(AF_INET,SOCK_DGRAM,0);
+	if (fd < 0) {
+		ERR_DBG_PRINT_QUIT("create socket failed");
+	}
+
+	gt_run_info.sock_fd_misc = fd;
+}
+
+static void get_nic_mac(char *nic_name)
+{
+	struct ifreq ifr;
+	int fd = gt_run_info.sock_fd_misc;
+
+	memset(&ifr, 0, sizeof(ifr));
+
+	strcpy(ifr.ifr_name,nic_name);
+	if(ioctl(fd,SIOCGIFHWADDR,&ifr) < 0)
+		ERR_DBG_PRINT_QUIT("get mac of %s failed", nic_name);
+
+	memcpy(gt_run_info.nic_mac, ifr.ifr_hwaddr.sa_data, 6);
+
+}
+
+static void packets_init(void)
+{
+
+    int i;
+    t_stream *pt_stream;
+
+	if (!gt_run_info.copy_src_mac_from_nic)
+		return;
+
+
+    for (i=0; i<nr_cur_stream; i++)
+    {
+        pt_stream = g_apt_streams[i];
+        if (pt_stream->selected || gt_run_info.send_all)
+            memcpy(pt_stream->eth_packet.src, gt_run_info.nic_mac, 6);
+    }
+
+
+}
+
 int main(int argc, char *argv[])
 {
     int ret;
@@ -883,12 +948,16 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    run_info_init_common();
+
     if (gt_run_info.write_tap)
         gt_run_info.fd  = prepare_tap_if(gt_run_info.if_name);
     else
         gt_run_info.fd  = create_l2_raw_socket(gt_run_info.if_name);
     
     if (gt_run_info.fd<0) return 0;
+
+	get_nic_mac(gt_run_info.if_name);
     
     ret=load_packets();
     if (ret<0) return 0;
@@ -905,6 +974,7 @@ int main(int argc, char *argv[])
     gt_run_info.need_stop = 0;
     gt_run_info.be_sending = 1;
     rule_fileds_init_all_pkt();
+    packets_init();
 
     create_thread(&the_thread, send_pkt, NULL);
     register_sig_act(SIGINT, my_sig_handler);
