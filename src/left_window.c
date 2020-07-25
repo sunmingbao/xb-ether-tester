@@ -231,13 +231,13 @@ void ui_update_fc_cfg(HWND hDlg)
 
         if (SPEED_TYPE_HIGH==ret)
         {
-            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_PREFFIX, "每秒");
-            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_SUFFIX, "次");
+            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_PREFFIX, "per second");
+            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_SUFFIX, "times");
         }
         else 
         {
-            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_PREFFIX, "每");
-            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_SUFFIX, "微秒一次");
+            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_PREFFIX, "every");
+            SetDlgItemText(hDlg, ID_FC_SPEED_INFO_SUFFIX, "us 1 time");
         }
     }
     ret=SendMessage(GetDlgItem(hDlg, ID_FC_SND_MODE)
@@ -263,9 +263,9 @@ BOOL CALLBACK FcCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
      	case 	WM_INITDIALOG :
                 center_child_win(hwnd_frame, hDlg);
 
-        SendMessage(GetDlgItem(hDlg, ID_FC_SPEED_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"包率");
-        SendMessage(GetDlgItem(hDlg, ID_FC_SPEED_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"发包间隔");
-        SendMessage(GetDlgItem(hDlg, ID_FC_SPEED_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"最大速率");
+        SendMessage(GetDlgItem(hDlg, ID_FC_SPEED_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"PPS");
+        SendMessage(GetDlgItem(hDlg, ID_FC_SPEED_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"interval");
+        SendMessage(GetDlgItem(hDlg, ID_FC_SPEED_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"MAX Speed");
 
         SendMessage(GetDlgItem(hDlg, ID_FC_SND_MODE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"continue");
         SendMessage(GetDlgItem(hDlg, ID_FC_SND_MODE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"burst");
@@ -298,7 +298,7 @@ ui_update_fc_cfg(hDlg);
 
                             if (ret<=0 && gt_fc_cfg.speed_type!=SPEED_TYPE_FASTEST)
                             {
-                                WinPrintf(hDlg, "速率值 %d 非法，请输入大于0的数", ret);
+                                WinPrintf(hDlg, "value of speed %d invalid，it must > 0", ret);
                                 return TRUE;
                             }
 
@@ -307,7 +307,7 @@ ui_update_fc_cfg(hDlg);
 
                             if (ret<=0 && gt_fc_cfg.snd_mode!=SND_MODE_CONTINUE)
                             {
-                                WinPrintf(hDlg, "burst值 %d 非法，请输入大于0的数", ret);
+                                WinPrintf(hDlg, "value of burst %d invalid，it must > 0", ret);
                                 return TRUE;
                             }
 
@@ -543,7 +543,7 @@ BUILD_AND_CHECK_FILTER:
         
     if (!is_filter_valid(str_filter_output))
     {
-        err_msg_box("非法的过滤字符串:%s", str_filter_output);
+        err_msg_box("invalid string of filter:%s", str_filter_output);
         return 1 ;
     }
 
@@ -613,7 +613,7 @@ BOOL CALLBACK PktCapCfgDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPa
                 }
                     
                 SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"all");
-                SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"二层(arp, rarp, ...)");
+                SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"L2(arp, rarp, ...)");
                 SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"IP");
                 SendMessage(GetDlgItem(hDlg, ID_PKT_CAP_PKT_TYPE),(UINT) CB_ADDSTRING,(WPARAM) 0,(LPARAM)"IPv6");
 
@@ -787,12 +787,12 @@ SendMessage(hwnd_tv, TVM_SETIMAGELIST,
                   (WPARAM)TVSIL_NORMAL, (LPARAM)imageList);
 
     // add root item
-    parentItem = insertItem(hwnd_tv, TEXT("配置"), TVI_ROOT, TVI_LAST, 0, 0, 0);
+    parentItem = insertItem(hwnd_tv, TEXT("config"), TVI_ROOT, TVI_LAST, 0, 0, 0);
 
     // add some children
-    childItem1 = insertItem(hwnd_tv, TEXT("新建流"), parentItem, TVI_LAST, 1, 1, 0);
-    childItem2 = insertItem(hwnd_tv, TEXT("流控"), parentItem, TVI_LAST, 2, 2, 0);
-    childItem3 = insertItem(hwnd_tv, TEXT("抓包"), parentItem, TVI_LAST, 3, 3, 0);
+    childItem1 = insertItem(hwnd_tv, TEXT("new flow"), parentItem, TVI_LAST, 1, 1, 0);
+    childItem2 = insertItem(hwnd_tv, TEXT("TX rate"), parentItem, TVI_LAST, 2, 2, 0);
+    childItem3 = insertItem(hwnd_tv, TEXT("capture packet"), parentItem, TVI_LAST, 3, 3, 0);
 
     TreeView_Expand(hwnd_tv, parentItem, TVM_EXPAND);
 

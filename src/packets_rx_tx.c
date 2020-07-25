@@ -50,7 +50,7 @@ void get_all_devs()
     /* Retrieve the device list from the local machine */
     if (pcap_findalldevs_ex(PCAP_SRC_IF_STRING, NULL, &alldevs, errbuf) == -1)
     {
-        WinPrintf(hwnd_frame, "Error in pcap_findalldevs_ex: %s¡£³ÌÐò¼´½«ÍË³ö\n", errbuf);
+        WinPrintf(hwnd_frame, "Error in pcap_findalldevs_ex: %s.\nProgram will exit.\n", errbuf);
         exit(1);
     }
 }

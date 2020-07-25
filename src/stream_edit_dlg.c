@@ -1716,7 +1716,7 @@ void update_from_rule_data(HWND htv, HTREEITEM htvi)
         pt_rule=get_empty_rule_from_pkt(&gt_edit_stream, &rule_idx);
         if (NULL==pt_rule)
         {
-            WinPrintf(GetParent(htv), TEXT("最大只支持 %d 条规则"), MAX_FIELD_RULE_NUM);
+            WinPrintf(GetParent(htv), TEXT("only support up to %d rules"), MAX_FIELD_RULE_NUM);
             return;
         }
 
@@ -2439,7 +2439,7 @@ hide_edit_ui(hDlg);
     if (pt_tvi_data->flags&FLAG_REBUILD_TV)
     {
         if (delete_all_rule(&gt_edit_stream))
-            show_tip("字段变化规则已经删除，因为报文结构有变化");
+            show_tip("rules for auto changing fieds was deleted, since packet structure was changed.");
         
         SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
 
@@ -2545,7 +2545,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                 PROTO_CHNG_PROC:
                 hide_edit_ui(hDlg);
                 if (delete_all_rule(&gt_edit_stream))
-                    show_tip("字段变化规则已经删除，因为报文结构有变化");
+                    show_tip("rules for auto changing fieds was deleted, since packet structure was changed.");
 
                 SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
                 return TRUE ;
@@ -2656,7 +2656,7 @@ BOOL CALLBACK StreamEditDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM l
                    		if (HIWORD(wParam)==EN_KILLFOCUS && stream_changed)
                         {
                             if (delete_all_rule(&gt_edit_stream))
-                                show_tip("字段变化规则已经删除，因为直接编辑了缓冲区");
+                                show_tip("rules for auto changing fieds was deleted, since editing buffer of packet was changed.");
 
                             SendMessage(hDlg, WM_COMMAND, ID_SED_UPDATE_NOW, 0);
                             stream_changed = 0;
@@ -2744,13 +2744,13 @@ break;
 
 TCHAR *pkt_view_lv_col_names[] = 
 {
-    TEXT("索引"),
-    TEXT("时间"),
-    TEXT("源地址"),
-    TEXT("目的地址"),
-    TEXT("协议"),
-    TEXT("长度"),
-    TEXT("信息"),
+    TEXT("index"),
+    TEXT("time"),
+    TEXT("src address"),
+    TEXT("dst address"),
+    TEXT("protocol"),
+    TEXT("length"),
+    TEXT("info"),
 };
 
 BOOL InitLvColumns(HWND hWndListView, int *col_width) 
@@ -2915,7 +2915,7 @@ struct timeval 	base={(time_t)0};
                          errbuf         // error buffer
                          ) ) == NULL)
     {
-        WinPrintf(GetParent(hlv), "打开文件失败:\n%s\n可能是抓包存档文件损坏或格式不支持", source);
+        WinPrintf(GetParent(hlv), "open file failed:\n%s\nperhaps file was corrupted or format not supported", source);
         PostMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
         return -1;
     }
@@ -2937,7 +2937,7 @@ pt_pkt = malloc(MAX_PACKET_LEN);
             seg_info.offset += seg_info.len;
             pkt_cnt++;
 
-            sprintf(info, TEXT("报文浏览 - 正在加载报文... %u"), pkt_cnt);
+            sprintf(info, TEXT("view packets captured - loading packets... %u"), pkt_cnt);
             SetWindowText(hDlg, info);
         }
 
@@ -2947,7 +2947,7 @@ pt_pkt = malloc(MAX_PACKET_LEN);
     fclose(f_seg);
     InvalidateRect(hlv,NULL,TRUE);
     UpdateWindow (hlv);
-    sprintf(info, TEXT("报文浏览 - 报文总数 %u"), pkt_cnt);
+    sprintf(info, TEXT("view packets captured - %u packets in total"), pkt_cnt);
     SetWindowText(hDlg, info);
     return 0;
 }
@@ -3091,7 +3091,7 @@ BOOL CALLBACK PktViewDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lPara
 
             hMenu = LoadMenu (g_hInstance, TEXT("pkt_view_popup_menu")) ;
             hMenu = GetSubMenu (hMenu, 0) ;
-            add_tip(hwndTip, hlv, TEXT("点击鼠标右键进行操作"));
+            add_tip(hwndTip, hlv, TEXT("Right click to operate"));
             PostMessage(hDlg, WM_PROC_PCAP_FILE, 0, 0);
             ShowWindow(hPktCapDlg, 0);
           		return FALSE;
@@ -3391,7 +3391,7 @@ BOOL CALLBACK PktCapDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
                             if (strcmp(query_save_captured_pkts_2, "no")==0)
                                 goto CLR_STAT;
                             
-                            ret=AskConfirmation_3state(hDlg, TEXT("即将清除已有的抓包。\r\n是否保存?\r\n\r\n[可通过 选项 菜单关闭此提示]"), szAppName);
+                            ret=AskConfirmation_3state(hDlg, TEXT("packets captured would be deleted\r\nwanna save it?\r\n\r\n[This notice can be muted through menu options]"), szAppName);
                             if (IDCANCEL == ret) return TRUE;
                             
                             if (IDYES == ret)
@@ -3403,7 +3403,7 @@ BOOL CALLBACK PktCapDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
                             }
 CLR_STAT:
                             clr_cap_dlg_stat(hDlg);
-                            SetDlgItemText(hDlg, ID_PKT_CAP_CAP, "停止");
+                            SetDlgItemText(hDlg, ID_PKT_CAP_CAP, "stop");
                             need_cap_stop=0;
                             cap_stopped=0;
                             launch_thread(rcv_pkt_2, NULL);
@@ -3411,7 +3411,7 @@ CLR_STAT:
                         else
                         {
                             need_cap_stop=1;
-                            SetDlgItemText(hDlg, ID_PKT_CAP_CAP, "抓包");
+                            SetDlgItemText(hDlg, ID_PKT_CAP_CAP, "start capture");
                         }
                				return TRUE ;
                             
@@ -3422,13 +3422,13 @@ CLR_STAT:
                             if (0==get_int_text(GetDlgItem(hDlg, ID_PKT_CAP_TOTAL)) || 
                                 !file_exists(PKT_CAP_FILE_ONLY_CAP))
                             {
-                                WinPrintf(hDlg, TEXT("暂无数据"));
+                                WinPrintf(hDlg, TEXT("no packets captured yet"));
                                 return 0;
                             }
 
                             if (!gt_pkt_cap_cfg.need_save_capture)
                             {
-                                WinPrintf(hDlg, TEXT("当前抓包配置为不保存报文"));
+                                WinPrintf(hDlg, TEXT("packet would not be saved due to current config"));
                                 return 0;
                             }
                             
@@ -3473,13 +3473,13 @@ BOOL CALLBACK FragDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam)
                         t_stream *pt_stream = g_apt_streams[GetIndex(hwnd_lv)];
                         if ((frag_payload<8) || (frag_payload%8))
                         {
-                            WinPrintf(hDlg, "输入值 %d 非法。净何必须大于0，并且是8的整数倍", frag_payload);
+                            WinPrintf(hDlg, "inputed value %d is invalid: payload must > 0, and must be multiple of 8.", frag_payload);
                             return TRUE;
                         }
                     
                         ret=make_frags(pt_stream, frag_payload);
                         re_populate_items();
-                        if (ret) show_tip("注意，字段变化规则已经从分片报文中删除");
+                        if (ret) show_tip("Note: rules for auto changing fieds was deleted from fragmental packets.");
                     }
 
               		case 	IDCANCEL :

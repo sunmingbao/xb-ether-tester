@@ -44,73 +44,73 @@ icon_view_capture_dis ICON "eye_32_dis.ico"
 // Menu
 MY_MENU MENU DISCARDABLE 
 BEGIN
-    	POPUP "文件(&F)"
+    	POPUP "File(&F)"
     	BEGIN
-    	        MENUITEM "新建(&N)\tCtrl+N", 				IDM_FILE_NEW
+    	        MENUITEM "New (&N)\tCtrl+N", 				IDM_FILE_NEW
     	        MENUITEM SEPARATOR
-    	        MENUITEM "打开(&O)...\tCtrl+O", 			IDM_FILE_OPEN
-    	        MENUITEM "打开 tcpdump/wireshark存档", 	IDM_VIEW_PCAP_FILE
+    	        MENUITEM "Open (&O)...\tCtrl+O", 			IDM_FILE_OPEN
+    	        MENUITEM "open tcpdump/wireshark archive", 	IDM_VIEW_PCAP_FILE
     	        MENUITEM SEPARATOR
-    	        MENUITEM "保存(&S)\tCtrl+S", 				IDM_FILE_SAVE
-    	        MENUITEM "另存为(&A)...", 			IDM_FILE_SAVE_AS
+    	        MENUITEM "save (&S)\tCtrl+S", 				IDM_FILE_SAVE
+    	        MENUITEM "save as (&A)...", 			IDM_FILE_SAVE_AS
         		MENUITEM SEPARATOR
         		
-        		POPUP "最近的 配置文件"
+        		POPUP "recent config files"
 			    BEGIN
 				    MENUITEM "&1 abc", 	ID_FILE_RECENT_CFG_FILE_BEGIN
 			    END
 			    
-			    POPUP "最近的 pcap文件"
+			    POPUP "recent pcap files"
 			    BEGIN
 				    MENUITEM "&1 abc", 	ID_FILE_RECENT_PCAP_FILE_BEGIN
 			    END
 
         		MENUITEM SEPARATOR
-        		MENUITEM "退出(&X)", 				IDM_APP_EXIT
+        		MENUITEM "exit (&X)", 				IDM_APP_EXIT
     	END
 
-    	POPUP "查看(&V)"
+    	POPUP "View(&V)"
     	BEGIN
-    	        MENUITEM "工具栏(&T)", 				IDM_APP_TOOLBAR_WIN, CHECKED
-        		MENUITEM "状态栏(&S)", 				IDM_APP_STATUSBAR_WIN, CHECKED
+    	        MENUITEM "toolbar (&T)", 				IDM_APP_TOOLBAR_WIN, CHECKED
+        		MENUITEM "status bar (&S)", 				IDM_APP_STATUSBAR_WIN, CHECKED
         		MENUITEM SEPARATOR
-        		MENUITEM "左面板(&L)", 				IDM_APP_LEFT_WIN, CHECKED
-        		MENUITEM "底面板(&B)", 				IDM_APP_BOTTOM_WIN, CHECKED
+        		MENUITEM "left panel (&L)", 				IDM_APP_LEFT_WIN, CHECKED
+        		MENUITEM "bottom panel (&B)", 				IDM_APP_BOTTOM_WIN, CHECKED
 
     	END
 
-    	POPUP "选项(&O)"
+    	POPUP "Options(&O)"
     	BEGIN
-    	    POPUP "每次发包前"
+    	    POPUP "each time before TX"
     	    BEGIN
-    	    MENUITEM "询问是否清除统计", IDM_APP_QUERY_CLR_STATS, CHECKED
-    	    MENUITEM "自动清空统计", 	 IDM_APP_CLR_STATS
-    	    MENUITEM "不清空统计", 	     IDM_APP_NOT_CLR_STATS
+    	    MENUITEM "query wether to clear statistics", IDM_APP_QUERY_CLR_STATS, CHECKED
+    	    MENUITEM "auto clear statistics", 	 IDM_APP_CLR_STATS
+    	    MENUITEM "do not clear statistics", 	     IDM_APP_NOT_CLR_STATS
 
     	    MENUITEM SEPARATOR
-        	MENUITEM "询问是否保存抓到的报文", 	IDM_APP_QUERY_SAVE_CAPTURED_PKS, CHECKED
-        	MENUITEM "直接清除抓到的报文", 	IDM_APP_CLR_CAPTURED_PKS
+        	MENUITEM "query wether to save packets captured", 	IDM_APP_QUERY_SAVE_CAPTURED_PKS, CHECKED
+        	MENUITEM "auto clear packets captured", 	IDM_APP_CLR_CAPTURED_PKS
     		END
     		
-    		POPUP "每次独立抓包前"
+    		POPUP "each time before separately capture packets"
     	    BEGIN
-        	MENUITEM "询问是否保存抓到的报文", 	IDM_APP_QUERY_SAVE_CAPTURED_PKS_2
+        	MENUITEM "query wether to save packets captured", 	IDM_APP_QUERY_SAVE_CAPTURED_PKS_2
             END
     	END
     	
-    	POPUP "帮助(&H)"
+    	POPUP "Help(&H)"
     	BEGIN
-    	        MENUITEM "使用教程",            IDM_USER_MANUAL
+    	        MENUITEM "user guide",            IDM_USER_MANUAL
         	    MENUITEM SEPARATOR
-        	    MENUITEM "Linux用户指引",       IDM_USER_MANUAL_LINUX
+        	    MENUITEM "user guide for linux user",       IDM_USER_MANUAL_LINUX
         	    MENUITEM SEPARATOR
-        	    MENUITEM "获取最新版本...",	    IDM_GET_NEW_VERSION
-        	    MENUITEM "获取源代码...",	    IDM_GET_SOURCE
-        	    MENUITEM "访问官方站点...",	    IDM_OPEN_OFFICIAL_SITE
+        	    MENUITEM "get latest release ...",	    IDM_GET_NEW_VERSION
+        	    MENUITEM "get source code ...",	    IDM_GET_SOURCE
+        	    MENUITEM "visit official site ...",	    IDM_OPEN_OFFICIAL_SITE
         	    MENUITEM SEPARATOR
-        	    MENUITEM "有新版本提示我",      IDM_NEW_VERSION_NOTICE, CHECKED
+        	    MENUITEM "reminder me for new release",      IDM_NEW_VERSION_NOTICE, CHECKED
         	    MENUITEM SEPARATOR
-        	    MENUITEM "关于本软件...(&A)",	IDM_APP_ABOUT
+        	    MENUITEM "about this software ...(&A)",	IDM_APP_ABOUT
     	END
 END
 
@@ -118,7 +118,7 @@ my_popup_menu MENU DISCARDABLE
 BEGIN
     	POPUP "&Streams"
     	BEGIN
-        		MENUITEM "新建流(&N)", 				IDM_STREAM_NEW
+        		MENUITEM "new flow(&N)", 				IDM_STREAM_NEW
         		MENUITEM SEPARATOR
         		
 
@@ -469,24 +469,24 @@ BEGIN
     	EDITTEXT    ID_RULE_CFG_STEP, 65, 70, 40, 14
 
 
-  	DEFPUSHBUTTON   "确定",    IDOK,100,100,50,14
-  	PUSHBUTTON      "取消",IDCANCEL,160,100,50,14
+  	DEFPUSHBUTTON   "OK",    IDOK,100,100,50,14
+  	PUSHBUTTON      "Cancel",IDCANCEL,160,100,50,14
 
 END
 
 // Dialog
 FRAG_DLG DIALOG DISCARDABLE  32, 32, 100, 90
 STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
-CAPTION "报文分片"
+CAPTION "fragment a IP packet"
 FONT 8, "MS Sans Serif"
 BEGIN
 
-        CTEXT     "请输入分片报文的IP净荷大小\r\n(单位: 字节)",IDC_STATIC,5,10,90,28
+        CTEXT     "payload size of fragmental packet\r\n(UNIT: Bytes)",IDC_STATIC,5,10,90,28
 
     	EDITTEXT    ID_FRAG_PAYLOAD, 30, 45, 40, 14
     	
 
-  	DEFPUSHBUTTON   "确定",    IDOK,15,70,30,14
-  	PUSHBUTTON      "取消",IDCANCEL,55,70,30,14
+  	DEFPUSHBUTTON   "OK",    IDOK,15,70,30,14
+  	PUSHBUTTON      "Cancel",IDCANCEL,55,70,30,14
 
 END

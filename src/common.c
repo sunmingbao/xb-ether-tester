@@ -30,7 +30,7 @@ int WinPrintf(HWND hwnd, TCHAR * szFormat, ...)
 
 	// The va_end macro just zeroes out pArgList for no good reason
 	va_end (pArgList) ;
-	return MessageBox (hwnd, szBuffer, TEXT("´íÎó"), 0) ;
+	return MessageBox (hwnd, szBuffer, TEXT("ERROR"), 0) ;
 }
 
 #if 0

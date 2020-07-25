@@ -13,7 +13,7 @@
 #include "gui.h"
 
 HINSTANCE g_hInstance;
-TCHAR     szAppName[] = TEXT ("п║╠Ьртл╚мЬ╡Бйтрг") ;
+TCHAR     szAppName[] = TEXT ("Xiaobing ethernet tester") ;
 int init_over;
 
 

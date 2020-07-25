@@ -15,7 +15,7 @@
 #include "net.h"
 #include "gui.h"
 
-const char version[4]={'3','3','0',0};
+const char version[4]={'3','4','0',0};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -112,13 +112,13 @@ TCHAR *col_names[] =
 {
     NULL,
     NULL,
-    TEXT("索引"),
-    TEXT("名称"),
-    TEXT("源地址"),
-    TEXT("目的地址"),
-    TEXT("协议"),
-    TEXT("长度"),
-    TEXT("信息"),
+    TEXT("index"),
+    TEXT("name"),
+    TEXT("src address"),
+    TEXT("dst address"),
+    TEXT("protocol"),
+    TEXT("length"),
+    TEXT("info"),
 };
 
 BOOL InitListViewColumns(HWND hWndListView) 
@@ -128,7 +128,7 @@ BOOL InitListViewColumns(HWND hWndListView)
 int order[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8}; 
 int lv_width = GetSystemMetrics(SM_CXSCREEN) - 240*WIDTH_COEFFICIENT;
 int col_width[] = {40, 20, cxChar_2*6, cxChar_2*10, cxChar_2*17, cxChar_2*17
-    , cxChar_2*6, cxChar_2*6, cxChar_2*15};
+    , cxChar_2*12, cxChar_2*12, cxChar_2*15};
 
 SendMessage(hWndListView, WM_SETFONT, (WPARAM)char_font_2, 0); 
     lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM;
@@ -600,7 +600,7 @@ void add_stream_from_raw_data(void *buf, int len)
 
   if (nr_cur_stream>=MAX_STREAM_NUM)
   {
-      err_msg_box("已达最大流数目 %d", MAX_STREAM_NUM);
+      err_msg_box("already reached max number of flows: %d", MAX_STREAM_NUM);
       return;
   }
 
@@ -646,7 +646,7 @@ int add_stream_from_pcap(char *file_path)
                          errbuf         // error buffer
                          ) ) == NULL)
     {
-        WinPrintf(hwnd_frame, "打开文件失败:\n%s\n可能是抓包存档文件损坏或格式不支持", source);
+        WinPrintf(hwnd_frame, "open file failed:\n%s\nperhaps file was corrupted or format not supported", source);
         return -1;
     }
 
@@ -654,7 +654,7 @@ int add_stream_from_pcap(char *file_path)
     {
         if (nr_cur_stream>=MAX_STREAM_NUM)
         {
-             err_msg_box("已达最大流数目 %d", MAX_STREAM_NUM);
+             err_msg_box("already reached max number of flows: %d", MAX_STREAM_NUM);
              break;
         }
 
@@ -752,7 +752,7 @@ LRESULT CALLBACK stream_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM 
             ShowWindow(hwnd_lv, 1) ;
             refresh_window(hwnd_lv) ;
 
-           add_tip(hwndTip, hwnd_lv, TEXT("点击鼠标右键进行操作"));
+           add_tip(hwndTip, hwnd_lv, TEXT("Right click to operate"));
 
             return 0 ;
 
@@ -864,7 +864,7 @@ case WM_NOTIFY:
                     if (len>0)
                         add_stream_from_hex_text(buf, len);
                     else
-                        err_msg_box("读取文件内容失败");
+                        err_msg_box("read contents of file failed");
                    	return 0 ;
                 }
 
@@ -879,7 +879,7 @@ case WM_NOTIFY:
                     if (len>0)
                         add_stream_from_raw_data(buf, len);
                     else
-                        err_msg_box("读取文件内容失败");
+                        err_msg_box("read contents of file failed");
                    	return 0 ;
                 }
 

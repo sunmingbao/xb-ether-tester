@@ -83,7 +83,7 @@ void init_gui_info()
         char_font = create_font(gt_gui_size_scale_ref.cyChar*WIDTH_COEFFICIENT, "Fixedsys", 0);
     else
         char_font = create_font(gt_gui_size_scale_ref.cyChar*WIDTH_COEFFICIENT, "Courier New", 1);
-    char_font_2 = create_font(gt_gui_size_scale_ref.cyChar*7/6*WIDTH_COEFFICIENT, TEXT("ËÎÌו"), 1);
+    char_font_2 = create_font(gt_gui_size_scale_ref.cyChar*7/6*WIDTH_COEFFICIENT, TEXT("Courier New"), 1);
     char_font_25 = create_font(25, TEXT("Courier New"), 0);
    fixedsys_font = create_font(0, "Fixedsys", 0);
     get_font_size(char_font, &cxChar, &cyChar);

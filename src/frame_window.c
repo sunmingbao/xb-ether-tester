@@ -64,7 +64,7 @@ int doc_save_proc()
     int ret;
     if (doc_modified)
     {
-        ret=AskConfirmation_3state(hwnd_frame, TEXT("是否保存当前配置?"), szAppName);
+        ret=AskConfirmation_3state(hwnd_frame, TEXT("save current config?"), szAppName);
         if (IDCANCEL == ret) return 1;
         if (IDYES == ret)
         {
@@ -85,7 +85,7 @@ int stats_captured_pkts_proc()
     if (!cap_save_cnt) goto STATS_PROC;
     if (strcmp(query_save_captured_pkts, "no")==0) goto CLR_CAP_PKTS;
 
-    ret=AskConfirmation_3state(hwnd_frame, TEXT("即将清除抓到的包。\r\n\r\n是否保存?\r\n\r\n[可通过 选项 菜单关闭此提示]"), szAppName);
+    ret=AskConfirmation_3state(hwnd_frame, TEXT("packets captured would be deleted\r\n\r\nwanna save it?\r\n\r\n[This notice can be muted through menu options]"), szAppName);
     if (IDCANCEL == ret) return 1;
     if (IDYES == ret)
     {
@@ -106,7 +106,7 @@ STATS_PROC:
 
     if (strcmp(auto_clr_stats,"query")==0)
     {
-        ret= AskConfirmation_3state(hwnd_frame, TEXT("是否清空已有的统计?\r\n\r\n[可通过 选项 菜单关闭此提示]"), szAppName);
+        ret= AskConfirmation_3state(hwnd_frame, TEXT("clear existing statistics?\r\n\r\n[This notice can be muted through menu options]"), szAppName);
         if (IDCANCEL == ret) return 1;
         if (IDNO == ret) return 0;
 
@@ -146,7 +146,7 @@ void new_cfg()
     fc_and_pkt_cap_init();
     update_statusbar();
     cfg_file_path[0]=0;
-    set_frame_title(TEXT("无标题"));
+    set_frame_title(TEXT("Untitled"));
     doc_modified=0;
 
 }
@@ -341,7 +341,7 @@ CreateStatusBar();
 
             if (we_pos==0 || ns_pos==0)
             {
-                we_pos = 230*WIDTH_COEFFICIENT;
+                we_pos = 260*WIDTH_COEFFICIENT;
                 ns_pos = cyClient-330*HEIGHT_COEFFICIENT;
 
             }
@@ -649,14 +649,14 @@ CreateStatusBar();
 
                     if (nr_cur_stream<=0)
                     {
-                        WinPrintf(hwnd, TEXT("请先创建流"));
+                        WinPrintf(hwnd, TEXT("please create flow(s) first"));
                         //SendMessage(hwnd_toolbar, TB_CHECKBUTTON, IDT_TOOLBAR_START, 0);
                         return 0 ;
                     }
 
                     if ((nr_stream2snd = GetSelCnt(hwnd_lv))<=0)
                     {
-                        WinPrintf(hwnd, TEXT("请选择要发送的流"));
+                        WinPrintf(hwnd, TEXT("please select flow(s) to TX"));
                         //SendMessage(hwnd_toolbar, TB_CHECKBUTTON, IDT_TOOLBAR_START, 0);
                         return 0 ;
                     }
@@ -711,7 +711,7 @@ CreateStatusBar();
                 case    IDT_TOOLBAR_VIEW_CAPTURE:
                     if (!cap_save_cnt|| !file_exists(PKT_CAP_FILE_WHILE_SND))
                     {
-                        WinPrintf(hwnd, TEXT("暂无数据"));
+                        WinPrintf(hwnd, TEXT("no packets captured yet"));
                         return 0;
                     }
                     strcpy(pcap_file_to_view, PKT_CAP_FILE_WHILE_SND);
@@ -768,14 +768,14 @@ CreateStatusBar();
                     if (get_history_cfg_file_by_idx(item_id - ID_FILE_RECENT_CFG_FILE_BEGIN+1
                         ,file_to_open))
                     {
-                        WinPrintf(hwnd, TEXT("读取历史文件条目失败"));
+                        WinPrintf(hwnd, TEXT("reading historical file items failed."));
                         return 0;
                     }
 
                     if (file_exists(file_to_open)) 
                         open_file();
                     else
-                        WinPrintf(hwnd, TEXT("文件 %s 不存在"), file_to_open);
+                        WinPrintf(hwnd, TEXT("file %s does not exist"), file_to_open);
                     return 0 ;
 
                 }
@@ -816,7 +816,7 @@ CreateStatusBar();
                         DialogBox(g_hInstance, TEXT("PKT_VIEW_DLG"), hwnd, PktViewDlgProc);
                     }
                     else
-                        WinPrintf(hwnd, TEXT("文件 %s 不存在"), file_to_open);
+                        WinPrintf(hwnd, TEXT("file %s does not exist"), file_to_open);
                     return 0 ;
 
                 }
@@ -934,21 +934,19 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
 
     sprintf(info
         , "%s    V%c.%c.%c\r\n"
-        "(编译时间: %s) \r\n\r\n"
-        "作者：孙明保 (来自  上海诺基亚贝尔) \r\n\r\n"
+        "(build time: %s) \r\n\r\n"
+        "author: Mingbao Sun (DELL EMC) \r\n\r\n"
         "======================\r\n"
-        "本软件为免费、开源软件。\r\n"
-        "本软件的版权(包括源码及二进制发布版本)归一切公众所有。\r\n"
-        "您可以自由使用、传播本软件。\r\n"
-        "您也可以以任何形式、任何目的使用本软件(包括源码及二进制发布版本)，而不受任何版权限制。\r\n\r\n"
+        "This is a free and open-source software.\r\n"
+        "Anyone can use and distribute the software freely in any form without any restriction.\r\n"
         "======================\r\n"
         
-        "本软件是一款基于PC机网卡实现的测试仪工具。 \r\n"
-        "本软件通过winpcap进行报文收发。 \r\n\r\n"
+        "This software is an ethernet tester based on NIC(s) on PC.\r\n"
+        "It sends and captures packets through winpcap.\r\n\r\n"
         "======================\r\n"
-        "关于本软件，您有任何问题或建议，欢迎联系作者。\r\n"
+        "welcome to contact the author for any issue about this software.\r\n"
         "sunmingbao@126.com\r\n"
-	"mingbao.sun@nokia-sbell.com\r\n"
+	"tyler.sun@dell.com\r\n"
 
         , szAppName
         , version[0] , version[1] , version[2]

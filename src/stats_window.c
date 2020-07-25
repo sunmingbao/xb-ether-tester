@@ -48,7 +48,7 @@ void update_stats()
     }
     last_timer_tv=cur_tv;
     
-    _stprintf (	info, TEXT("时间 %lu.%lu"), time_elapsed.tv_sec, (time_elapsed.tv_usec/100000)) ;
+    _stprintf (	info, TEXT("time %lu.%lu"), time_elapsed.tv_sec, (time_elapsed.tv_usec/100000)) ;
     SetWindowText(hwnd_hdr_time, info); 
 
     if ((gt_pkt_stat_tmp.send_total==gt_pkt_stat_pre.send_total)  &&
@@ -67,7 +67,7 @@ if (gt_pkt_stat_tmp.send_total!=gt_pkt_stat_pre.send_total)
     set_I64u_text(hwnd_snd_pps, (1000*(pt_pkt_stat->send_total-gt_pkt_stat_pre.send_total)/gap_ms)); 
     set_I64u_text(hwnd_snd_bps_avg, (1000*8*(pt_pkt_stat->send_total_bytes)/total_ms)); 
     set_I64u_text(hwnd_snd_pps_avg, (1000*(pt_pkt_stat->send_total)/total_ms)); 
-    set_I64u_text(hwnd_snd_bits, pt_pkt_stat->send_total_bytes*8); 
+    set_I64u_text(hwnd_snd_bits, pt_pkt_stat->send_total_bytes); 
     set_I64u_text(hwnd_snd_pkt, pt_pkt_stat->send_total); 
         last_stat_tv_snd= cur_tv;
 }
@@ -81,7 +81,7 @@ if (gt_pkt_stat_tmp.send_fail!=gt_pkt_stat_pre.send_fail)
     set_I64u_text(hwnd_snd_fail_pps, (1000*(pt_pkt_stat->send_fail-gt_pkt_stat_pre.send_fail)/gap_ms)); 
     set_I64u_text(hwnd_snd_fail_bps_avg, (1000*8*(pt_pkt_stat->send_fail_bytes)/total_ms)); 
     set_I64u_text(hwnd_snd_fail_pps_avg, (1000*(pt_pkt_stat->send_fail)/total_ms)); 
-    set_I64u_text(hwnd_snd_fail_bits, pt_pkt_stat->send_fail_bytes*8); 
+    set_I64u_text(hwnd_snd_fail_bits, pt_pkt_stat->send_fail_bytes); 
     set_I64u_text(hwnd_snd_fail_pkt, pt_pkt_stat->send_fail); 
         last_stat_tv_sndf= cur_tv;
 }
@@ -95,7 +95,7 @@ if (gt_pkt_stat_tmp.rcv_total!=gt_pkt_stat_pre.rcv_total)
     set_I64u_text(hwnd_rcv_pps, (1000*(pt_pkt_stat->rcv_total-gt_pkt_stat_pre.rcv_total)/gap_ms)); 
     set_I64u_text(hwnd_rcv_bps_avg, (1000*8*(pt_pkt_stat->rcv_total_bytes)/total_ms)); 
     set_I64u_text(hwnd_rcv_pps_avg, (1000*(pt_pkt_stat->rcv_total)/total_ms)); 
-    set_I64u_text(hwnd_rcv_bits, pt_pkt_stat->rcv_total_bytes*8); 
+    set_I64u_text(hwnd_rcv_bits, pt_pkt_stat->rcv_total_bytes); 
     set_I64u_text(hwnd_rcv_pkt, pt_pkt_stat->rcv_total); 
         last_stat_tv_rcv= cur_tv;
 }
@@ -164,7 +164,7 @@ void clear_stats()
     time_elapsed.tv_sec =0;
     time_elapsed.tv_usec =0;
 
-    SetWindowText(hwnd_stats_handles[0][0], TEXT("时间 0.0")); 
+    SetWindowText(hwnd_stats_handles[0][0], TEXT("time 0.0")); 
         for (i=1;i<4;i++)
             for (j=1;j<7;j++)
             {
@@ -186,10 +186,10 @@ static HWND create_statis_grid()
     return ret;
 }
 
-static HWND create_statis_button(TCHAR *cap)
+static HWND create_statis_button(TCHAR *cap, unsigned align)
 {
     HWND ret = CreateWindow (TEXT ("button"), cap,
-                WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_CENTER|BS_TEXT,
+                WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|align|BS_TEXT,
                 10, 10,
                 300, 25,
                 hwnd_stats, NULL, g_hInstance, NULL);
@@ -212,7 +212,7 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
             hwnd_stats = hwnd;
 
-            hwnd_stats_handles[0][0]=hwnd_hdr_time = CreateWindow (TEXT ("button"), TEXT ("时间 0.0"),
+            hwnd_stats_handles[0][0]=hwnd_hdr_time = CreateWindow (TEXT ("button"), TEXT ("time 0.0"),
                 WS_CHILD|WS_BORDER|WS_VISIBLE|BS_FLAT|BS_LEFT|BS_TEXT,
                 10, 10,
                 300, 25,
@@ -220,19 +220,19 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
             SendMessage(hwnd_hdr_time, WM_SETFONT, (WPARAM)char_font_2, 0);
 
-            hwnd_stats_handles[0][1]=hwnd_hdr_bps= create_statis_button(TEXT ("实时bps"));
+            hwnd_stats_handles[0][1]=hwnd_hdr_bps= create_statis_button(TEXT ("bps"), BS_CENTER);
 
-            hwnd_stats_handles[0][2]=hwnd_hdr_pps = create_statis_button(TEXT ("实时pps"));
+            hwnd_stats_handles[0][2]=hwnd_hdr_pps = create_statis_button(TEXT ("pps"), BS_CENTER);
 
-            hwnd_stats_handles[0][3]=hwnd_hdr_bps_avg= create_statis_button(TEXT ("平均bps"));
+            hwnd_stats_handles[0][3]=hwnd_hdr_bps_avg= create_statis_button(TEXT ("AVG bps"), BS_CENTER);
 
-            hwnd_stats_handles[0][4]=hwnd_hdr_pps_avg= create_statis_button(TEXT ("平均pps"));
+            hwnd_stats_handles[0][4]=hwnd_hdr_pps_avg= create_statis_button(TEXT ("AVG pps"), BS_CENTER);
 
-            hwnd_stats_handles[0][5]=hwnd_hdr_pkt= create_statis_button(TEXT ("报文总数"));
+            hwnd_stats_handles[0][5]=hwnd_hdr_pkt= create_statis_button(TEXT ("packet cnt"), BS_CENTER);
 
-            hwnd_stats_handles[0][6]=hwnd_hdr_bits= create_statis_button(TEXT ("总流量(bit)"));
+            hwnd_stats_handles[0][6]=hwnd_hdr_bits= create_statis_button(TEXT ("bytes cnt"), BS_CENTER);
 
-            hwnd_stats_handles[1][0]=hwnd_snd=create_statis_button(TEXT ("发送"));
+            hwnd_stats_handles[1][0]=hwnd_snd=create_statis_button(TEXT ("TX"), BS_LEFT);
 
 
             hwnd_stats_handles[1][1]=hwnd_snd_bps=create_statis_grid();
@@ -242,7 +242,7 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             hwnd_stats_handles[1][5]=hwnd_snd_pkt=create_statis_grid();
             hwnd_stats_handles[1][6]=hwnd_snd_bits=create_statis_grid();
             
-            hwnd_stats_handles[2][0]=hwnd_snd_fail=create_statis_button(TEXT ("发送失败"));
+            hwnd_stats_handles[2][0]=hwnd_snd_fail=create_statis_button(TEXT ("TX failed"), BS_LEFT);
             
             hwnd_stats_handles[2][1]=hwnd_snd_fail_bps=create_statis_grid();
             hwnd_stats_handles[2][2]=hwnd_snd_fail_pps=create_statis_grid();
@@ -251,7 +251,7 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             hwnd_stats_handles[2][5]=hwnd_snd_fail_pkt=create_statis_grid();
             hwnd_stats_handles[2][6]=hwnd_snd_fail_bits=create_statis_grid();
 
-            hwnd_stats_handles[3][0]=hwnd_rcv=create_statis_button(TEXT ("抓包"));
+            hwnd_stats_handles[3][0]=hwnd_rcv=create_statis_button(TEXT ("capture pkts"), BS_LEFT);
 
             hwnd_stats_handles[3][1]=hwnd_rcv_bps=create_statis_grid();
             hwnd_stats_handles[3][2]=hwnd_rcv_pps=create_statis_grid();
@@ -265,7 +265,7 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
 
             hMenu = LoadMenu (g_hInstance, TEXT("stats_win_popup_menu")) ;
             hMenu = GetSubMenu (hMenu, 0) ;
-            add_tip(hwndTip, hwnd_stats, TEXT("点击鼠标右键进行操作"));
+            add_tip(hwndTip, hwnd_stats, TEXT("Right click to operate"));
             return 0 ;
 
         case WM_SIZE:
@@ -284,13 +284,13 @@ LRESULT CALLBACK stats_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM l
             MoveWindow	(hwnd_hdr_pkt, 	    600, 5, 140, 25, TRUE) ;
             MoveWindow	(hwnd_hdr_bits, 	750, 5, 180, 25, TRUE) ;
 #else
-            MoveWindow	(hwnd_hdr_time,     10 *WIDTH_COEFFICIENT, 5, 180*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
-            MoveWindow	(hwnd_hdr_bps,      200*WIDTH_COEFFICIENT, 5,  150*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
-            MoveWindow	(hwnd_hdr_pps,      360*WIDTH_COEFFICIENT, 5,  125*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
-            MoveWindow	(hwnd_hdr_bps_avg,  495*WIDTH_COEFFICIENT, 5,  150*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
-            MoveWindow	(hwnd_hdr_pps_avg,  655*WIDTH_COEFFICIENT, 5,  125*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
-            MoveWindow	(hwnd_hdr_pkt, 	    790*WIDTH_COEFFICIENT, 5, 145*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
-            MoveWindow	(hwnd_hdr_bits,     945*WIDTH_COEFFICIENT, 5, 205*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_time,     10 *WIDTH_COEFFICIENT, 5, 170*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_bps,      190*WIDTH_COEFFICIENT, 5,  150*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_pps,      350*WIDTH_COEFFICIENT, 5,  125*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_bps_avg,  485*WIDTH_COEFFICIENT, 5,  150*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_pps_avg,  645*WIDTH_COEFFICIENT, 5,  125*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_pkt, 	    780*WIDTH_COEFFICIENT, 5, 145*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
+            MoveWindow	(hwnd_hdr_bits,     935*WIDTH_COEFFICIENT, 5, 205*WIDTH_COEFFICIENT, 35*HEIGHT_COEFFICIENT, TRUE) ;
 #endif
 
         for (i=1;i<4;i++)

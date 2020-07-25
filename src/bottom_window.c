@@ -29,14 +29,14 @@ HWND    hwnd_b2_tab;
 HWND    hwnd_b2_tab1;
 
 TCHAR *tab_b2_icons[] = {TEXT("info_icon")};
-TCHAR *tab_b2_labels[] = {TEXT("信息")};
+TCHAR *tab_b2_labels[] = {TEXT("Info")};
 
 HWND    hwnd_b_tab;
 HWND    hwnd_b_tab1;
 TCHAR sz_bTab1WinClassName[] = TEXT ("tab1_win") ;
 
 TCHAR *tab_b_icons[] = {TEXT("stats_icon")};
-TCHAR *tab_b_labels[] = {TEXT("统计")};
+TCHAR *tab_b_labels[] = {TEXT("statistics")};
 int err_cnt, info_cnt;
 LRESULT CALLBACK bottom_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {

@@ -133,7 +133,7 @@ LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPA
                g_hInstance, NULL) ;
 
 
-            CreateWindow ( TEXT("button"),TEXT("不用再提醒"),
+            CreateWindow ( TEXT("button"),TEXT("no reminder anymore"),
    WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
     (fix_width-12*cxChar_2)/2, fix_height - cyChar_2*3/2, cxChar_2*12, cyChar_2*3/2,
     hwnd, (HMENU)ID_VER_UPDATE_NONEED_NOTICE,
@@ -280,7 +280,7 @@ LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPA
 
             //SetBkMode(hdc, OPAQUE);
             
-            sprintf(info, "%d秒后关闭", life);
+            sprintf(info, "auto close %d seconds later", life);
             SetTextColor(hdc, RGB(0xff,0xff,0xff)) ;
             TextOutA(hdc, 0, 0
                 , info, 9) ; 
@@ -290,9 +290,9 @@ LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPA
             SetTextColor(hdc, RGB(0x00,0x00,0x00)) ;
             //SetBkColor (hdc, RGB(0xFF,0xFF,0xFF)) ;
             TextOutA(hdc, (COL_NUM-16)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 1*cyChar_2
-                , "小兵以太网测试仪", 16) ; 
+                , "Xiaobing ethernet tester", 16) ; 
 
-            sprintf(info, "v%c.%c.%c  发布"
+            sprintf(info, "v%c.%c.%c  released"
                 , new_version[0]
                 , new_version[1]
                 , new_version[2]);
@@ -300,7 +300,7 @@ LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPA
             TextOutA(hdc, (COL_NUM-12)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 5*cyChar_2/2
                 , info, 12) ; 
 
-            sprintf(info, "点击下载");
+            sprintf(info, "click to download");
             SetTextColor(hdc, RGB(0xff,0x00,0x00)) ;
             TextOutA(hdc, (COL_NUM-8)*cxChar_2/2, CLOSE_BUTTOM_SIZE/2 + 9*cyChar_2/2
                 , info, 8) ; 

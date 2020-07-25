@@ -28,14 +28,14 @@ TBBUTTON at_button[] =
         {I_IMAGENONE , -1, TBSTATE_ENABLED, TBSTYLE_SEP|TBSTYLE_AUTOSIZE},
         {I_IMAGENONE , -1, TBSTATE_ENABLED, TBSTYLE_SEP|TBSTYLE_AUTOSIZE},
         {I_IMAGENONE , -1, TBSTATE_ENABLED, TBSTYLE_SEP|TBSTYLE_AUTOSIZE},
-        {0, IDT_TOOLBAR_STOP, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"停止发包"},
-        {1, IDT_TOOLBAR_START, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"开始发包"},
+        {0, IDT_TOOLBAR_STOP, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"stop TX"},
+        {1, IDT_TOOLBAR_START, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"start TX"},
         {I_IMAGENONE , -1, TBSTATE_ENABLED, TBSTYLE_SEP|TBSTYLE_AUTOSIZE},
-        {2, IDT_TOOLBAR_CAP_WHILE_SND, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"发包时同步抓包" },
-        {3, IDT_TOOLBAR_VIEW_CAPTURE, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"查看发包时抓到的包" },
+        {2, IDT_TOOLBAR_CAP_WHILE_SND, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"capture packets while TX" },
+        {3, IDT_TOOLBAR_VIEW_CAPTURE, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"view packets captured" },
 
         {I_IMAGENONE , -1, TBSTATE_ENABLED, TBSTYLE_SEP|TBSTYLE_AUTOSIZE},
-        {4, IDT_TOOLBAR_CAPTURE, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"独立抓包" },
+        {4, IDT_TOOLBAR_CAPTURE, TBSTATE_ENABLED, TBSTYLE_AUTOSIZE , {0}, 0, (INT_PTR)"separately capture packets" },
     };
 
 HBITMAP hbmpToolbar[3];
@@ -211,7 +211,7 @@ hwnd_capture_checkbox=CreateWindowEx(0, TEXT("button"), TEXT("灌包时同步抓包")
             hwnd_toolbar, (HMENU)IDT_CAPTURE_CHECKBOX, g_hInstance, NULL);
 #endif
     SendMessage(hwnd_toolbar,TB_GETITEMRECT,(WPARAM)8,(LPARAM)&rc); 
-hwnd_net_card_text=CreateWindowEx(0, TEXT("static"), TEXT("网卡选择")
+hwnd_net_card_text=CreateWindowEx(0, TEXT("static"), TEXT("NIC in use")
         , WS_CHILD | WS_VISIBLE | SS_CENTER | SS_CENTERIMAGE
         , rc.left, rc.top, 2*(rc.right-rc.left), rc.bottom-rc.top,
             hwnd_toolbar, (HMENU)NULL, g_hInstance, NULL);
@@ -236,22 +236,22 @@ SendMessage(hwnd_net_card_comb, WM_SETFONT, (WPARAM)char_font_2, 0);
 void update_statusbar()
 {
     TCHAR info[32];
-    _stprintf (	info, TEXT("流: %d/%d"), GetSelCnt(hwnd_lv), nr_cur_stream) ;
+    _stprintf (	info, TEXT("flows : %d/%d"), GetSelCnt(hwnd_lv), nr_cur_stream) ;
     SendMessage(hwnd_statusbar, SB_SETTEXT,1, (LPARAM)info); 
 
     if (gt_fc_cfg.speed_type==SPEED_TYPE_FASTEST)
-        _stprintf (	info, TEXT("流控: 最大速率")) ;
+        _stprintf (	info, TEXT("TX rate : Max Speed")) ;
     else if (gt_fc_cfg.speed_type==SPEED_TYPE_HIGH)
-    _stprintf (	info, TEXT("流控: 每秒 %d 次"), gt_fc_cfg.speed_value) ;
+    _stprintf (	info, TEXT("TX rate : %d times/S"), gt_fc_cfg.speed_value) ;
     else
-        _stprintf (	info, TEXT("流控: 每 %d 微秒1次"), gt_fc_cfg.speed_value) ;
+        _stprintf (	info, TEXT("TX rate : 1 time/%d us"), gt_fc_cfg.speed_value) ;
     SendMessage(hwnd_statusbar, SB_SETTEXT,2, (LPARAM)info);
 
     if (!need_capture)
-        _stprintf(info, TEXT("发包时同步抓包: %s"),TEXT("未开启")) ;
+        _stprintf(info, TEXT("capture while TX: %s"),TEXT("disabled")) ;
     else
-        _stprintf(info, TEXT("发包时同步抓包: 已开启(抓包模式:%s)"), 
-        gt_pkt_cap_cfg.need_save_capture?TEXT("保存报文"):TEXT("仅统计")) ;
+        _stprintf(info, TEXT("capture while TX: enabled(captue mode:%s)"), 
+        gt_pkt_cap_cfg.need_save_capture?TEXT("save packets"):TEXT("statistic only")) ;
     SendMessage(hwnd_statusbar, SB_SETTEXT,3, (LPARAM)info);
 
 }

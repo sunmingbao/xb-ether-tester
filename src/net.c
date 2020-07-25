@@ -1107,7 +1107,7 @@ void * get_nic_FriendlyName(const char *name)
     DWORD dwSize = 0;
     DWORD dwRetVal = 0;
     char buf[15000];
-    char FriendlyName[128]="»ñÈ¡Íø¿¨ÃûÊ§°Ü";
+    char FriendlyName[128]="retrieve NIC name failed";
     unsigned int i = 0;
 
     ULONG family = AF_UNSPEC;
