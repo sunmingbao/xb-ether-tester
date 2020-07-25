@@ -106,7 +106,7 @@ BEGIN
         	    MENUITEM SEPARATOR
         	    MENUITEM "get latest release ...",	    IDM_GET_NEW_VERSION
         	    MENUITEM "get source code ...",	    IDM_GET_SOURCE
-        	    MENUITEM "visit official site ...",	    IDM_OPEN_OFFICIAL_SITE
+//        	    MENUITEM "visit official site ...",	    IDM_OPEN_OFFICIAL_SITE
         	    MENUITEM SEPARATOR
         	    MENUITEM "reminder me for new release",      IDM_NEW_VERSION_NOTICE, CHECKED
         	    MENUITEM SEPARATOR
@@ -122,28 +122,28 @@ BEGIN
         		MENUITEM SEPARATOR
         		
 
-        		MENUITEM "编辑当前流(&E)", 			IDM_STREAM_EDIT
-        		MENUITEM "用当前流构造分片(&F)", 	 IDM_STREAM_MAKE_FRAGS
+        		MENUITEM "edit current flow (&E)", 			IDM_STREAM_EDIT
+        		MENUITEM "make fragments using current flow (&F)", 	 IDM_STREAM_MAKE_FRAGS
         		MENUITEM SEPARATOR
         		
-				MENUITEM "导入单个流 - 从16进制文本文件", 	 IDM_STREAM_NEW_HEX
-				MENUITEM "导入单个流 - 从二进制文件", 	 IDM_STREAM_NEW_BIN
-				MENUITEM "导入流 - 从wireshark/tcpdump存档", 	 IDM_STREAM_NEW_PCAP
+				MENUITEM "import single flow - from hexadecimal text file", 	 IDM_STREAM_NEW_HEX
+				MENUITEM "import single flow - from binary file", 	 IDM_STREAM_NEW_BIN
+				MENUITEM "import flow(s) - from wireshark/tcpdump archive", 	 IDM_STREAM_NEW_PCAP
 
 
         		MENUITEM SEPARATOR
-        		MENUITEM "当前流另存为二进制文件",     IDM_STREAM_2_BIN
-        		MENUITEM "当前流另存为16进制文本文件", IDM_STREAM_2_TEXT
+        		MENUITEM "save current flow to binary file",     IDM_STREAM_2_BIN
+        		MENUITEM "save current flow to hexadecimal text file", IDM_STREAM_2_TEXT
 
-        		MENUITEM "选中的条目另存为pcap文件", IDM_STREAM_SEL2PCAP
+        		MENUITEM "save selected flow(s) to pcap file", IDM_STREAM_SEL2PCAP
         		MENUITEM SEPARATOR
-        		MENUITEM "复制", 			        IDM_STREAM_COPY, GRAYED
-        		MENUITEM "粘贴", 			        IDM_STREAM_PASTE, GRAYED
-        		MENUITEM "删除当前流", 			    IDM_STREAM_DEL
-        		MENUITEM "删除选中条目", 	        IDM_STREAM_DEL_SEL, GRAYED
+        		MENUITEM "copy", 			        IDM_STREAM_COPY, GRAYED
+        		MENUITEM "paste", 			        IDM_STREAM_PASTE, GRAYED
+        		MENUITEM "delete current flow", 			    IDM_STREAM_DEL
+        		MENUITEM "delete selected flow(s)", 	        IDM_STREAM_DEL_SEL, GRAYED
         		MENUITEM SEPARATOR
-        		MENUITEM "全选", 			        IDM_STREAM_SEL_ALL, GRAYED
-        		MENUITEM "反选", 			        IDM_STREAM_SEL_RVS, GRAYED
+        		MENUITEM "check all", 			        IDM_STREAM_SEL_ALL, GRAYED
+        		MENUITEM "inverse", 			        IDM_STREAM_SEL_RVS, GRAYED
     	END
 END
 
@@ -151,9 +151,9 @@ stats_win_popup_menu MENU DISCARDABLE
 BEGIN
     	POPUP "&operations"
     	BEGIN
-    	        MENUITEM "复制数据到剪切板", 	IDM_STATS_WIN_COPY2CLIP_BOARD
+    	        MENUITEM "copy data to clipboard", 	IDM_STATS_WIN_COPY2CLIP_BOARD
         		MENUITEM SEPARATOR
-        		MENUITEM "清除统计", 			IDM_STATS_WIN_CLR
+        		MENUITEM "clear statistics", 			IDM_STATS_WIN_CLR
     	END
 END
 
@@ -162,19 +162,19 @@ BEGIN
     	POPUP "&operations"
     	BEGIN
     	        MENUITEM "ping(echo request)", 	    IDM_PKT_PING_REQ
-    	        MENUITEM "ping应答(echo reply)", 	IDM_PKT_PING_REPLY
-    	        MENUITEM "arp请求", 	    IDM_PKT_ARP_REQ
-    	        MENUITEM "arp应答", 	    IDM_PKT_ARP_REPLY
-    	        MENUITEM "TCP建链", 	    IDM_PKT_TCP_SYN
+    	        MENUITEM "ping(echo reply)", 	IDM_PKT_PING_REPLY
+    	        MENUITEM "arp request", 	    IDM_PKT_ARP_REQ
+    	        MENUITEM "arp reply", 	    IDM_PKT_ARP_REPLY
+    	        MENUITEM "TCP syn", 	    IDM_PKT_TCP_SYN
     	        MENUITEM "UDP", 	        IDM_PKT_UDP
 			    POPUP "ipv6"
 			    BEGIN
-    	        MENUITEM "arp请求", 	    IDM_PKT_ARP_REQ_IPV6 
-    	        MENUITEM "arp应答", 	    IDM_PKT_ARP_REPLY_IPV6 
-    	        MENUITEM "ND(领居发现)请求", 	    IDM_PKT_ND_REQ_IPV6 
-    	        MENUITEM "ND(领居发现)应答", 	    IDM_PKT_ND_REPLY_IPV6 
+    	        MENUITEM "arp request", 	    IDM_PKT_ARP_REQ_IPV6 
+    	        MENUITEM "arp reply", 	    IDM_PKT_ARP_REPLY_IPV6 
+    	        MENUITEM "ND(Neighbor Discovery)request", 	    IDM_PKT_ND_REQ_IPV6 
+    	        MENUITEM "ND(Neighbor Discovery)reply", 	    IDM_PKT_ND_REPLY_IPV6 
     	        MENUITEM "ping(echo request)", 	    IDM_PKT_PING_REQ_IPV6 
-    	        MENUITEM "ping应答(echo reply)", 	IDM_PKT_PING_REPLY_IPV6 
+    	        MENUITEM "ping(echo reply)", 	IDM_PKT_PING_REPLY_IPV6 
 			    END
     	END
 END
@@ -207,46 +207,46 @@ END
 
 
 // Dialog
-ABOUTBOX DIALOG DISCARDABLE  0, 0, 250, 200
+ABOUTBOX DIALOG DISCARDABLE  0, 0, 280, 200
 STYLE DS_MODALFRAME | WS_POPUP
-FONT 8, "MS Sans Serif"
+FONT 10, "MS Sans Serif"
 BEGIN
     	ICON        "my_frame_icon",IDC_STATIC,10,10,32,32, SS_REALSIZEIMAGE
-    	PUSHBUTTON  "源码", ID_AB_SOURCE,5, 50, 35, 14
-    	PUSHBUTTON  "官网", ID_AB_SITE,  5, 70, 35, 14
-    	PUSHBUTTON  "升级", ID_AB_UPDATE,5, 90, 35, 14
-    	PUSHBUTTON  "Linux版", ID_AB_LINUX,5, 130, 35, 14
+    	PUSHBUTTON  "source code", ID_AB_SOURCE,5, 50, 55, 14
+//    	PUSHBUTTON  "official site", ID_AB_SITE,  5, 70, 55, 14
+    	PUSHBUTTON  "upgrade", ID_AB_UPDATE,5, 90, 55, 14
+    	PUSHBUTTON  "Linux user", ID_AB_LINUX,5, 130, 55, 14
     	CONTROL "", ID_ABOUT_INFO, "edit"
     	, WS_BORDER|WS_VSCROLL | ES_MULTILINE|ES_AUTOVSCROLL|ES_WANTRETURN|ES_READONLY
-    	, 45, 10, 190, 166
+    	, 65, 10, 200, 166
 
     	//CTEXT       "About Box Demo Program",IDC_STATIC,7,40,166,8
     	//CTEXT       "(c) Charles Petzold, 1998",IDC_STATIC,7,52,166,8
-    	DEFPUSHBUTTON   "确定",IDOK,100,181,50,14
+    	DEFPUSHBUTTON   "OK",IDOK,100,181,50,14
 END
 
 // Dialog
 STREAM_EDIT_DLG DIALOG DISCARDABLE  32, 32, 400, 300
 STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
-CAPTION "报文编辑"
-FONT 8, "MS Sans Serif"
+CAPTION "packet editing"
+FONT 10, "MS Sans Serif"
 BEGIN
 
 		EDITTEXT    ID_SED_DYNAMIC_EDIT,150, 30, 100, 14, ES_AUTOHSCROLL
 		COMBOBOX    ID_SED_DYNAMIC_COMB,330,140,100,100,CBS_DROPDOWNLIST | WS_VSCROLL
 		COMBOBOX    ID_SED_DYNAMIC_COMB_ETH,330,140,100,100,CBS_DROPDOWNLIST | WS_VSCROLL
-		PUSHBUTTON  "变化规则...", ID_SED_DYNAMIC_RULE_BUTTON,150, 30, 100, 14
+		PUSHBUTTON  "Rule ...", ID_SED_DYNAMIC_RULE_BUTTON,150, 30, 100, 14
 
-    	CTEXT       "名称",IDC_STATIC,10,5,20,14
+    	CTEXT       "name",IDC_STATIC,10,5,20,14
     	EDITTEXT    ID_SED_NAME,35, 5, 40, 11
-    	CTEXT       "包长(不含CRC)",IDC_STATIC,85,5,60,14
+    	CTEXT       "length(No CRC)",IDC_STATIC,85,5,60,14
     	EDITTEXT    ID_SED_LEN,150, 5, 30, 11, ES_NUMBER
 
-        PUSHBUTTON  "常用报文 ▼", ID_PKT_EDIT_MENU_BTN,190, 5, 50, 14
+        PUSHBUTTON  "ordinary pkts ▼", ID_PKT_EDIT_MENU_BTN,190, 5, 55, 14
 
-        GROUPBOX    "自动更新",  IDC_STATIC, 10,20, 190, 45
+        GROUPBOX    "auto update",  IDC_STATIC, 10,20, 190, 45
 
-    	CTEXT       "校验和: ",IDC_STATIC,15,30,50,14
+    	CTEXT       "checksum: ",IDC_STATIC,15,30,50,14
 
         CONTROL     "IP",ID_SED_IP_CHECKSUM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,70,30,20,14
@@ -257,7 +257,7 @@ BEGIN
         CONTROL     "TCP/UDP",ID_SED_TCP_UDP_CHECKSUM,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,140,30,50,14
 
-    	CTEXT       "长度字段: ",ID_SED_UPDATE_LEN,15,50,50,14
+    	CTEXT       "length fieds: ",ID_SED_UPDATE_LEN,15,50,50,14
 
         CONTROL     "IP",ID_SED_IP_LEN,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,70,50,20,14
@@ -272,8 +272,8 @@ BEGIN
 
     	CONTROL     "",ID_SED_HEX_EDIT,"hex_edit",WS_CHILD,10,120,380,100
 
-  	PUSHBUTTON   "确定",    IDOK,270,240,50,14
-  	PUSHBUTTON   "取消",IDCANCEL,330,240,50,14
+  	PUSHBUTTON   "OK",    IDOK,270,240,50,14
+  	PUSHBUTTON   "Cancel",IDCANCEL,330,240,50,14
 
 END
 
@@ -281,80 +281,80 @@ END
 // Dialog
 FC_CFG_DLG DIALOG DISCARDABLE  32, 32, 220, 180
 STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
-CAPTION "流控"
-FONT 8, "MS Sans Serif"
+CAPTION "TX rate control"
+FONT 10, "MS Sans Serif"
 BEGIN
 
-        GROUPBOX    "速率设置",  IDC_STATIC, 10,10, 170, 70
-    	CTEXT       "类型",IDC_STATIC,20,35,40,14
+        GROUPBOX    "speed settings",  IDC_STATIC, 10,10, 170, 70
+    	CTEXT       "Type",IDC_STATIC,20,35,40,14
 		COMBOBOX    ID_FC_SPEED_TYPE,70, 35, 80, 50,CBS_DROPDOWNLIST | WS_VSCROLL
 
-    	CTEXT       "每秒",ID_FC_SPEED_INFO_PREFFIX,20,55,40,14
+    	CTEXT       "per second",ID_FC_SPEED_INFO_PREFFIX,20,55,40,14
     	EDITTEXT    ID_FC_SPEED_VALUE, 70, 55, 40, 14
-    	CTEXT       "次",ID_FC_SPEED_INFO_SUFFIX,120,55,40,14
+    	CTEXT       "times",ID_FC_SPEED_INFO_SUFFIX,120,55,40,14
 
-        GROUPBOX    "模式设置",  IDC_STATIC, 10,90, 170, 65
+        GROUPBOX    "mode settings",  IDC_STATIC, 10,90, 170, 65
 
-    	CTEXT       "类型",IDC_STATIC,20,115,40,14
+    	CTEXT       "Type",IDC_STATIC,20,115,40,14
     	COMBOBOX    ID_FC_SND_MODE,70, 115, 40, 50,CBS_DROPDOWNLIST | WS_VSCROLL
-    	CTEXT       "发送",ID_FC_SND_MODE_PREFFIX,20,135,40,14
+    	CTEXT       "send",ID_FC_SND_MODE_PREFFIX,20,135,40,14
     	EDITTEXT    ID_FC_SND_TIMES_CNT, 70, 135, 40, 14
-    	CTEXT       "次 ",ID_FC_SND_MODE_SUFFIX,130,135,20,14
+    	CTEXT       "times ",ID_FC_SND_MODE_SUFFIX,130,135,20,14
 
-  	DEFPUSHBUTTON   "确定",    IDOK,65,160,40,14
-  	PUSHBUTTON      "取消",IDCANCEL,115,160,40,14
+  	DEFPUSHBUTTON   "OK",    IDOK,65,160,40,14
+  	PUSHBUTTON      "Cancel",IDCANCEL,115,160,40,14
 
 END
 
 // Dialog
 PKT_CAP_CFG_DLG DIALOG DISCARDABLE  32, 32, 270, 190
 STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
-CAPTION "抓包配置"
-FONT 8, "MS Sans Serif"
+CAPTION "capture settings"
+FONT 10, "MS Sans Serif"
 BEGIN
 
-        GROUPBOX    "抓包模式",  IDC_STATIC, 5,5, 260, 40
-    	CONTROL     "仅统计 (无法查看内容)",ID_PKT_CAP_CFG_STAT_ONLY,"Button",BS_AUTORADIOBUTTON
+        GROUPBOX    "mode of capture",  IDC_STATIC, 5,5, 260, 40
+    	CONTROL     "statistic only (can not view pkts)",ID_PKT_CAP_CFG_STAT_ONLY,"Button",BS_AUTORADIOBUTTON
                     ,15,20,150,20
 
-    	CONTROL     "保存报文",ID_PKT_CAP_CFG_SAVE2FILE,"Button",BS_AUTORADIOBUTTON
-                    ,200,20,50,20
+    	CONTROL     "save packets",ID_PKT_CAP_CFG_SAVE2FILE,"Button",BS_AUTORADIOBUTTON
+                    ,180,20,70,20
 
-        GROUPBOX    "报文筛选",  IDC_STATIC, 5,55, 260, 112
-    	CONTROL     "简单模式",ID_PKT_CAP_CFG_MODE_NORMAL,"Button",BS_AUTORADIOBUTTON|WS_GROUP
+        GROUPBOX    "filtrate packets",  IDC_STATIC, 5,55, 260, 112
+    	CONTROL     "Simple Mode",ID_PKT_CAP_CFG_MODE_NORMAL,"Button",BS_AUTORADIOBUTTON|WS_GROUP
                     ,15,70,50,20
 
-    	CONTROL     "高级模式 (ethereal filter, 例如: tcp port 21 )",ID_PKT_CAP_CFG_MODE_ADVANCED,"Button",BS_AUTORADIOBUTTON
-                    ,80,70,150,20
+    	CONTROL     "Advanced Mode (ethereal filter, e.g., tcp port 21)",ID_PKT_CAP_CFG_MODE_ADVANCED,"Button",BS_AUTORADIOBUTTON
+                    ,80,70,170,20
 
     	CONTROL "", ID_PKT_CAP_FILTER_STR, "edit"
     	, WS_VSCROLL | ES_MULTILINE|ES_AUTOVSCROLL|ES_WANTRETURN
     	, 15, 90, 160, 70
 
-        PUSHBUTTON  "常用语法 ▼", ID_PKT_CAP_CFG_FILTERS_MENU_BTN,180, 90, 50, 14
+        PUSHBUTTON  "ordinary syntax ▼", ID_PKT_CAP_CFG_FILTERS_MENU_BTN,180, 90, 65, 14
 //    	CTEXT       "抓取哪个方向的报文",IDC_STATIC,10,30,40,14
 //		COMBOBOX    ID_PKT_CAP_DIRECTION,65, 30, 100, 50,CBS_DROPDOWNLIST | WS_VSCROLL
 
-    	CTEXT       "类型",ID_PKT_CAP_STR1,15,90,30,14
+    	CTEXT       "type",ID_PKT_CAP_STR1,15,90,30,14
     	COMBOBOX    ID_PKT_CAP_PKT_TYPE,50, 90, 100, 70,CBS_DROPDOWNLIST | WS_VSCROLL
 
-    	CTEXT       "源ip",ID_PKT_CAP_STR2,15,110,30,14
+    	CTEXT       "src ip",ID_PKT_CAP_STR2,15,110,30,14
     	EDITTEXT    ID_PKT_CAP_SIP, 50, 110, 60, 14
-    	CTEXT       "目的ip",ID_PKT_CAP_STR3,110,130,30,14
+    	CTEXT       "dst ip",ID_PKT_CAP_STR3,110,130,30,14
     	EDITTEXT    ID_PKT_CAP_DIP, 165, 110, 60, 14
 
-    	CTEXT       "协议",ID_PKT_CAP_STR4,15,130,30,14
+    	CTEXT       "protocol",ID_PKT_CAP_STR4,15,130,30,14
     	COMBOBOX    ID_PKT_CAP_PROTOCOL,50, 130, 100, 70,CBS_DROPDOWNLIST | WS_VSCROLL
 
-    	CTEXT       "源端口",ID_PKT_CAP_STR5,15,150,30,14
+    	CTEXT       "src port",ID_PKT_CAP_STR5,15,150,30,14
     	EDITTEXT    ID_PKT_CAP_SPORT, 50, 150, 60, 14
 
-    	CTEXT       "目的端口",ID_PKT_CAP_STR6,130,150,30,14
+    	CTEXT       "dst port",ID_PKT_CAP_STR6,130,150,30,14
     	EDITTEXT    ID_PKT_CAP_DPORT, 165, 150, 60, 14
 
 
-  	DEFPUSHBUTTON   "确定",    IDOK,150,170,50,14
-  	PUSHBUTTON      "取消",IDCANCEL,210,170,50,14
+  	DEFPUSHBUTTON   "OK",    IDOK,150,170,50,14
+  	PUSHBUTTON      "Cancel",IDCANCEL,210,170,50,14
 
 END
 
@@ -362,19 +362,19 @@ pkt_view_popup_menu MENU DISCARDABLE
 BEGIN
     	POPUP "&operations"
     	BEGIN
-    	        MENUITEM "全选", 			        ID_VIEW_STREAM_SEL_ALL
-        		MENUITEM "反选", 			        ID_VIEW_STREAM_SEL_RSV
+    	        MENUITEM "check all", 			        ID_VIEW_STREAM_SEL_ALL
+        		MENUITEM "inverse", 			        ID_VIEW_STREAM_SEL_RSV
         		MENUITEM SEPARATOR
         		//MENUITEM "删除所选", 			ID_VIEW_STREAM_DEL_SEL, GRAYED
-        		MENUITEM "所选生成流", 	        ID_VIEW_STREAM_SEL2STREAM, GRAYED
-        		MENUITEM "所选另存为...", 	    ID_VIEW_STREAM_SAVE_AS, GRAYED
+        		MENUITEM "build flow with selected items", 	        ID_VIEW_STREAM_SEL2STREAM, GRAYED
+        		MENUITEM "save selected items as ...", 	    ID_VIEW_STREAM_SAVE_AS, GRAYED
     	END
 END
 
 // Dialog
 PKT_VIEW_DLG DIALOG DISCARDABLE  32, 32, 100, 100
 STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
-CAPTION "报文浏览"
+CAPTION "view packets captured"
 FONT 8, "MS Sans Serif"
 BEGIN
 
@@ -396,19 +396,19 @@ BEGIN
 END
 
 // Dialog
-PKT_CAP_DLG DIALOG DISCARDABLE  32, 32, 401, 120
+PKT_CAP_DLG DIALOG DISCARDABLE  32, 32, 410, 120
 STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
-CAPTION "抓包"
-FONT 8, "MS Sans Serif"
+CAPTION "Capture packets"
+FONT 10, "MS Sans Serif"
 BEGIN
 
 
     	//EDITTEXT       ID_PKT_CAP_CFG_INFO,10,10,220,50
     	//               ,ES_READONLY | WS_VSCROLL | ES_MULTILINE|ES_AUTOHSCROLL|ES_AUTOVSCROLL|ES_WANTRETURN
-    	PUSHBUTTON      "配置...",ID_PKT_CAP_CFG,120,10,40,14
+    	PUSHBUTTON      "config...",ID_PKT_CAP_CFG,120,10,40,14
 
-        PUSHBUTTON      "抓包",ID_PKT_CAP_CAP,10,10,40,14
-        PUSHBUTTON      "查看结果",ID_PKT_CAP_VIEW_RESULT,60,10,50,14
+        PUSHBUTTON      "start capture",ID_PKT_CAP_CAP,10,10,45,14
+        PUSHBUTTON      "view captured",ID_PKT_CAP_VIEW_RESULT,60,10,50,14
     	CTEXT       "total:",IDC_STATIC,10,30,30,14
     	CTEXT       "0",ID_PKT_CAP_TOTAL,50,30,30,14
     	
@@ -451,21 +451,21 @@ END
 // Dialog
 RULE_CFG_DLG DIALOG DISCARDABLE  32, 32, 220, 120
 STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
-CAPTION "变化规则"
+CAPTION "Rule of auto updating field"
 FONT 8, "MS Sans Serif"
 BEGIN
 
-        CONTROL     "启用规则",ID_RULE_CFG_USE_RULE,"Button",BS_AUTOCHECKBOX | 
+        CONTROL     "enable rule",ID_RULE_CFG_USE_RULE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,10,60,14
 
-    	CTEXT       "起始值",IDC_STATIC,10,30,40,14
+    	CTEXT       "initial value",IDC_STATIC,10,30,40,14
     	EDITTEXT    ID_RULE_CFG_BASE, 65, 30, 120, 14
     	
-    	CTEXT       "最大不超过",IDC_STATIC,10,50,40,14
+    	CTEXT       "max value",IDC_STATIC,10,50,40,14
     	EDITTEXT    ID_RULE_CFG_MAX, 65, 50, 120, 14
 
 
-    	CTEXT       "步长(10进制)",IDC_STATIC,10,70,40,14
+    	CTEXT       "step size(decimal)",IDC_STATIC,10,70,40,14
     	EDITTEXT    ID_RULE_CFG_STEP, 65, 70, 40, 14
 
 

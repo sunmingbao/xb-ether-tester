@@ -1,7 +1,13 @@
 
-	小兵以太网测试仪 v3.3.0
+	Xiaobing ethernet tester v3.4.0
 
-发布日期：2018-08-22
 
-【变更内容】
-     o 增加了根据所选网卡自动设置源MAC地址的功能
+Release date: 
+
+	2020-07-26
+
+
+Changes:
+
+	- Replace Chinese in the GUI with English.
+

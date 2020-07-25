@@ -290,7 +290,7 @@ LRESULT CALLBACK ver_update_WndProc (HWND hwnd, UINT message, WPARAM wParam, LPA
             SetTextColor(hdc, RGB(0x00,0x00,0x00)) ;
             //SetBkColor (hdc, RGB(0xFF,0xFF,0xFF)) ;
             TextOutA(hdc, (COL_NUM-16)*cxChar_2/2, CLOSE_BUTTOM_SIZE + 1*cyChar_2
-                , "Xiaobing ethernet tester", 16) ; 
+                , "xb_ether_tester", 16) ; 
 
             sprintf(info, "v%c.%c.%c  released"
                 , new_version[0]

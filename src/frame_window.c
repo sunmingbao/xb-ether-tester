@@ -935,7 +935,7 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
     sprintf(info
         , "%s    V%c.%c.%c\r\n"
         "(build time: %s) \r\n\r\n"
-        "author: Mingbao Sun (DELL EMC) \r\n\r\n"
+        "author: Mingbao Sun \r\n\r\n"
         "======================\r\n"
         "This is a free and open-source software.\r\n"
         "Anyone can use and distribute the software freely in any form without any restriction.\r\n"
@@ -946,7 +946,6 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
         "======================\r\n"
         "welcome to contact the author for any issue about this software.\r\n"
         "sunmingbao@126.com\r\n"
-	"tyler.sun@dell.com\r\n"
 
         , szAppName
         , version[0] , version[1] , version[2]
