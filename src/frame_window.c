@@ -85,7 +85,7 @@ int stats_captured_pkts_proc()
     if (!cap_save_cnt) goto STATS_PROC;
     if (strcmp(query_save_captured_pkts, "no")==0) goto CLR_CAP_PKTS;
 
-    ret=AskConfirmation_3state(hwnd_frame, TEXT("packets captured would be deleted\r\n\r\nwanna save it?\r\n\r\n[This notice can be muted through menu options]"), szAppName);
+    ret=AskConfirmation_3state(hwnd_frame, TEXT("packets captured would be deleted\r\n\r\nwanna save it?\r\n\r\n[This notice can be muted from menu options]"), szAppName);
     if (IDCANCEL == ret) return 1;
     if (IDYES == ret)
     {
@@ -106,7 +106,7 @@ STATS_PROC:
 
     if (strcmp(auto_clr_stats,"query")==0)
     {
-        ret= AskConfirmation_3state(hwnd_frame, TEXT("clear existing statistics?\r\n\r\n[This notice can be muted through menu options]"), szAppName);
+        ret= AskConfirmation_3state(hwnd_frame, TEXT("clear existing statistics?\r\n\r\n[This notice can be muted from menu options]"), szAppName);
         if (IDCANCEL == ret) return 1;
         if (IDNO == ret) return 0;
 

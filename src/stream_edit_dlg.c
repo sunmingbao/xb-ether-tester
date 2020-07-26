@@ -3029,7 +3029,7 @@ void init_ui_pkt_view(HWND hDlg)
     HWND hwnd_hexedit=GetDlgItem(hDlg,ID_VIEW_STREAM_HEX_EDIT);
     int  line_char_num = 120, line_num = 28*HEIGHT_COEFFICIENT;
     int width=cxChar*line_char_num, height=cyChar*line_num;
-    int col_width[] = {cxChar*10, cxChar*15, cxChar*20, cxChar*20, cxChar*9, cxChar*7, cxChar*34};
+    int col_width[] = {cxChar*10, cxChar*15, cxChar*20, cxChar*20, cxChar*12, cxChar*10, cxChar*34};
 
     SendMessage(hwnd_tree, WM_SETFONT, (WPARAM)char_font, 0); 
     SendMessage(hlv, WM_SETFONT, (WPARAM)char_font, 0); 
@@ -3391,7 +3391,7 @@ BOOL CALLBACK PktCapDlgProc(HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
                             if (strcmp(query_save_captured_pkts_2, "no")==0)
                                 goto CLR_STAT;
                             
-                            ret=AskConfirmation_3state(hDlg, TEXT("packets captured would be deleted\r\nwanna save it?\r\n\r\n[This notice can be muted through menu options]"), szAppName);
+                            ret=AskConfirmation_3state(hDlg, TEXT("packets captured would be deleted\r\nwanna save it?\r\n\r\n[This notice can be muted from menu options]"), szAppName);
                             if (IDCANCEL == ret) return TRUE;
                             
                             if (IDYES == ret)

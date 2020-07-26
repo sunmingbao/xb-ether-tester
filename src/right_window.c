@@ -127,7 +127,7 @@ BOOL InitListViewColumns(HWND hWndListView)
     int iCol, col_num = ARRAY_SIZE(col_names);
 int order[] = { 1, 0, 2, 3, 4, 5, 6, 7, 8}; 
 int lv_width = GetSystemMetrics(SM_CXSCREEN) - 240*WIDTH_COEFFICIENT;
-int col_width[] = {40, 20, cxChar_2*6, cxChar_2*10, cxChar_2*17, cxChar_2*17
+int col_width[] = {40, 20, cxChar_2*8, cxChar_2*10, cxChar_2*17, cxChar_2*17
     , cxChar_2*12, cxChar_2*12, cxChar_2*15};
 
 SendMessage(hWndListView, WM_SETFONT, (WPARAM)char_font_2, 0); 

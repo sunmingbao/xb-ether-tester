@@ -239,7 +239,7 @@ BEGIN
 
     	CTEXT       "name",IDC_STATIC,10,5,20,14
     	EDITTEXT    ID_SED_NAME,35, 5, 40, 11
-    	CTEXT       "length(No CRC)",IDC_STATIC,85,5,60,14
+    	CTEXT       "length (No CRC)",IDC_STATIC,85,5,60,14
     	EDITTEXT    ID_SED_LEN,150, 5, 30, 11, ES_NUMBER
 
         PUSHBUTTON  "ordinary pkts ¨‹", ID_PKT_EDIT_MENU_BTN,190, 5, 55, 14
@@ -452,21 +452,21 @@ END
 RULE_CFG_DLG DIALOG DISCARDABLE  32, 32, 220, 120
 STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
 CAPTION "Rule of auto updating field"
-FONT 8, "MS Sans Serif"
+FONT 10, "MS Sans Serif"
 BEGIN
 
         CONTROL     "enable rule",ID_RULE_CFG_USE_RULE,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,10,10,60,14
 
-    	CTEXT       "initial value",IDC_STATIC,10,30,40,14
-    	EDITTEXT    ID_RULE_CFG_BASE, 65, 30, 120, 14
+    	CTEXT       "initial value",IDC_STATIC,10,30,60,14,BS_LEFT
+    	EDITTEXT    ID_RULE_CFG_BASE, 85, 30, 120, 14
     	
-    	CTEXT       "max value",IDC_STATIC,10,50,40,14
-    	EDITTEXT    ID_RULE_CFG_MAX, 65, 50, 120, 14
+    	CTEXT       "max value",IDC_STATIC,10,50,60,14,BS_LEFT
+    	EDITTEXT    ID_RULE_CFG_MAX, 85, 50, 120, 14
 
 
-    	CTEXT       "step size(decimal)",IDC_STATIC,10,70,40,14
-    	EDITTEXT    ID_RULE_CFG_STEP, 65, 70, 40, 14
+    	CTEXT       "step size (decimal)",IDC_STATIC,10,70,60,14,BS_LEFT
+    	EDITTEXT    ID_RULE_CFG_STEP, 85, 70, 40, 14
 
 
   	DEFPUSHBUTTON   "OK",    IDOK,100,100,50,14
@@ -475,13 +475,13 @@ BEGIN
 END
 
 // Dialog
-FRAG_DLG DIALOG DISCARDABLE  32, 32, 100, 90
+FRAG_DLG DIALOG DISCARDABLE  32, 32, 120, 90
 STYLE DS_MODALFRAME | WS_POPUPWINDOW | WS_VISIBLE | WS_CAPTION
 CAPTION "fragment a IP packet"
-FONT 8, "MS Sans Serif"
+FONT 10, "MS Sans Serif"
 BEGIN
 
-        CTEXT     "payload size of fragmental packet\r\n(UNIT: Bytes)",IDC_STATIC,5,10,90,28
+        CTEXT     "payload size of fragmental packet\r\n(UNIT: Bytes)",IDC_STATIC,5,10,110,28
 
     	EDITTEXT    ID_FRAG_PAYLOAD, 30, 45, 40, 14
     	
