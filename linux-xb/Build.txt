@@ -1,18 +1,22 @@
+enter a Linux shell
+cd /path/to/xb-ether-tester\linux-xb
 
-登陆Linux shell，进入源码包的linux-xb目录，执行如下命令即可。
-(编译生成的可执行程序路径为 ./target/xb_ether_tester.exe)
+now锛宧ere are the options:
+(note: the executable would be generated at ./target/xb_ether_tester.exe)
 
-a) 编译pc版本
+
+a) build PC version
 make
 
 
-b) 交叉编译
-在命令行中加上相关参数即可。
-例如编译arm版本，使用linaro工具链
+b) cross compile
+Just add relevant parameters in the command line.
+e.g., to compile the arm version using the linaro toolchain:
 make  CROSS_COMPILE=arm-linux-gnueabihf- SYS_ROOT=/opt/gcc-linaro-5.4.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/libc
-也可以直接修改common.mk中的CROSS_COMPILE和SYS_ROOT来实现交叉编译。
+
+BTW:
+You can also directly modify CROSS_COMPILE and SYS_ROOT in common.mk to achieve cross compilation.
 
 
-c) 清空目标文件
+c) clean up all
 make clean
-

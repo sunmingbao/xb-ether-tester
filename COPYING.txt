@@ -1,7 +1,8 @@
 Copyright
 ==================
     This is a free and open-source software.
-    Anyone can use and distribute the software freely in any form without any restriction.
+    Anyone can use and distribute the software freely
+    in any form without any restriction.
 =========================
     author: Mingbao Sun
     e-mail: sunmingbao@126.com

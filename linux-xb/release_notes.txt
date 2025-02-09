@@ -1,9 +1,9 @@
 
-	xb_ether_tester(linux) v1.1.8
 
-·¢²¼ÈÕÆÚ£º2018/05/07
+	xb_ether_tester(linux) v1.1.9
 
-¸üĞÂÄÚÈİ£º
+Release dateï¼š2025/02/09
 
-	ÍêÉÆÁË¶Ô²»Í¬CPUÌåÏµ¼Ü¹¹µÄÖ§³Ö¡£
-	Ôö¼ÓÁËÍ³¼ÆÏî¡£
+Changesï¼š
+
+	- eliminated encoding issues.

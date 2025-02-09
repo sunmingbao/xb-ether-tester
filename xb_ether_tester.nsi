@@ -1,6 +1,7 @@
 ; 
 ; This is a free and open-source software.
-; Anyone can use and distribute the software freely in any form without any restriction.
+; Anyone can use and distribute the software freely
+; in any form without any restriction.
 ; =====================
 ; author: Mingbao Sun
 ; e-mail: sunmingbao@126.com
@@ -10,8 +11,8 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "xb_ether_tester"
-; !define PRODUCT_NAME_EN "xb_ether_tester"
-!define PRODUCT_VERSION "3.4.0"
+!define PRODUCT_NAME_EN "xb_ether_tester"
+!define PRODUCT_VERSION "3.4.1"
 !define PRODUCT_PUBLISHER "Mingbao Sun"
 !define MAIN_PROG_NAME "xb_ether_tester.exe"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\${MAIN_PROG_NAME}"
@@ -67,7 +68,7 @@ var ICONS_GROUP
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
 OutFile "obj\${PRODUCT_NAME}_v${PRODUCT_VERSION}.exe"
-InstallDir "$PROGRAMFILES\xb_ether_tester"
+InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show

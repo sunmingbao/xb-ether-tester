@@ -1,19 +1,20 @@
 
-		Ğ¡±øÒÔÌ«Íø²âÊÔÒÇLinux°æ¼ò½é
+
+		å°å…µä»¥å¤ªç½‘æµ‹è¯•ä»ªLinuxç‰ˆç®€ä»‹
 		
 ======================
 
-    Ğ¡±øÒÔÌ«Íø²âÊÔÒÇ£¨Linux°æ£©ÊÇÒ»¿î»ùÓÚpc»úÍø¿¨ÊµÏÖµÄ²âÊÔÒÇ¹¤¾ß¡£
+    å°å…µä»¥å¤ªç½‘æµ‹è¯•ä»ªï¼ˆLinuxç‰ˆï¼‰æ˜¯ä¸€æ¬¾åŸºäºpcæœºç½‘å¡å®ç°çš„æµ‹è¯•ä»ªå·¥å…·ã€‚
 
     
-    ±¾Èí¼şÊÇÒ»¿î¿ªÔ´¡¢Ãâ·ÑÈí¼ş¡£
-    ¾ßÌå°æÈ¨ËµÃ÷¼ûCOPYING.txt¡£
+    æœ¬è½¯ä»¶æ˜¯ä¸€æ¬¾å¼€æºã€å…è´¹è½¯ä»¶ã€‚
+    å…·ä½“ç‰ˆæƒè¯´æ˜è§COPYING.txtã€‚
 
-    ±¾Èí¼şµÄ±àÒë·½·¨¼ûBuild.txt¡£
+    æœ¬è½¯ä»¶çš„ç¼–è¯‘æ–¹æ³•è§Build.txtã€‚
 
-    ±¾Èí¼şµÄÊ¹ÓÃ·½·¨¼û http://blog.csdn.net/crazycoder8848/article/details/47209427
+    æœ¬è½¯ä»¶çš„ä½¿ç”¨æ–¹æ³•è§ http://blog.csdn.net/crazycoder8848/article/details/47209427
 
-    Ô´Âë»ñÈ¡µØÖ· https://github.com/sunmingbao/xb-ether-tester/archive/master.zip
+    æºç è·å–åœ°å€ https://github.com/sunmingbao/xb-ether-tester/archive/master.zip
 ======================
-×÷Õß: ËïÃ÷±£
-ÓÊÏä: sunmingbao@126.com
+ä½œè€…: å­™æ˜ä¿
+é‚®ç®±: sunmingbao@126.com

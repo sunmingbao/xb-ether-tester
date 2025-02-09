@@ -1,11 +1,11 @@
 /* 
- * ±¾Èí¼şÎªÃâ·Ñ¡¢¿ªÔ´Èí¼ş¡£
- * ±¾Èí¼şµÄ°æÈ¨(°üÀ¨Ô´Âë¼°¶ş½øÖÆ·¢²¼°æ±¾)¹éÒ»ÇĞ¹«ÖÚËùÓĞ¡£
- * Äú¿ÉÒÔ×ÔÓÉÊ¹ÓÃ¡¢´«²¥±¾Èí¼ş¡£
- * ÄúÒ²¿ÉÒÔÒÔÈÎºÎĞÎÊ½¡¢ÈÎºÎÄ¿µÄÊ¹ÓÃ±¾Èí¼ş(°üÀ¨Ô´Âë¼°¶ş½øÖÆ·¢²¼°æ±¾)£¬¶ø²»ÊÜÈÎºÎ°æÈ¨ÏŞÖÆ¡£
+ * æœ¬è½¯ä»¶ä¸ºå…è´¹ã€å¼€æºè½¯ä»¶ã€‚
+ * æœ¬è½¯ä»¶çš„ç‰ˆæƒ(åŒ…æ‹¬æºç åŠäºŒè¿›åˆ¶å‘å¸ƒç‰ˆæœ¬)å½’ä¸€åˆ‡å…¬ä¼—æ‰€æœ‰ã€‚
+ * æ‚¨å¯ä»¥è‡ªç”±ä½¿ç”¨ã€ä¼ æ’­æœ¬è½¯ä»¶ã€‚
+ * æ‚¨ä¹Ÿå¯ä»¥ä»¥ä»»ä½•å½¢å¼ã€ä»»ä½•ç›®çš„ä½¿ç”¨æœ¬è½¯ä»¶(åŒ…æ‹¬æºç åŠäºŒè¿›åˆ¶å‘å¸ƒç‰ˆæœ¬)ï¼Œè€Œä¸å—ä»»ä½•ç‰ˆæƒé™åˆ¶ã€‚
  * =====================
- * ×÷Õß: ËïÃ÷±£
- * ÓÊÏä: sunmingbao@126.com
+ * ä½œè€…: å­™æ˜ä¿
+ * é‚®ç®±: sunmingbao@126.com
  */
 
 #include <windows.h>
@@ -15,7 +15,7 @@
 #include "net.h"
 #include "gui.h"
 
-const char version[4]={'3','4','0',0};
+const char version[4]={'3','4','1',0};
 
 TCHAR szRightWinClassName[] = TEXT ("right_win") ;
 HWND    hwnd_right;
@@ -188,7 +188,7 @@ BOOL InsertListViewItems(HWND hWndListView, int cItems)
         lvI.mask      = LVIF_TEXT|LVIF_IMAGE;
 
         lvI.pszText   = TEXT("");;
-        lvI.iImage = -1; /* Èô²»ÒªÍ¼Æ¬£¬¾ÍÉèÖÃÎª-1 */
+        lvI.iImage = -1; /* ï¿½ï¿½ï¿½ï¿½ÒªÍ¼Æ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª-1 */
 
         // Insert items into the list.
         if (ListView_InsertItem(hWndListView, &lvI) == -1)
@@ -200,7 +200,7 @@ BOOL InsertListViewItems(HWND hWndListView, int cItems)
         lvI.mask      = LVIF_TEXT;
         lvI.pszText   = TEXT("");
         //lvI.pszText   = NULL;
-        lvI.iImage = -1; /* Èô²»ÒªÍ¼Æ¬£¬¾ÍÉèÖÃÎª-1 */
+        lvI.iImage = -1; /* ï¿½ï¿½ï¿½ï¿½ÒªÍ¼Æ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª-1 */
         ListView_SetItem(hWndListView, &lvI);
 
         lvI.iItem  = index;
@@ -209,7 +209,7 @@ BOOL InsertListViewItems(HWND hWndListView, int cItems)
         lvI.mask      = LVIF_TEXT|LVIF_IMAGE;
         lvI.pszText   = TEXT(" ");
         //lvI.pszText   = NULL;
-        lvI.iImage = 0; /* Èô²»ÒªÍ¼Æ¬£¬¾ÍÉèÖÃÎª-1 */
+        lvI.iImage = 0; /* ï¿½ï¿½ï¿½ï¿½ÒªÍ¼Æ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª-1 */
         ListView_SetItem(hWndListView, &lvI);
 
         for (iCol = 3; iCol < ARRAY_SIZE(col_names); iCol++)
@@ -238,7 +238,7 @@ BOOL InsertItemFromStream(HWND hWndListView, t_stream* pt_stream)
         lvI.mask      = LVIF_TEXT|LVIF_IMAGE;
 
         lvI.pszText   = TEXT(" ");
-        lvI.iImage = -1; /* Èô²»ÒªÍ¼Æ¬£¬¾ÍÉèÖÃÎª-1 */
+        lvI.iImage = -1; /* ï¿½ï¿½ï¿½ï¿½ÒªÍ¼Æ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª-1 */
 
         // Insert items into the list.
         if (ListView_InsertItem(hWndListView, &lvI) == -1)
@@ -253,7 +253,7 @@ BOOL InsertItemFromStream(HWND hWndListView, t_stream* pt_stream)
         lvI.mask      = LVIF_TEXT|LVIF_IMAGE;
         lvI.pszText   = TEXT(" ");
         //lvI.pszText   = NULL;
-        lvI.iImage = -1; /* Èô²»ÒªÍ¼Æ¬£¬¾ÍÉèÖÃÎª-1 */
+        lvI.iImage = -1; /* ï¿½ï¿½ï¿½ï¿½ÒªÍ¼Æ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª-1 */
         ListView_SetItem(hWndListView, &lvI);
 #if 0
         lvI.iItem  = index;
@@ -262,7 +262,7 @@ BOOL InsertItemFromStream(HWND hWndListView, t_stream* pt_stream)
         lvI.mask      = LVIF_TEXT|LVIF_IMAGE;
         lvI.pszText   = TEXT(" ");
         //lvI.pszText   = NULL;
-        lvI.iImage = -1; /* Èô²»ÒªÍ¼Æ¬£¬¾ÍÉèÖÃÎª-1 */
+        lvI.iImage = -1; /* ï¿½ï¿½ï¿½ï¿½ÒªÍ¼Æ¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª-1 */
         ListView_SetItem(hWndListView, &lvI);
 
 #else

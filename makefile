@@ -1,14 +1,14 @@
 # 
-# ±¾Èí¼þÎªÃâ·Ñ¡¢¿ªÔ´Èí¼þ¡£
-# ±¾Èí¼þµÄ°æÈ¨(°üÀ¨Ô´Âë¼°¶þ½øÖÆ·¢²¼°æ±¾)¹éÒ»ÇÐ¹«ÖÚËùÓÐ¡£
-# Äú¿ÉÒÔ×ÔÓÉÊ¹ÓÃ¡¢´«²¥±¾Èí¼þ¡£
-# ÄúÒ²¿ÉÒÔÒÔÈÎºÎÐÎÊ½¡¢ÈÎºÎÄ¿µÄÊ¹ÓÃ±¾Èí¼þ(°üÀ¨Ô´Âë¼°¶þ½øÖÆ·¢²¼°æ±¾)£¬¶ø²»ÊÜÈÎºÎ°æÈ¨ÏÞÖÆ¡£
+# æœ¬è½¯ä»¶ä¸ºå…è´¹ã€å¼€æºè½¯ä»¶ã€‚
+# æœ¬è½¯ä»¶çš„ç‰ˆæƒ(åŒ…æ‹¬æºç åŠäºŒè¿›åˆ¶å‘å¸ƒç‰ˆæœ¬)å½’ä¸€åˆ‡å…¬ä¼—æ‰€æœ‰ã€‚
+# æ‚¨å¯ä»¥è‡ªç”±ä½¿ç”¨ã€ä¼ æ’­æœ¬è½¯ä»¶ã€‚
+# æ‚¨ä¹Ÿå¯ä»¥ä»¥ä»»ä½•å½¢å¼ã€ä»»ä½•ç›®çš„ä½¿ç”¨æœ¬è½¯ä»¶(åŒ…æ‹¬æºç åŠäºŒè¿›åˆ¶å‘å¸ƒç‰ˆæœ¬)ï¼Œè€Œä¸å—ä»»ä½•ç‰ˆæƒé™åˆ¶ã€‚
 # =====================
-# ×÷Õß: ËïÃ÷±£
-# ÓÊÏä: sunmingbao@126.com
+# ä½œè€…: å­™æ˜Žä¿
+# é‚®ç®±: sunmingbao@126.com
 # 
 
-BUILD_TIME:=$(shell echo %date:~0,10%) $(shell echo %time:~0,8%)
+BUILD_TIME:=$(shell echo %date:~3,10%) $(shell echo %time:~0,8%)
 
 CC := gcc
 
@@ -125,7 +125,7 @@ $(OBJ_DIR)\sample_pkts.o: $(PRJ_DIR)\src\sample_pkts.c
 	$(CC) -c $(CFLAG) -o $@  $<
 
 installer:
-	makensis $(PRJ_DIR)\xb_ether_tester.nsi
+	makensis /INPUTCHARSET UTF8 $(PRJ_DIR)\xb_ether_tester.nsi
 	
 clean:
 	-cmd.exe /c del /F /Q  $(OBJ_DIR)\\*
@@ -138,6 +138,3 @@ prepare:
 all: default installer
 
 .PHONY: all prepare default installer clean
-
-
-

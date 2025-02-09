@@ -1,11 +1,11 @@
 /* 
- * ±¾Èí¼şÎªÃâ·Ñ¡¢¿ªÔ´Èí¼ş¡£
- * ±¾Èí¼şµÄ°æÈ¨(°üÀ¨Ô´Âë¼°¶ş½øÖÆ·¢²¼°æ±¾)¹éÒ»ÇĞ¹«ÖÚËùÓĞ¡£
- * Äú¿ÉÒÔ×ÔÓÉÊ¹ÓÃ¡¢´«²¥±¾Èí¼ş¡£
- * ÄúÒ²¿ÉÒÔÒÔÈÎºÎĞÎÊ½¡¢ÈÎºÎÄ¿µÄÊ¹ÓÃ±¾Èí¼ş(°üÀ¨Ô´Âë¼°¶ş½øÖÆ·¢²¼°æ±¾)£¬¶ø²»ÊÜÈÎºÎ°æÈ¨ÏŞÖÆ¡£
+ * æœ¬è½¯ä»¶ä¸ºå…è´¹ã€å¼€æºè½¯ä»¶ã€‚
+ * æœ¬è½¯ä»¶çš„ç‰ˆæƒ(åŒ…æ‹¬æºç åŠäºŒè¿›åˆ¶å‘å¸ƒç‰ˆæœ¬)å½’ä¸€åˆ‡å…¬ä¼—æ‰€æœ‰ã€‚
+ * æ‚¨å¯ä»¥è‡ªç”±ä½¿ç”¨ã€ä¼ æ’­æœ¬è½¯ä»¶ã€‚
+ * æ‚¨ä¹Ÿå¯ä»¥ä»¥ä»»ä½•å½¢å¼ã€ä»»ä½•ç›®çš„ä½¿ç”¨æœ¬è½¯ä»¶(åŒ…æ‹¬æºç åŠäºŒè¿›åˆ¶å‘å¸ƒç‰ˆæœ¬)ï¼Œè€Œä¸å—ä»»ä½•ç‰ˆæƒé™åˆ¶ã€‚
  * =====================
- * ×÷Õß: ËïÃ÷±£
- * ÓÊÏä: sunmingbao@126.com
+ * ä½œè€…: å­™æ˜ä¿
+ * é‚®ç®±: sunmingbao@126.com
  */
 #include <windows.h>
 #include <sys/time.h>
@@ -951,45 +951,45 @@ BOOL CALLBACK AboutDlgProc (HWND hDlg, UINT message,WPARAM wParam, LPARAM lParam
         , version[0] , version[1] , version[2]
         , BUILD_TIME);
 
-     	switch (message)
-     	{
-     	case 	WM_INITDIALOG :
-                center_child_win(hwnd_frame, hDlg);
-                SetDlgItemText(hDlg, ID_ABOUT_INFO, info);
-                SetFocus(GetDlgItem(hDlg, IDOK));
-          		return FALSE ;
+    switch (message)
+    {
+    case 	WM_INITDIALOG :
+            center_child_win(hwnd_frame, hDlg);
+            SetDlgItemText(hDlg, ID_ABOUT_INFO, info);
+            SetFocus(GetDlgItem(hDlg, IDOK));
+            return FALSE ;
 
-        case 	WM_CLOSE:
-   				SendMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
-   				return TRUE ;
+    case 	WM_CLOSE:
+            SendMessage(hDlg, WM_COMMAND, IDCANCEL, 0);
+            return TRUE ;
 
-     	case 	WM_COMMAND :
-          		switch (LOWORD (wParam))
-          		{
+    case 	WM_COMMAND :
+            switch (LOWORD (wParam))
+            {
 
-                case 	ID_AB_SOURCE:
-               		SendMessage(hwnd_frame, WM_COMMAND, IDM_GET_SOURCE, 0);
-               		return TRUE ;
-               		
-               	case 	ID_AB_SITE:
-               		SendMessage(hwnd_frame, WM_COMMAND, IDM_OPEN_OFFICIAL_SITE, 0);
-               		return TRUE ;
-               		
-               	case 	ID_AB_UPDATE:
-               		SendMessage(hwnd_frame, WM_COMMAND, IDM_GET_NEW_VERSION, 0);
-               		return TRUE ;
-                    
-               	case 	ID_AB_LINUX:
-               		SendMessage(hwnd_frame, WM_COMMAND, IDM_USER_MANUAL_LINUX, 0);
-               		return TRUE ;
-                    
-          		case 	IDOK :
-          		case 	IDCANCEL :
-               				EndDialog (hDlg, 0) ;
-               				return TRUE ;
-          }
-          		break ;
-     }
+            case 	ID_AB_SOURCE:
+                SendMessage(hwnd_frame, WM_COMMAND, IDM_GET_SOURCE, 0);
+                return TRUE ;
+                
+            case 	ID_AB_SITE:
+                SendMessage(hwnd_frame, WM_COMMAND, IDM_OPEN_OFFICIAL_SITE, 0);
+                return TRUE ;
+                
+            case 	ID_AB_UPDATE:
+                SendMessage(hwnd_frame, WM_COMMAND, IDM_GET_NEW_VERSION, 0);
+                return TRUE ;
+                
+            case 	ID_AB_LINUX:
+                SendMessage(hwnd_frame, WM_COMMAND, IDM_USER_MANUAL_LINUX, 0);
+                return TRUE ;
+                
+            case 	IDOK :
+            case 	IDCANCEL :
+                        EndDialog (hDlg, 0) ;
+                        return TRUE ;
+        }
+            break ;
+    }
   	return FALSE ;
 }
 

@@ -1,37 +1,54 @@
+1 set up the environment
 
-1. ±àÒë»·¾³×¼±¸
+1.1 install the tool-chain
 
-a).°²×°¹¤¾ßÁ´ 
-ÏÂÔØ²¢°²×°32Î»µÄtdm-gcc¹¤¾ßÁ´¡£
-°²×°Íê³Éºó£¬½«¹¤¾ßÁ´°²×°Ä¿Â¼ÏÂµÄbinÄ¿Â¼Ìí¼Óµ½PATH»·¾³±äÁ¿ÖĞ¡£
+download codeblocks-10.05mingw-setup.exe from the following URL and install it to "C:\CodeBlocks".
 
-b).°²×°WpdPack¿â¡£
+https://sourceforge.net/projects/codeblocks/files/Binaries/10.05/Windows/codeblocks-10.05mingw-setup.exe/download
+
+Then, add the mingw bin dir "C:\CodeBlocks\MinGW\bin" into the environment variable PATH.
+
+1.2 install the lib WpdPack
+
+download WpdPack_4_1_2.zip from the following URL.
 http://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
-´ÓÉÏÊöµØÖ·ÏÂÔØWpdPack¿â¡£
-½âÑ¹ºó£º
-i) ½«WpdPack\IncludeÏÂÃæµÄÄÚÈİ£¬¿½±´µ½tdm-gcc¹¤¾ßÁ´°²×°Ä¿Â¼ÏÂµÄincludeÄ¿Â¼ÖĞ¡£
-ii)½«WpdPack\LibÏÂÃæµÄÄÚÈİ£¬¿½±´µ½tdm-gcc¹¤¾ßÁ´°²×°Ä¿Â¼ÏÂµÄlibÄ¿Â¼ÖĞ¡£
 
-c). °²×°´ò°ü¹¤¾ßnsis
-http://sourceforge.net/projects/nsis/files/latest/download?source=files
-´ÓÉÏÊöµØÖ·ÏÂÔØnsis´ò°ü¹¤¾ß¡£
-°²×°ºó£¬½«nsisµÄ°²×°Ä¿Â¼Ìí¼Óµ½PATH»·¾³±äÁ¿ÖĞ¡£
+after uncompressingï¼š
 
-2. ±àÒë
+i) copy all the contents under 'WpdPack\Include' into 
+"C:\CodeBlocks\MinGW\include".
 
-´ò¿ªdos´°¿Ú£¬½øÈëÔ´Âë¸ùÄ¿Â¼¡£
-Ö´ĞĞÏàÓ¦µÄÃüÁî£¬¼´¿ÉÉú³ÉÏàÓ¦µÄÄ¿±ê¡£
-ËùÓĞµÄÄ¿±ê£¬¾ù»áÉú³Éµ½objÄ¿Â¼ÏÂ¡£
+ii) copy all the contents under "WpdPack\Lib" into 
+"C:\CodeBlocks\MinGW\lib".
 
-a)±àÒë³ÌĞò
+1.3 install the package tool NSIS
+
+download "nsis-3.03-setup.exe" from the following URL and install it to "C:\NSIS".
+
+"https://sourceforge.net/projects/nsis/files/NSIS%203/3.03/"
+
+Then, add the bin dir "C:\NSIS\Bin" into the environment variable PATH.
+
+2. build and pack
+
+2.1 enter the source dir
+
+open a DOS window
+cd /path/to/xb-ether-tester
+
+2.2 perform the operations as you wish
+
+Note: 
+All the contents generated are located in the dir "obj".
+
+a)build the program
 mingw32-make 
 
-b)Éú³É°²×°°ü
+b)generate the installer
 mingw32-make installer
 
-c)±àÒë³ÌĞò£¬²¢Éú³É°²×°°ü
+c)build the program and generate the installer
 mingw32-make all
 
-d)Çå¿ÕËùÓĞÄ¿±ê
+d)clean up all
 mingw32-make clean
-

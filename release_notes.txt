@@ -1,13 +1,14 @@
 
-	Xiaobing ethernet tester v3.4.0
+	Xiaobing ethernet tester v3.4.1
 
 
 Release date: 
 
-	2020-07-26
+	2025/02/09
 
 
 Changes:
 
-	- Replace Chinese in the GUI with English.
+	- eliminated encoding issues.
+	- fixed some flaws
 

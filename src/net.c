@@ -1,11 +1,11 @@
 /* 
- * ±¾Èí¼þÎªÃâ·Ñ¡¢¿ªÔ´Èí¼þ¡£
- * ±¾Èí¼þµÄ°æÈ¨(°üÀ¨Ô´Âë¼°¶þ½øÖÆ·¢²¼°æ±¾)¹éÒ»ÇÐ¹«ÖÚËùÓÐ¡£
- * Äú¿ÉÒÔ×ÔÓÉÊ¹ÓÃ¡¢´«²¥±¾Èí¼þ¡£
- * ÄúÒ²¿ÉÒÔÒÔÈÎºÎÐÎÊ½¡¢ÈÎºÎÄ¿µÄÊ¹ÓÃ±¾Èí¼þ(°üÀ¨Ô´Âë¼°¶þ½øÖÆ·¢²¼°æ±¾)£¬¶ø²»ÊÜÈÎºÎ°æÈ¨ÏÞÖÆ¡£
+ * æœ¬è½¯ä»¶ä¸ºå…è´¹ã€å¼€æºè½¯ä»¶ã€‚
+ * æœ¬è½¯ä»¶çš„ç‰ˆæƒ(åŒ…æ‹¬æºç åŠäºŒè¿›åˆ¶å‘å¸ƒç‰ˆæœ¬)å½’ä¸€åˆ‡å…¬ä¼—æ‰€æœ‰ã€‚
+ * æ‚¨å¯ä»¥è‡ªç”±ä½¿ç”¨ã€ä¼ æ’­æœ¬è½¯ä»¶ã€‚
+ * æ‚¨ä¹Ÿå¯ä»¥ä»¥ä»»ä½•å½¢å¼ã€ä»»ä½•ç›®çš„ä½¿ç”¨æœ¬è½¯ä»¶(åŒ…æ‹¬æºç åŠäºŒè¿›åˆ¶å‘å¸ƒç‰ˆæœ¬)ï¼Œè€Œä¸å—ä»»ä½•ç‰ˆæƒé™åˆ¶ã€‚
  * =====================
- * ×÷Õß: ËïÃ÷±£
- * ÓÊÏä: sunmingbao@126.com
+ * ä½œè€…: å­™æ˜Žä¿
+ * é‚®ç®±: sunmingbao@126.com
  */
 #include <windows.h>
 #include "common.h"
@@ -1126,8 +1126,8 @@ void * get_nic_FriendlyName(const char *name)
     {
         if (0==memcmp(pCurrAddresses->AdapterName, name, 38))
         {
-            /* pCurrAddresses->FriendlyNameÎªUNICODE±àÂë£¬´æ´¢ÀàÐÍÎªWCHAR 
-               ½«Ëû×ª»»³ÉGBK±àÂë */
+            /* pCurrAddresses->FriendlyNameÎªUNICODEï¿½ï¿½ï¿½ë£¬ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ÎªWCHAR 
+               ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½GBKï¿½ï¿½ï¿½ï¿½ */
             WideCharToMultiByte(CP_ACP, 0, pCurrAddresses->FriendlyName,
                 -1,  FriendlyName, 128,  NULL,  NULL);
 
